@@ -19,33 +19,56 @@ app.use(express.urlencoded({ extended: true }))
 
 async function initializeDatabase() {
   try {
-    // Check if the title column exists
-    const checkColumn = await sql`
-      SELECT column_name 
-      FROM information_schema.columns 
-      WHERE table_name = 'knowledge_base' AND column_name = 'title'
+    // Check if the table exists
+    const tableExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'knowledge_base'
+      );
     `
 
-    if (checkColumn.rows.length === 0) {
-      // Add title column if it doesn't exist
+    if (!tableExists.rows[0].exists) {
+      // Create the table if it doesn't exist
       await sql`
-        ALTER TABLE knowledge_base 
-        ADD COLUMN title TEXT
+        CREATE TABLE knowledge_base (
+          id SERIAL PRIMARY KEY,
+          title TEXT,
+          content TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
       `
-      console.log("Added title column to knowledge_base table")
+      console.log("Created knowledge_base table")
+    } else {
+      // Check if the title column exists
+      const titleColumnExists = await sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'knowledge_base' AND column_name = 'title'
+        );
+      `
+
+      if (!titleColumnExists.rows[0].exists) {
+        // Add title column if it doesn't exist
+        await sql`ALTER TABLE knowledge_base ADD COLUMN title TEXT`
+        console.log("Added title column to knowledge_base table")
+      }
+
+      // Check if the content column exists
+      const contentColumnExists = await sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'knowledge_base' AND column_name = 'content'
+        );
+      `
+
+      if (!contentColumnExists.rows[0].exists) {
+        // Add content column if it doesn't exist
+        await sql`ALTER TABLE knowledge_base ADD COLUMN content TEXT NOT NULL DEFAULT ''`
+        console.log("Added content column to knowledge_base table")
+      }
     }
 
-    // Recreate the table with the updated schema
-    await sql`
-      CREATE TABLE IF NOT EXISTS knowledge_base (
-        id SERIAL PRIMARY KEY,
-        title TEXT,
-        content TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `
-
-    // Recreate the full-text search index
+    // Create or replace the full-text search index
     await sql`
       DROP INDEX IF EXISTS idx_fts;
       CREATE INDEX idx_fts ON knowledge_base USING GIN (to_tsvector('english', COALESCE(title, '') || ' ' || content))
