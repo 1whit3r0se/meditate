@@ -82,12 +82,16 @@
       <input type="text" id="title" name="title" required>
     </div>
     <div>
+      <label for="question">Question:</label>
+      <input type="text" id="question" name="question" required>
+    </div>
+    <div>
       <label for="editor">Content:</label>
       <div id="editor"></div>
     </div>
     <button type="submit">Add Knowledge</button>
   </form>
-  
+
   <h2>Existing Knowledge</h2>
   <table id="knowledgeTable">
     <thead>
@@ -111,37 +115,39 @@
 
     document.addEventListener('DOMContentLoaded', loadKnowledge);
 
-    document.getElementById('knowledgeForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const title = document.getElementById('title').value;
-      const content = quill.root.innerHTML;
-      
-      try {
-        const response = await fetch('/api/admin/knowledge', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ title, content }),
-        });
-        
-        if (response.ok) {
-          document.getElementById('title').value = '';
-          quill.setContents([]);
-          
-          loadKnowledge();
-          
-          alert('Knowledge added successfully!');
-        } else {
-          const data = await response.json();
-          alert(`Error: ${data.error || 'Failed to add knowledge'}`);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while adding knowledge');
-      }
+document.getElementById('knowledgeForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const title = document.getElementById('title').value;
+  const question = document.getElementById('question').value;
+  const content = quill.root.innerHTML;
+  
+  try {
+    const response = await fetch('/api/admin/knowledge', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title, content, question }), // Add question here
     });
+    
+    if (response.ok) {
+      document.getElementById('title').value = '';
+      document.getElementById('question').value = ''; // Reset the question field
+      quill.setContents([]);
+      
+      loadKnowledge();
+      
+      alert('Knowledge added successfully!');
+    } else {
+      const data = await response.json();
+      alert(`Error: ${data.error || 'Failed to add knowledge'}`);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('An error occurred while adding knowledge');
+  }
+});
 
     async function loadKnowledge() {
       try {
