@@ -1,22 +1,20 @@
 // Theme toggle functionality
-const themeToggle = document.getElementById('themeToggle');
-const htmlElement = document.documentElement;
+const themeToggle = document.getElementById("themeToggle")
+const htmlElement = document.documentElement
 
 // Check for saved theme preference
-if (localStorage.getItem('darkMode') === 'true') {
-  htmlElement.classList.add('dark-mode');
-  themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+if (localStorage.getItem("darkMode") === "true") {
+  htmlElement.classList.add("dark-mode")
+  themeToggle.innerHTML = '<i class="fas fa-sun"></i>'
 }
 
-themeToggle.addEventListener('click', () => {
-  htmlElement.classList.toggle('dark-mode');
-  const isDarkMode = htmlElement.classList.contains('dark-mode');
-  localStorage.setItem('darkMode', isDarkMode);
-  
-  themeToggle.innerHTML = isDarkMode 
-    ? '<i class="fas fa-sun"></i>' 
-    : '<i class="fas fa-moon"></i>';
-});
+themeToggle.addEventListener("click", () => {
+  htmlElement.classList.toggle("dark-mode")
+  const isDarkMode = htmlElement.classList.contains("dark-mode")
+  localStorage.setItem("darkMode", isDarkMode)
+
+  themeToggle.innerHTML = isDarkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>'
+})
 
 // DOM elements
 const searchForm = document.getElementById('searchForm');
@@ -25,29 +23,75 @@ const resultsContainer = document.getElementById('resultsContainer');
 const resultsList = document.getElementById('resultsList');
 const resultsCount = document.getElementById('resultsCount');
 const contentContainer = document.getElementById('contentContainer');
+const suggestionsContainer = document.createElement('div');
+suggestionsContainer.className = 'suggestions-container';
+searchForm.appendChild(suggestionsContainer);
 
 // Loading indicator
 function showLoading() {
-  document.getElementById('loading').classList.add('show');
+  document.getElementById("loading").classList.add("show")
 }
 
 function hideLoading() {
-  document.getElementById('loading').classList.remove('show');
+  document.getElementById("loading").classList.remove("show")
 }
 
 // Highlight search terms in text
 function highlightText(text, searchTerms) {
-  if (!text) return '';
-  
-  let result = text;
-  searchTerms.forEach(term => {
-    if (term.length > 2) { // Only highlight terms with more than 2 characters
-      const regex = new RegExp(term, 'gi');
-      result = result.replace(regex, match => `<span class="highlight">${match}</span>`);
+  if (!text) return ""
+
+  let result = text
+  searchTerms.forEach((term) => {
+    if (term.length > 2) {
+      // Only highlight terms with more than 2 characters
+      const regex = new RegExp(term, "gi")
+      result = result.replace(regex, (match) => `<span class="highlight">${match}</span>`)
     }
-  });
+  })
+
+  return result
+}
+
+// New function to fetch autocomplete suggestions
+async function fetchSuggestions(query) {
+  try {
+    const response = await fetch('/api/autocomplete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query }),
+    });
+    
+    const data = await response.json();
+    return data.suggestions;
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    return [];
+  }
+}
+
+// New function to display suggestions
+function displaySuggestions(suggestions) {
+  suggestionsContainer.innerHTML = '';
   
-  return result;
+  if (suggestions.length > 0) {
+    const ul = document.createElement('ul');
+    ul.className = 'suggestions-list';
+    
+    suggestions.forEach(suggestion => {
+      const li = document.createElement('li');
+      li.textContent = suggestion.question || suggestion.title;
+      li.addEventListener('click', () => {
+        searchInput.value = li.textContent;
+        suggestionsContainer.innerHTML = '';
+        performSearch(li.textContent);
+      });
+      ul.appendChild(li);
+    });
+    
+    suggestionsContainer.appendChild(ul);
+  }
 }
 
 // Search functionality
@@ -148,22 +192,22 @@ async function performSearch(query) {
 
 // Show article content
 function showArticleContent(article, searchTerms) {
-  const highlightedQuestion = highlightText(article.question, searchTerms);
-  const highlightedAnswer = highlightText(article.answer, searchTerms);
-  const highlightedContent = highlightText(article.content, searchTerms);
-  
+  const highlightedQuestion = highlightText(article.question, searchTerms)
+  const highlightedAnswer = highlightText(article.answer, searchTerms)
+  const highlightedContent = highlightText(article.content, searchTerms)
+
   contentContainer.innerHTML = `
     <div class="result-content show">
-      <h2>${article.title || 'Untitled'}</h2>
-      <div class="result-question">${highlightedQuestion || ''}</div>
-      <div class="result-answer">${highlightedAnswer || ''}</div>
-      <div class="result-full-content">${highlightedContent || ''}</div>
+      <h2>${article.title || "Untitled"}</h2>
+      <div class="result-question">${highlightedQuestion || ""}</div>
+      <div class="result-answer">${highlightedAnswer || ""}</div>
+      <div class="result-full-content">${highlightedContent || ""}</div>
     </div>
-  `;
-  
+  `
+
   // Scroll to content on mobile
   if (window.innerWidth < 768) {
-    contentContainer.scrollIntoView({ behavior: 'smooth' });
+    contentContainer.scrollIntoView({ behavior: "smooth" })
   }
 }
 
@@ -174,20 +218,28 @@ searchForm.addEventListener('submit', (e) => {
   
   if (query) {
     performSearch(query);
+    suggestionsContainer.innerHTML = '';
   }
 });
 
-// Handle input changes (for real-time search)
+// Handle input changes (for real-time search and suggestions)
 let debounceTimer;
 searchInput.addEventListener('input', () => {
   clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
+  debounceTimer = setTimeout(async () => {
     const query = searchInput.value.trim();
-    if (query.length >= 3) {
-      performSearch(query);
-    } else if (query.length === 0) {
-      resultsContainer.classList.remove('show');
-      contentContainer.innerHTML = '';
+    if (query.length >= 2) {
+      const suggestions = await fetchSuggestions(query);
+      displaySuggestions(suggestions);
+    } else {
+      suggestionsContainer.innerHTML = '';
     }
-  }, 500);
+  }, 300);
+});
+
+// Close suggestions when clicking outside
+document.addEventListener('click', (e) => {
+  if (!searchForm.contains(e.target)) {
+    suggestionsContainer.innerHTML = '';
+  }
 });
