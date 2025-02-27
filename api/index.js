@@ -8,6 +8,11 @@ import path from "path"
 // Load environment variables
 dotenv.config()
 
+// Simple keyword extraction function
+function extractKeywords(text) {
+  return text.toLowerCase().match(/\b(\w+)\b/g) || []
+}
+
 const app = express()
 
 // Middleware
@@ -27,7 +32,7 @@ async function initializeDatabase() {
       )
     `
     await sql`
-      CREATE INDEX IF NOT EXISTS idx_question ON knowledge_base (question)
+      CREATE INDEX IF NOT EXISTS idx_fts ON knowledge_base USING GIN (to_tsvector('english', question || ' ' || answer))
     `
     console.log("Database initialized successfully")
   } catch (error) {
@@ -47,17 +52,33 @@ app.post("/api/chat", async (req, res) => {
   }
 
   try {
-    // Search for the most relevant answer using LIKE
+    const keywords = extractKeywords(query)
+    const searchQuery = keywords.join(" | ")
+
     const result = await sql`
-      SELECT answer FROM knowledge_base 
-      WHERE question ILIKE ${`%${query}%`}
+      SELECT id, question, answer,
+             ts_rank(to_tsvector('english', question || ' ' || answer), to_tsquery('english', ${searchQuery})) AS rank
+      FROM knowledge_base
+      WHERE to_tsvector('english', question || ' ' || answer) @@ to_tsquery('english', ${searchQuery})
+      ORDER BY rank DESC
       LIMIT 1
     `
 
     if (result.rows.length > 0) {
       return res.json({ answer: result.rows[0].answer })
     } else {
-      return res.json({ answer: "Sorry, I couldn't find an answer to that." })
+      // Fallback to LIKE query if no results found
+      const fallbackResult = await sql`
+        SELECT answer FROM knowledge_base 
+        WHERE question ILIKE ${`%${query}%`}
+        LIMIT 1
+      `
+
+      if (fallbackResult.rows.length > 0) {
+        return res.json({ answer: fallbackResult.rows[0].answer })
+      } else {
+        return res.json({ answer: "Sorry, I couldn't find an answer to that." })
+      }
     }
   } catch (error) {
     console.error("Error querying database:", error)
