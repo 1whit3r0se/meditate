@@ -19,17 +19,38 @@ app.use(express.urlencoded({ extended: true }))
 
 async function initializeDatabase() {
   try {
+    // Check if the title column exists
+    const checkColumn = await sql`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'knowledge_base' AND column_name = 'title'
+    `
+
+    if (checkColumn.rows.length === 0) {
+      // Add title column if it doesn't exist
+      await sql`
+        ALTER TABLE knowledge_base 
+        ADD COLUMN title TEXT
+      `
+      console.log("Added title column to knowledge_base table")
+    }
+
+    // Recreate the table with the updated schema
     await sql`
       CREATE TABLE IF NOT EXISTS knowledge_base (
         id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
+        title TEXT,
         content TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `
+
+    // Recreate the full-text search index
     await sql`
-      CREATE INDEX IF NOT EXISTS idx_fts ON knowledge_base USING GIN (to_tsvector('english', title || ' ' || content))
+      DROP INDEX IF EXISTS idx_fts;
+      CREATE INDEX idx_fts ON knowledge_base USING GIN (to_tsvector('english', COALESCE(title, '') || ' ' || content))
     `
+
     console.log("Database initialized successfully")
   } catch (error) {
     console.error("Error initializing database:", error)
@@ -51,9 +72,9 @@ app.post("/api/chat", async (req, res) => {
 
     const result = await sql`
       SELECT id, title, content,
-             ts_rank(to_tsvector('english', title || ' ' || content), to_tsquery('english', ${searchQuery})) AS rank
+             ts_rank(to_tsvector('english', COALESCE(title, '') || ' ' || content), to_tsquery('english', ${searchQuery})) AS rank
       FROM knowledge_base
-      WHERE to_tsvector('english', title || ' ' || content) @@ to_tsquery('english', ${searchQuery})
+      WHERE to_tsvector('english', COALESCE(title, '') || ' ' || content) @@ to_tsquery('english', ${searchQuery})
       ORDER BY rank DESC
       LIMIT 5
     `

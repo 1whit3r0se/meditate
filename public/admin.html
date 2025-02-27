@@ -157,7 +157,7 @@
             
             row.innerHTML = `
               <td>${item.id}</td>
-              <td>${escapeHtml(item.title)}</td>
+              <td>${escapeHtml(item.title || '')}</td>
               <td>${item.content.substring(0, 100)}...</td>
               <td>
                 <button class="delete-btn" data-id="${item.id}">Delete</button>
