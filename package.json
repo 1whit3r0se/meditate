@@ -2,21 +2,24 @@
     "name": "ai-knowledge-assistant",
     "version": "1.0.0",
     "description": "AI assistant that can be trained on specific information",
-    "main": "server.js",
     "type": "module",
     "scripts": {
-        "start": "node server.js",
-        "dev": "nodemon server.js"
+      "dev": "vercel dev",
+      "build": "mkdir -p public && echo 'App is running' > public/index.html"
     },
     "dependencies": {
-        "@ai-sdk/openai": "^1.0.0",
-        "ai": "^2.2.31",
-        "cors": "^2.8.5",
-        "dotenv": "^16.3.1",
-        "express": "^4.18.2",
-        "pg": "^8.11.3"
+      "@ai-sdk/openai": "^1.0.0",
+      "@vercel/postgres": "^0.5.1",
+      "ai": "^2.2.31",
+      "cors": "^2.8.5",
+      "dotenv": "^16.3.1",
+      "express": "^4.18.2",
+      "pg": "^8.11.3"
     },
     "devDependencies": {
-        "nodemon": "^3.0.1"
+      "nodemon": "^3.0.1",
+      "vercel": "^32.5.0"
     }
-}
+  }
+  
+  
