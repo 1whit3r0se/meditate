@@ -1,23 +1,28 @@
 {
-    "name": "ai-knowledge-assistant",
+    "name": "knowledge-base-chat",
     "version": "1.0.0",
-    "description": "AI assistant that can be trained on specific information",
+    "description": "A Node.js application with PostgreSQL for knowledge base chat",
+    "main": "api/index.js",
     "type": "module",
     "scripts": {
-      "dev": "vercel dev",
-      "build": "mkdir -p public && echo 'App is running' > public/index.html"
+      "start": "node api/index.js",
+      "dev": "nodemon api/index.js",
+      "test": "echo \"Error: no test specified\" && exit 1"
     },
+    "keywords": ["node", "express", "postgresql", "chat", "knowledge-base"],
+    "author": "",
+    "license": "ISC",
     "dependencies": {
-      "@vercel/postgres": "^0.5.1",
       "cors": "^2.8.5",
       "dotenv": "^16.3.1",
       "express": "^4.18.2",
-      "openai": "^4.0.0",
       "pg": "^8.11.3"
     },
     "devDependencies": {
-      "nodemon": "^3.0.1",
-      "vercel": "^32.5.0"
+      "nodemon": "^3.0.1"
+    },
+    "engines": {
+      "node": ">=14.0.0"
     }
   }
   

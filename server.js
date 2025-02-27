@@ -1,125 +1,144 @@
 import express from "express"
-import { sql } from "@vercel/postgres"
-import cors from "cors"
-import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
+import pg from "pg"
 import dotenv from "dotenv"
+import cors from "cors"
 
+// Load environment variables
 dotenv.config()
 
 const app = express()
-app.use(cors())
+const PORT = process.env.PORT || 3000
+
+// Middleware
 app.use(express.json())
-app.use(express.static("public"))
+app.use(cors())
+app.use(express.urlencoded({ extended: true }))
+
+// PostgreSQL client setup
+const pool = new pg.Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+})
 
 // Initialize database
 async function initializeDatabase() {
+  const client = await pool.connect()
   try {
-    await sql`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS knowledge_base (
         id SERIAL PRIMARY KEY,
-        topic TEXT NOT NULL,
-        content TEXT NOT NULL,
+        question TEXT NOT NULL,
+        answer TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-      
-      CREATE TABLE IF NOT EXISTS chat_history (
-        id SERIAL PRIMARY KEY,
-        user_message TEXT NOT NULL,
-        ai_response TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `
-    console.log("Database initialized")
+      )
+    `)
+    console.log("Database initialized successfully")
   } catch (error) {
     console.error("Error initializing database:", error)
+  } finally {
+    client.release()
   }
 }
 
+// Initialize the database when the app starts
 initializeDatabase()
 
-// Add knowledge to the database
-app.post("/api/knowledge", async (req, res) => {
+// Chat endpoint
+app.post("/chat", async (req, res) => {
+  const { query } = req.body
+
+  if (!query) {
+    return res.status(400).json({ error: "Query is required" })
+  }
+
   try {
-    const { topic, content } = req.body
-    const result = await sql`
-      INSERT INTO knowledge_base (topic, content) 
-      VALUES (${topic}, ${content}) 
-      RETURNING *
-    `
-    res.json(result.rows[0])
+    const client = await pool.connect()
+
+    // Search for the most relevant answer
+    // This is a simple implementation - in a production app, you might want to use
+    // more sophisticated text search capabilities of PostgreSQL
+    const result = await client.query(
+      `SELECT answer FROM knowledge_base 
+       WHERE question ILIKE $1 
+       ORDER BY similarity(question, $2) DESC 
+       LIMIT 1`,
+      [`%${query}%`, query],
+    )
+
+    client.release()
+
+    if (result.rows.length > 0) {
+      return res.json({ answer: result.rows[0].answer })
+    } else {
+      return res.json({ answer: "Sorry, I couldn't find an answer to that." })
+    }
+  } catch (error) {
+    console.error("Error querying database:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// Admin endpoints for managing the knowledge base
+app.post("/admin/knowledge", async (req, res) => {
+  const { question, answer } = req.body
+
+  if (!question || !answer) {
+    return res.status(400).json({ error: "Question and answer are required" })
+  }
+
+  try {
+    const client = await pool.connect()
+
+    await client.query("INSERT INTO knowledge_base (question, answer) VALUES ($1, $2)", [question, answer])
+
+    client.release()
+
+    return res.status(201).json({ message: "Knowledge added successfully" })
   } catch (error) {
     console.error("Error adding knowledge:", error)
-    res.status(500).json({ error: "Failed to add knowledge" })
+    return res.status(500).json({ error: "Internal server error" })
   }
 })
 
-// Get all knowledge topics
-app.get("/api/knowledge", async (req, res) => {
+app.get("/admin/knowledge", async (req, res) => {
   try {
-    const result = await sql`SELECT * FROM knowledge_base`
-    res.json(result.rows)
+    const client = await pool.connect()
+
+    const result = await client.query("SELECT id, question, answer FROM knowledge_base ORDER BY id DESC")
+
+    client.release()
+
+    return res.json({ knowledge: result.rows })
   } catch (error) {
     console.error("Error fetching knowledge:", error)
-    res.status(500).json({ error: "Failed to fetch knowledge" })
+    return res.status(500).json({ error: "Internal server error" })
   }
 })
 
-// Chat endpoint
-app.post("/api/chat", async (req, res) => {
+// Delete knowledge entry
+app.delete("/admin/knowledge/:id", async (req, res) => {
+  const { id } = req.params
+
   try {
-    const { message } = req.body
+    const client = await pool.connect()
 
-    // Fetch relevant knowledge from database
-    const knowledgeResult = await sql`SELECT * FROM knowledge_base`
-    const knowledgeBase = knowledgeResult.rows
+    await client.query("DELETE FROM knowledge_base WHERE id = $1", [id])
 
-    // Format knowledge as context for the AI
-    const knowledgeContext = knowledgeBase.map((k) => `Topic: ${k.topic}\nContent: ${k.content}`).join("\n\n")
+    client.release()
 
-    // Generate AI response
-    const { text } = await generateText({
-      model: openai("gpt-4o"),
-      prompt: `You are an AI assistant trained on specific knowledge. 
-      Use the following information to answer the user's question. 
-      If the information doesn't contain the answer, say you don't have that information.
-      
-      KNOWLEDGE BASE:
-      ${knowledgeContext}
-      
-      USER QUESTION: ${message}`,
-      maxTokens: 500,
-    })
-
-    // Save to chat history
-    await sql`
-      INSERT INTO chat_history (user_message, ai_response) 
-      VALUES (${message}, ${text})
-    `
-
-    res.json({ response: text })
+    return res.json({ message: "Knowledge deleted successfully" })
   } catch (error) {
-    console.error("Error generating response:", error)
-    res.status(500).json({ error: "Failed to generate response" })
+    console.error("Error deleting knowledge:", error)
+    return res.status(500).json({ error: "Internal server error" })
   }
 })
 
-// Get chat history
-app.get("/api/history", async (req, res) => {
-  try {
-    const result = await sql`
-      SELECT * FROM chat_history 
-      ORDER BY created_at DESC
-    `
-    res.json(result.rows)
-  } catch (error) {
-    console.error("Error fetching chat history:", error)
-    res.status(500).json({ error: "Failed to fetch chat history" })
-  }
-})
-
-const PORT = process.env.PORT || 3000
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+
+export default app
 
