@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Base Admin</title>
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
@@ -11,7 +12,7 @@
       margin: 0 auto;
       padding: 20px;
     }
-    h1 {
+    h1, h2 {
       color: #333;
     }
     form {
@@ -25,15 +26,15 @@
       margin-bottom: 5px;
       font-weight: bold;
     }
-    input, textarea {
+    input, #editor {
       width: 100%;
       padding: 8px;
       margin-bottom: 15px;
       border: 1px solid #ddd;
       border-radius: 4px;
     }
-    textarea {
-      min-height: 100px;
+    #editor {
+      height: 200px;
     }
     button {
       background-color: #4CAF50;
@@ -77,12 +78,12 @@
   <form id="knowledgeForm">
     <h2>Add New Knowledge</h2>
     <div>
-      <label for="question">Question:</label>
-      <input type="text" id="question" name="question" required>
+      <label for="title">Title:</label>
+      <input type="text" id="title" name="title" required>
     </div>
     <div>
-      <label for="answer">Answer:</label>
-      <textarea id="answer" name="answer" required></textarea>
+      <label for="editor">Content:</label>
+      <div id="editor"></div>
     </div>
     <button type="submit">Add Knowledge</button>
   </form>
@@ -92,8 +93,8 @@
     <thead>
       <tr>
         <th>ID</th>
-        <th>Question</th>
-        <th>Answer</th>
+        <th>Title</th>
+        <th>Content</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -102,16 +103,19 @@
     </tbody>
   </table>
 
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
   <script>
-    // Load existing knowledge when the page loads
+    var quill = new Quill('#editor', {
+      theme: 'snow'
+    });
+
     document.addEventListener('DOMContentLoaded', loadKnowledge);
 
-    // Handle form submission
     document.getElementById('knowledgeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const question = document.getElementById('question').value;
-      const answer = document.getElementById('answer').value;
+      const title = document.getElementById('title').value;
+      const content = quill.root.innerHTML;
       
       try {
         const response = await fetch('/api/admin/knowledge', {
@@ -119,15 +123,13 @@
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ question, answer }),
+          body: JSON.stringify({ title, content }),
         });
         
         if (response.ok) {
-          // Clear the form
-          document.getElementById('question').value = '';
-          document.getElementById('answer').value = '';
+          document.getElementById('title').value = '';
+          quill.setContents([]);
           
-          // Reload the knowledge list
           loadKnowledge();
           
           alert('Knowledge added successfully!');
@@ -141,7 +143,6 @@
       }
     });
 
-    // Load existing knowledge
     async function loadKnowledge() {
       try {
         const response = await fetch('/api/admin/knowledge');
@@ -156,8 +157,8 @@
             
             row.innerHTML = `
               <td>${item.id}</td>
-              <td>${escapeHtml(item.question)}</td>
-              <td>${escapeHtml(item.answer)}</td>
+              <td>${escapeHtml(item.title)}</td>
+              <td>${item.content.substring(0, 100)}...</td>
               <td>
                 <button class="delete-btn" data-id="${item.id}">Delete</button>
               </td>
@@ -166,7 +167,6 @@
             tableBody.appendChild(row);
           });
           
-          // Add event listeners to delete buttons
           document.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', deleteKnowledge);
           });
@@ -179,7 +179,6 @@
       }
     }
 
-    // Delete knowledge
     async function deleteKnowledge() {
       const id = this.getAttribute('data-id');
       
@@ -190,7 +189,6 @@
           });
           
           if (response.ok) {
-            // Reload the knowledge list
             loadKnowledge();
             
             alert('Knowledge deleted successfully!');
@@ -205,7 +203,6 @@
       }
     }
 
-    // Helper function to escape HTML
     function escapeHtml(unsafe) {
       return unsafe
         .replace(/&/g, "&amp;")
@@ -217,3 +214,4 @@
   </script>
 </body>
 </html>
+
