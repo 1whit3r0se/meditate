@@ -31,11 +31,28 @@ async function initializeDatabase() {
         CREATE TABLE "knowledge_base" (
           "id" SERIAL PRIMARY KEY,
           "title" TEXT,
+          "question" TEXT NOT NULL,
           "content" TEXT NOT NULL,
           "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `;
       console.log("Created knowledge_base table");
+    } else {
+      // Check if question column exists
+      const questionColumnExists = await sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns
+          WHERE table_name = 'knowledge_base' AND column_name = 'question'
+        );
+      `;
+      
+      // Add question column if it doesn't exist
+      if (!questionColumnExists.rows[0].exists) {
+        await sql`
+          ALTER TABLE "knowledge_base" ADD COLUMN "question" TEXT NOT NULL DEFAULT '';
+        `;
+        console.log("Added 'question' column to knowledge_base table");
+      }
     }
 
     // Ensure the 'content' column exists
@@ -56,7 +73,7 @@ async function initializeDatabase() {
     // Create or replace the full-text search index
     await sql`
       DROP INDEX IF EXISTS idx_fts;
-      CREATE INDEX idx_fts ON "knowledge_base" USING GIN (to_tsvector('english', COALESCE("title", '') || ' ' || "content"));
+      CREATE INDEX idx_fts ON "knowledge_base" USING GIN (to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content"));
     `;
 
     console.log("Database initialized successfully");
@@ -79,10 +96,10 @@ app.post("/api/chat", async (req, res) => {
     const searchQuery = keywords.join(" | ")
 
     const result = await sql`
-      SELECT "id", "title", "content",
-             ts_rank(to_tsvector('english', COALESCE("title", '') || ' ' || "content"), to_tsquery('english', ${searchQuery})) AS rank
+      SELECT "id", "title", "question", "content",
+             ts_rank(to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content"), to_tsquery('english', ${searchQuery})) AS rank
       FROM "knowledge_base"
-      WHERE to_tsvector('english', COALESCE("title", '') || ' ' || "content") @@ to_tsquery('english', ${searchQuery})
+      WHERE to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content") @@ to_tsquery('english', ${searchQuery})
       ORDER BY rank DESC
       LIMIT 5
     `
@@ -99,16 +116,16 @@ app.post("/api/chat", async (req, res) => {
 })
 
 app.post("/api/admin/knowledge", async (req, res) => {
-  const { title, content } = req.body
+  const { title, content, question } = req.body
 
-  if (!title || !content) {
-    return res.status(400).json({ error: "Title and content are required" })
+  if (!title || !content || !question) {
+    return res.status(400).json({ error: "Title, question, and content are required" })
   }
 
   try {
     await sql`
-      INSERT INTO "knowledge_base" ("title", "content") 
-      VALUES (${title}, ${content})
+      INSERT INTO "knowledge_base" ("title", "content", "question") 
+      VALUES (${title}, ${content}, ${question})
     `
 
     return res.status(201).json({ message: "Knowledge added successfully" })
@@ -121,7 +138,7 @@ app.post("/api/admin/knowledge", async (req, res) => {
 app.get("/api/admin/knowledge", async (req, res) => {
   try {
     const result = await sql`
-      SELECT "id", "title", "content" FROM "knowledge_base" 
+      SELECT "id", "title", "question", "content" FROM "knowledge_base" 
       ORDER BY "id" DESC
     `
 

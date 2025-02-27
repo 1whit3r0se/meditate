@@ -4,127 +4,460 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Base Chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --danger: #f72585;
+      --warning: #f8961e;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+
+    .dark-mode {
+      --primary: #4cc9f0;
+      --primary-dark: #4361ee;
+      --secondary: #7209b7;
+      --success: #4cc9f0;
+      --danger: #f72585;
+      --warning: #f8961e;
+      --light: #2b2d42;
+      --dark: #edf2f4;
+      --gray: #adb5bd;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-      max-width: 800px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      color: var(--dark);
+      transition: var(--transition);
+      min-height: 100vh;
+    }
+
+    .dark-mode body {
+      background-color: #121212;
+    }
+
+    .container {
+      max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
     h1 {
-      color: #333;
+      color: var(--dark);
+      margin-bottom: 20px;
+      font-weight: 600;
       text-align: center;
     }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      color: var(--dark);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .theme-toggle:hover {
+      transform: rotate(30deg);
+    }
+
     .chat-container {
       display: flex;
       flex-direction: column;
-      height: 500px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
+      height: 70vh;
+      border-radius: var(--border-radius);
       overflow: hidden;
+      box-shadow: var(--box-shadow);
+      background-color: white;
+      transition: var(--transition);
     }
+
+    .dark-mode .chat-container {
+      background-color: #1e1e1e;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background-color: var(--primary);
+      color: white;
+    }
+
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 15px;
-      background-color: #f9f9f9;
+      padding: 20px;
+      background-color: white;
+      transition: var(--transition);
     }
+
+    .dark-mode .chat-messages {
+      background-color: #1e1e1e;
+    }
+
     .message {
-      margin-bottom: 15px;
-      padding: 10px;
-      border-radius: 5px;
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: var(--border-radius);
       max-width: 80%;
+      position: relative;
       animation: fadeIn 0.5s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      line-height: 1.5;
     }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
     .user-message {
-      background-color: #e3f2fd;
+      background-color: var(--primary);
+      color: white;
       margin-left: auto;
+      border-bottom-right-radius: 0;
     }
+
+    .user-message:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      right: -10px;
+      width: 0;
+      height: 0;
+      border: 10px solid transparent;
+      border-left-color: var(--primary);
+      border-right: 0;
+      border-bottom: 0;
+    }
+
     .bot-message {
       background-color: #f1f1f1;
+      color: var(--dark);
+      border-bottom-left-radius: 0;
     }
+
+    .dark-mode .bot-message {
+      background-color: #333;
+      color: white;
+    }
+
+    .bot-message:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: -10px;
+      width: 0;
+      height: 0;
+      border: 10px solid transparent;
+      border-right-color: #f1f1f1;
+      border-left: 0;
+      border-bottom: 0;
+    }
+
+    .dark-mode .bot-message:after {
+      border-right-color: #333;
+    }
+
     .chat-input {
       display: flex;
-      padding: 10px;
-      background-color: #fff;
-      border-top: 1px solid #ddd;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-top: 1px solid #e0e0e0;
+      transition: var(--transition);
     }
+
+    .dark-mode .chat-input {
+      background-color: #2a2a2a;
+      border-top: 1px solid #333;
+    }
+
     .chat-input input {
       flex: 1;
-      padding: 10px;
+      padding: 12px 15px;
       border: 1px solid #ddd;
-      border-radius: 4px;
+      border-radius: var(--border-radius);
       margin-right: 10px;
+      font-size: 16px;
+      transition: var(--transition);
     }
-    .chat-input button {
-      background-color: #4CAF50;
+
+    .dark-mode .chat-input input {
+      background-color: #333;
+      border-color: #444;
       color: white;
-      padding: 10px 15px;
+    }
+
+    .chat-input input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    .chat-input button {
+      background-color: var(--primary);
+      color: white;
+      padding: 12px 20px;
       border: none;
-      border-radius: 4px;
+      border-radius: var(--border-radius);
       cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
     .chat-input button:hover {
-      background-color: #45a049;
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
     }
+
+    .chat-input button i {
+      margin-left: 8px;
+    }
+
     .article-buttons {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 10px;
+      margin-top: 15px;
+      animation: fadeIn 0.5s;
     }
+
     .article-button {
-      background-color: #f1f1f1;
-      border: none;
-      padding: 10px;
+      background-color: white;
+      border: 1px solid #e0e0e0;
+      padding: 15px;
       text-align: left;
       cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s;
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
+
+    .dark-mode .article-button {
+      background-color: #333;
+      border-color: #444;
+      color: white;
+    }
+
     .article-button:hover {
-      background-color: #e3e3e3;
+      background-color: #f8f9fa;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
+
+    .dark-mode .article-button:hover {
+      background-color: #444;
+    }
+
+    .article-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--primary);
+    }
+
+    .article-question {
+      font-style: italic;
+      margin-bottom: 10px;
+      color: var(--gray);
+    }
+
     .article-preview {
-      display: none;
-      position: absolute;
-      background-color: #fff;
-      border: 1px solid #ddd;
-      padding: 10px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      
-      max-width: 300px;
-      z-index: 1000;
+      color: var(--dark);
+      font-size: 0.9rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
-    .article-button:hover .article-preview {
-      display: block;
+
+    .dark-mode .article-preview {
+      color: #ddd;
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .typing-indicator span {
+      height: 10px;
+      width: 10px;
+      margin: 0 2px;
+      background-color: #bbb;
+      border-radius: 50%;
+      display: inline-block;
+      opacity: 0.4;
+    }
+
+    .typing-indicator span:nth-child(1) {
+      animation: pulse 1s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation: pulse 1s infinite 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation: pulse 1s infinite 0.4s;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0.4; transform: scale(1); }
+    }
+
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+    }
+
+    .dark-mode .loading {
+      background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    .loading.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .chat-container {
+        height: 80vh;
+      }
+      
+      .message {
+        max-width: 90%;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Knowledge Base Chat</h1>
-  
-  <div class="chat-container">
-    <div class="chat-messages" id="chatMessages">
-      <div class="message bot-message">
-        Hello! How can I help you today?
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-robot"></i> Knowledge Base Chat</h1>
+      <button id="themeToggle" class="theme-toggle">
+        <i class="fas fa-moon"></i>
+      </button>
+    </header>
+    
+    <div class="chat-container">
+      <div class="chat-header">
+        <div>
+          <i class="fas fa-comments"></i> Chat Assistant
+        </div>
       </div>
-    </div>
-    <div class="chat-input">
-      <input type="text" id="userInput" placeholder="Type your question here...">
-      <button id="sendButton">Send</button>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot-message">
+          Hello! How can I help you today? Ask me anything about our knowledge base.
+        </div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="userInput" placeholder="Type your question here...">
+        <button id="sendButton">Send <i class="fas fa-paper-plane"></i></button>
+      </div>
     </div>
   </div>
 
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+  </div>
+
   <script>
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const htmlElement = document.documentElement;
+    
+    // Check for saved theme preference
+    if (localStorage.getItem('darkMode') === 'true') {
+      htmlElement.classList.add('dark-mode');
+      themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      htmlElement.classList.toggle('dark-mode');
+      const isDarkMode = htmlElement.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDarkMode);
+      
+      themeToggle.innerHTML = isDarkMode 
+        ? '<i class="fas fa-sun"></i>' 
+        : '<i class="fas fa-moon"></i>';
+    });
+
     const chatMessages = document.getElementById('chatMessages');
     const userInput = document.getElementById('userInput');
     const sendButton = document.getElementById('sendButton');
+
+    // Loading indicator
+    function showLoading() {
+      document.getElementById('loading').classList.add('show');
+    }
+    
+    function hideLoading() {
+      document.getElementById('loading').classList.remove('show');
+    }
 
     function addMessage(message, isUser = false) {
       const messageElement = document.createElement('div');
@@ -137,20 +470,40 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    function showTypingIndicator() {
+      const indicator = document.createElement('div');
+      indicator.classList.add('typing-indicator');
+      indicator.id = 'typingIndicator';
+      indicator.innerHTML = `
+        <span></span>
+        <span></span>
+        <span></span>
+      `;
+      
+      chatMessages.appendChild(indicator);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) {
+        indicator.remove();
+      }
+    }
+
     function createArticleButtons(articles) {
       const buttonsContainer = document.createElement('div');
       buttonsContainer.classList.add('article-buttons');
       
       articles.forEach(article => {
-        const button = document.createElement('button');
+        const button = document.createElement('div');
         button.classList.add('article-button');
-        button.textContent = article.title;
         
-        const preview = document.createElement('div');
-        preview.classList.add('article-preview');
-        preview.innerHTML = article.content.substring(0, 200) + '...';
-        
-        button.appendChild(preview);
+        button.innerHTML = `
+          <div class="article-title">${article.title || 'Untitled'}</div>
+          <div class="article-question">${article.question || ''}</div>
+          <div class="article-preview">${article.content.substring(0, 150)}...</div>
+        `;
         
         button.addEventListener('click', () => {
           addMessage(article.content);
@@ -164,6 +517,9 @@
 
     async function sendMessage(message) {
       try {
+        showTypingIndicator();
+        showLoading();
+        
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: {
@@ -174,16 +530,21 @@
         
         const data = await response.json();
         
+        removeTypingIndicator();
+        
         if (data.articles && data.articles.length > 0) {
           const buttonsContainer = createArticleButtons(data.articles);
           addMessage('I found these relevant articles. Click on one to view its content:');
           chatMessages.appendChild(buttonsContainer);
         } else {
-          addMessage("I'm sorry, I couldn't find any relevant information for your query.");
+          addMessage("I'm sorry, I couldn't find any relevant information for your query. Please try asking in a different way or contact support for assistance.");
         }
       } catch (error) {
         console.error('Error:', error);
-        addMessage('Sorry, an error occurred while processing your request.');
+        removeTypingIndicator();
+        addMessage('Sorry, an error occurred while processing your request. Please try again later.');
+      } finally {
+        hideLoading();
       }
     }
 
