@@ -7,170 +7,102 @@ import path from "path"
 
 dotenv.config()
 
-function extractKeywords(text) {
-  return text.toLowerCase().match(/\b(\w+)\b/g) || []
-}
-
 const app = express()
 
 app.use(express.json())
 app.use(cors())
 app.use(express.urlencoded({ extended: true }))
 
-async function initializeDatabase() {
+// Improved error logging
+function logError(error, context) {
+  console.error(`Error in ${context}:`, error)
+  console.error("Error details:", JSON.stringify(error, null, 2))
+}
+
+// Wrap database queries in a try-catch block
+async function executeQuery(query, params, context) {
   try {
-    const tableExists = await sql`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_name = 'knowledge_base'
-      );
-    `
+    return await sql.query(query, params)
+  } catch (error) {
+    logError(error, context)
+    throw error
+  }
+}
 
-    if (!tableExists.rows[0].exists) {
-      await sql`
-        CREATE TABLE "knowledge_base" (
-          "id" SERIAL PRIMARY KEY,
-          "title" TEXT,
-          "question" TEXT NOT NULL,
-          "answer" TEXT NOT NULL,
-          "content" TEXT NOT NULL,
-          "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+// Improved search query
+app.post("/api/search", async (req, res) => {
+  const { query } = req.body
+
+  if (!query) {
+    return res.status(400).json({ error: "Query is required" })
+  }
+
+  try {
+    const result = await executeQuery(
       `
-      console.log("Created knowledge_base table")
-    } else {
-      // Check if question column exists
-      const questionColumnExists = await sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns
-          WHERE table_name = 'knowledge_base' AND column_name = 'question'
-        );
-      `
-
-      // Add question column if it doesn't exist
-      if (!questionColumnExists.rows[0].exists) {
-        await sql`
-          ALTER TABLE "knowledge_base" ADD COLUMN "question" TEXT NOT NULL DEFAULT '';
-        `
-        console.log("Added 'question' column to knowledge_base table")
-      }
-
-      // Check if answer column exists
-      const answerColumnExists = await sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns
-          WHERE table_name = 'knowledge_base' AND column_name = 'answer'
-        );
-      `
-
-      // Add answer column if it doesn't exist
-      if (!answerColumnExists.rows[0].exists) {
-        await sql`
-          ALTER TABLE "knowledge_base" ADD COLUMN "answer" TEXT NOT NULL DEFAULT '';
-        `
-        console.log("Added 'answer' column to knowledge_base table")
-      }
-    }
-
-    // Ensure the 'content' column exists
-    const contentColumnExists = await sql`
-      SELECT EXISTS (
-        SELECT FROM information_schema.columns
-        WHERE table_name = 'knowledge_base' AND column_name = 'content'
-      );
-    `
-
-    if (!contentColumnExists.rows[0].exists) {
-      await sql`
-        ALTER TABLE "knowledge_base" ADD COLUMN "content" TEXT NOT NULL DEFAULT '';
-      `
-      console.log("Added 'content' column to knowledge_base table")
-    }
-
-    // Create or replace the full-text search index
-    await sql`
-      DROP INDEX IF EXISTS idx_fts;
-      CREATE INDEX idx_fts ON "knowledge_base" USING GIN (to_tsvector('english', 
+      SELECT "id", "title", "question", "answer", "content",
+             ts_rank(to_tsvector('english', 
+               COALESCE("title", '') || ' ' || 
+               COALESCE("question", '') || ' ' || 
+               COALESCE("answer", '') || ' ' || 
+               COALESCE("content", '')
+             ), plainto_tsquery('english', $1)) AS rank
+      FROM "knowledge_base"
+      WHERE to_tsvector('english', 
         COALESCE("title", '') || ' ' || 
         COALESCE("question", '') || ' ' || 
         COALESCE("answer", '') || ' ' || 
         COALESCE("content", '')
-      ));
-    `
+      ) @@ plainto_tsquery('english', $1)
+      ORDER BY rank DESC
+      LIMIT 10
+    `,
+      [query],
+      "search query",
+    )
 
-    console.log("Database initialized successfully")
+    return res.json({ articles: result.rows })
   } catch (error) {
-    console.error("Error initializing database:", error)
+    logError(error, "search query")
+    return res.status(500).json({ error: "Internal server error" })
   }
-}
+})
 
-initializeDatabase()
-
-app.post("/api/search", async (req, res) => {
-    const { query } = req.body
-  
-    if (!query) {
-      return res.status(400).json({ error: "Query is required" })
-    }
-  
-    try {
-      const result = await sql`
-        SELECT "id", "title", "question", "answer", "content",
-               ts_rank(to_tsvector('english', 
-                 COALESCE("title", '') || ' ' || 
-                 COALESCE("question", '') || ' ' || 
-                 COALESCE("answer", '') || ' ' || 
-                 COALESCE("content", '')
-               ), plainto_tsquery('english', ${query})) AS rank
-        FROM "knowledge_base"
-        WHERE to_tsvector('english', 
-          COALESCE("title", '') || ' ' || 
-          COALESCE("question", '') || ' ' || 
-          COALESCE("answer", '') || ' ' || 
-          COALESCE("content", '')
-        ) @@ plainto_tsquery('english', ${query})
-        ORDER BY rank DESC
-        LIMIT 10
-      `
-  
-      return res.json({ articles: result.rows })
-    } catch (error) {
-      console.error("Error querying database:", error)
-      return res.status(500).json({ error: "Internal server error" })
-    }
-  })
-  
-// Add a new endpoint for autocomplete suggestions
+// Autocomplete endpoint
 app.post("/api/autocomplete", async (req, res) => {
-    const { query } = req.body
-  
-    if (!query) {
-      return res.status(400).json({ error: "Query is required" })
-    }
-  
-    try {
-      const result = await sql`
-        SELECT "id", "title", "question"
-        FROM "knowledge_base"
-        WHERE to_tsvector('english', 
-          COALESCE("title", '') || ' ' || 
-          COALESCE("question", '')
-        ) @@ plainto_tsquery('english', ${query})
-        ORDER BY ts_rank(to_tsvector('english', 
-          COALESCE("title", '') || ' ' || 
-          COALESCE("question", '')
-        ), plainto_tsquery('english', ${query})) DESC
-        LIMIT 5
-      `
-  
-      return res.json({ suggestions: result.rows })
-    } catch (error) {
-      console.error("Error querying database for autocomplete:", error)
-      return res.status(500).json({ error: "Internal server error" })
-    }
-  })
-  
+  const { query } = req.body
 
+  if (!query) {
+    return res.status(400).json({ error: "Query is required" })
+  }
+
+  try {
+    const result = await executeQuery(
+      `
+      SELECT "id", "title", "question"
+      FROM "knowledge_base"
+      WHERE to_tsvector('english', 
+        COALESCE("title", '') || ' ' || 
+        COALESCE("question", '')
+      ) @@ plainto_tsquery('english', $1)
+      ORDER BY ts_rank(to_tsvector('english', 
+        COALESCE("title", '') || ' ' || 
+        COALESCE("question", '')
+      ), plainto_tsquery('english', $1)) DESC
+      LIMIT 5
+    `,
+      [query],
+      "autocomplete query",
+    )
+
+    return res.json({ suggestions: result.rows })
+  } catch (error) {
+    logError(error, "autocomplete query")
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// Add knowledge
 app.post("/api/admin/knowledge", async (req, res) => {
   const { title, content, question, answer } = req.body
 
@@ -179,41 +111,51 @@ app.post("/api/admin/knowledge", async (req, res) => {
   }
 
   try {
-    await sql`
+    await executeQuery(
+      `
       INSERT INTO "knowledge_base" ("title", "content", "question", "answer") 
-      VALUES (${title}, ${content}, ${question}, ${answer})
-    `
+      VALUES ($1, $2, $3, $4)
+    `,
+      [title, content, question, answer],
+      "add knowledge",
+    )
 
     return res.status(201).json({ message: "Knowledge added successfully" })
   } catch (error) {
-    console.error("Error adding knowledge:", error)
+    logError(error, "add knowledge")
     return res.status(500).json({ error: "Internal server error" })
   }
 })
 
+// Get all knowledge
 app.get("/api/admin/knowledge", async (req, res) => {
   try {
-    const result = await sql`
+    const result = await executeQuery(
+      `
       SELECT "id", "title", "question", "answer", "content" FROM "knowledge_base" 
       ORDER BY "id" DESC
-    `
+    `,
+      [],
+      "get all knowledge",
+    )
 
     return res.json({ knowledge: result.rows })
   } catch (error) {
-    console.error("Error fetching knowledge:", error)
+    logError(error, "get all knowledge")
     return res.status(500).json({ error: "Internal server error" })
   }
 })
 
+// Delete knowledge
 app.delete("/api/admin/knowledge/:id", async (req, res) => {
   const { id } = req.params
 
   try {
-    await sql`DELETE FROM "knowledge_base" WHERE "id" = ${id}`
+    await executeQuery(`DELETE FROM "knowledge_base" WHERE "id" = $1`, [id], "delete knowledge")
 
     return res.json({ message: "Knowledge deleted successfully" })
   } catch (error) {
-    console.error("Error deleting knowledge:", error)
+    logError(error, "delete knowledge")
     return res.status(500).json({ error: "Internal server error" })
   }
 })
@@ -223,10 +165,6 @@ const __dirname = path.dirname(__filename)
 const publicPath = path.join(__dirname, "..", "public")
 
 app.use(express.static(publicPath))
-
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(publicPath, "admin.html"))
-})
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"))
@@ -240,3 +178,4 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export default app
+

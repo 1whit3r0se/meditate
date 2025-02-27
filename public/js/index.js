@@ -18,6 +18,19 @@ function hideLoading() {
   document.getElementById("loading").classList.remove("show")
 }
 
+// Display error message
+function showError(message) {
+  resultsContainer.style.display = "block"
+  resultsList.innerHTML = `
+    <div class="error-message">
+      <i class="fas fa-exclamation-circle"></i>
+      <h3>An error occurred</h3>
+      <p>${message}</p>
+    </div>
+  `
+  resultsCount.textContent = ""
+}
+
 // Highlight search terms in text
 function highlightText(text, searchTerms) {
   if (!text) return ""
@@ -168,15 +181,7 @@ async function performSearch(query) {
     }
   } catch (error) {
     console.error("Error:", error)
-    resultsContainer.style.display = "block"
-    resultsList.innerHTML = `
-      <div class="no-results">
-        <i class="fas fa-exclamation-circle"></i>
-        <h3>An error occurred</h3>
-        <p>Please try again later</p>
-      </div>
-    `
-    resultsCount.textContent = ""
+    showError("An error occurred while searching. Please try again later.")
   } finally {
     hideLoading()
   }
