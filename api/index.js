@@ -1,19 +1,19 @@
-import express from "express"
-import { sql } from "@vercel/postgres"
-import cors from "cors"
-import { OpenAI } from "openai"
-import dotenv from "dotenv"
+import express from 'express';
+import { sql } from '@vercel/postgres';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
-dotenv.config()
+// Load environment variables
+dotenv.config();
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+const app = express();
 
-const app = express()
-app.use(cors())
-app.use(express.json())
+// Middleware
+app.use(express.json());
+app.use(cors());
+app.use(express.urlencoded({ extended: true }));
 
 // Initialize database
 async function initializeDatabase() {
@@ -21,119 +21,120 @@ async function initializeDatabase() {
     await sql`
       CREATE TABLE IF NOT EXISTS knowledge_base (
         id SERIAL PRIMARY KEY,
-        topic TEXT NOT NULL,
-        content TEXT NOT NULL,
+        question TEXT NOT NULL,
+        answer TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-      
-      CREATE TABLE IF NOT EXISTS chat_history (
-        id SERIAL PRIMARY KEY,
-        user_message TEXT NOT NULL,
-        ai_response TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `
-    console.log("Database initialized")
+      )
+    `;
+    console.log('Database initialized successfully');
   } catch (error) {
-    console.error("Error initializing database:", error)
+    console.error('Error initializing database:', error);
   }
 }
 
-// Add knowledge to the database
-app.post("/api/knowledge", async (req, res) => {
-  try {
-    const { topic, content } = req.body
-    const result = await sql`
-      INSERT INTO knowledge_base (topic, content) 
-      VALUES (${topic}, ${content}) 
-      RETURNING *
-    `
-    res.json(result.rows[0])
-  } catch (error) {
-    console.error("Error adding knowledge:", error)
-    res.status(500).json({ error: "Failed to add knowledge" })
-  }
-})
-
-// Get all knowledge topics
-app.get("/api/knowledge", async (req, res) => {
-  try {
-    const result = await sql`SELECT * FROM knowledge_base`
-    res.json(result.rows)
-  } catch (error) {
-    console.error("Error fetching knowledge:", error)
-    res.status(500).json({ error: "Failed to fetch knowledge" })
-  }
-})
+// Initialize the database when the app starts
+initializeDatabase();
 
 // Chat endpoint
-app.post("/api/chat", async (req, res) => {
-  try {
-    const { message } = req.body
-
-    // Fetch relevant knowledge from database
-    const knowledgeResult = await sql`SELECT * FROM knowledge_base`
-    const knowledgeBase = knowledgeResult.rows
-
-    // Format knowledge as context for the AI
-    const knowledgeContext = knowledgeBase.map((k) => `Topic: ${k.topic}\nContent: ${k.content}`).join("\n\n")
-
-    // Generate AI response using OpenAI directly
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: `You are an AI assistant trained on specific knowledge. 
-          Use the following information to answer the user's question. 
-          If the information doesn't contain the answer, say you don't have that information.
-          
-          KNOWLEDGE BASE:
-          ${knowledgeContext}`,
-        },
-        {
-          role: "user",
-          content: message,
-        },
-      ],
-      max_tokens: 500,
-    })
-
-    const text = completion.choices[0].message.content
-
-    // Save to chat history
-    await sql`
-      INSERT INTO chat_history (user_message, ai_response) 
-      VALUES (${message}, ${text})
-    `
-
-    res.json({ response: text })
-  } catch (error) {
-    console.error("Error generating response:", error)
-    res.status(500).json({ error: "Failed to generate response" })
+app.post('/api/chat', async (req, res) => {
+  const { query } = req.body;
+  
+  if (!query) {
+    return res.status(400).json({ error: 'Query is required' });
   }
-})
+  
+  try {
+    // Search for the most relevant answer
+    const result = await sql`
+      SELECT answer FROM knowledge_base 
+      WHERE question ILIKE ${`%${query}%`}
+      ORDER BY similarity(question, ${query}) DESC 
+      LIMIT 1
+    `;
+    
+    if (result.rows.length > 0) {
+      return res.json({ answer: result.rows[0].answer });
+    } else {
+      return res.json({ answer: "Sorry, I couldn't find an answer to that." });
+    }
+  } catch (error) {
+    console.error('Error querying database:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
-// Get chat history
-app.get("/api/history", async (req, res) => {
+// Admin endpoints for managing the knowledge base
+app.post('/api/admin/knowledge', async (req, res) => {
+  const { question, answer } = req.body;
+  
+  if (!question || !answer) {
+    return res.status(400).json({ error: 'Question and answer are required' });
+  }
+  
+  try {
+    await sql`
+      INSERT INTO knowledge_base (question, answer) 
+      VALUES (${question}, ${answer})
+    `;
+    
+    return res.status(201).json({ message: 'Knowledge added successfully' });
+  } catch (error) {
+    console.error('Error adding knowledge:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/admin/knowledge', async (req, res) => {
   try {
     const result = await sql`
-      SELECT * FROM chat_history 
-      ORDER BY created_at DESC
-    `
-    res.json(result.rows)
+      SELECT id, question, answer FROM knowledge_base 
+      ORDER BY id DESC
+    `;
+    
+    return res.json({ knowledge: result.rows });
   } catch (error) {
-    console.error("Error fetching chat history:", error)
-    res.status(500).json({ error: "Failed to fetch chat history" })
+    console.error('Error fetching knowledge:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
-})
+});
 
-// Initialize database on first request
-app.use(async (req, res, next) => {
-  await initializeDatabase()
-  next()
-})
+// Delete knowledge entry
+app.delete('/api/admin/knowledge/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    await sql`DELETE FROM knowledge_base WHERE id = ${id}`;
+    
+    return res.json({ message: 'Knowledge deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting knowledge:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
-// Export the Express API
-export default app
+// Serve static files from the public directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicPath = path.join(__dirname, '..', 'public');
 
+app.use(express.static(publicPath));
+
+// Serve the admin interface
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(publicPath, 'admin.html'));
+});
+
+// Serve the chat interface
+app.get('/', (req, res) => {
+  res.sendFile(path.join(publicPath, 'index.html'));
+});
+
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;
