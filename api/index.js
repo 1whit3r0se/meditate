@@ -19,64 +19,49 @@ app.use(express.urlencoded({ extended: true }))
 
 async function initializeDatabase() {
   try {
-    // Check if the table exists
     const tableExists = await sql`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_name = 'knowledge_base'
       );
-    `
+    `;
 
     if (!tableExists.rows[0].exists) {
-      // Create the table if it doesn't exist
       await sql`
-        CREATE TABLE knowledge_base (
-          id SERIAL PRIMARY KEY,
-          title TEXT,
-          content TEXT NOT NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `
-      console.log("Created knowledge_base table")
-    } else {
-      // Check if the title column exists
-      const titleColumnExists = await sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns 
-          WHERE table_name = 'knowledge_base' AND column_name = 'title'
+        CREATE TABLE "knowledge_base" (
+          "id" SERIAL PRIMARY KEY,
+          "title" TEXT,
+          "content" TEXT NOT NULL,
+          "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-      `
+      `;
+      console.log("Created knowledge_base table");
+    }
 
-      if (!titleColumnExists.rows[0].exists) {
-        // Add title column if it doesn't exist
-        await sql`ALTER TABLE knowledge_base ADD COLUMN title TEXT`
-        console.log("Added title column to knowledge_base table")
-      }
+    // Ensure the 'content' column exists
+    const contentColumnExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_name = 'knowledge_base' AND column_name = 'content'
+      );
+    `;
 
-      // Check if the content column exists
-      const contentColumnExists = await sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns 
-          WHERE table_name = 'knowledge_base' AND column_name = 'content'
-        );
-      `
-
-      if (!contentColumnExists.rows[0].exists) {
-        // Add content column if it doesn't exist
-        await sql`ALTER TABLE knowledge_base ADD COLUMN content TEXT NOT NULL DEFAULT ''`
-        console.log("Added content column to knowledge_base table")
-      }
+    if (!contentColumnExists.rows[0].exists) {
+      await sql`
+        ALTER TABLE "knowledge_base" ADD COLUMN "content" TEXT NOT NULL DEFAULT '';
+      `;
+      console.log("Added 'content' column to knowledge_base table");
     }
 
     // Create or replace the full-text search index
     await sql`
       DROP INDEX IF EXISTS idx_fts;
-      CREATE INDEX idx_fts ON knowledge_base USING GIN (to_tsvector('english', COALESCE(title, '') || ' ' || content))
-    `
+      CREATE INDEX idx_fts ON "knowledge_base" USING GIN (to_tsvector('english', COALESCE("title", '') || ' ' || "content"));
+    `;
 
-    console.log("Database initialized successfully")
+    console.log("Database initialized successfully");
   } catch (error) {
-    console.error("Error initializing database:", error)
+    console.error("Error initializing database:", error);
   }
 }
 
@@ -94,10 +79,10 @@ app.post("/api/chat", async (req, res) => {
     const searchQuery = keywords.join(" | ")
 
     const result = await sql`
-      SELECT id, title, content,
-             ts_rank(to_tsvector('english', COALESCE(title, '') || ' ' || content), to_tsquery('english', ${searchQuery})) AS rank
-      FROM knowledge_base
-      WHERE to_tsvector('english', COALESCE(title, '') || ' ' || content) @@ to_tsquery('english', ${searchQuery})
+      SELECT "id", "title", "content",
+             ts_rank(to_tsvector('english', COALESCE("title", '') || ' ' || "content"), to_tsquery('english', ${searchQuery})) AS rank
+      FROM "knowledge_base"
+      WHERE to_tsvector('english', COALESCE("title", '') || ' ' || "content") @@ to_tsquery('english', ${searchQuery})
       ORDER BY rank DESC
       LIMIT 5
     `
@@ -122,7 +107,7 @@ app.post("/api/admin/knowledge", async (req, res) => {
 
   try {
     await sql`
-      INSERT INTO knowledge_base (title, content) 
+      INSERT INTO "knowledge_base" ("title", "content") 
       VALUES (${title}, ${content})
     `
 
@@ -136,8 +121,8 @@ app.post("/api/admin/knowledge", async (req, res) => {
 app.get("/api/admin/knowledge", async (req, res) => {
   try {
     const result = await sql`
-      SELECT id, title, content FROM knowledge_base 
-      ORDER BY id DESC
+      SELECT "id", "title", "content" FROM "knowledge_base" 
+      ORDER BY "id" DESC
     `
 
     return res.json({ knowledge: result.rows })
@@ -151,7 +136,7 @@ app.delete("/api/admin/knowledge/:id", async (req, res) => {
   const { id } = req.params
 
   try {
-    await sql`DELETE FROM knowledge_base WHERE id = ${id}`
+    await sql`DELETE FROM "knowledge_base" WHERE "id" = ${id}`
 
     return res.json({ message: "Knowledge deleted successfully" })
   } catch (error) {
@@ -182,4 +167,3 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export default app
-
