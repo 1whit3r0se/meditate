@@ -1,11 +1,15 @@
 import express from "express"
 import { sql } from "@vercel/postgres"
 import cors from "cors"
-import { generateText } from "ai"
-import { openai } from "@ai-sdk/openai"
+import { OpenAI } from "openai"
 import dotenv from "dotenv"
 
 dotenv.config()
+
+// Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 const app = express()
 app.use(cors())
@@ -74,19 +78,28 @@ app.post("/api/chat", async (req, res) => {
     // Format knowledge as context for the AI
     const knowledgeContext = knowledgeBase.map((k) => `Topic: ${k.topic}\nContent: ${k.content}`).join("\n\n")
 
-    // Generate AI response
-    const { text } = await generateText({
-      model: openai("gpt-4o"),
-      prompt: `You are an AI assistant trained on specific knowledge. 
-      Use the following information to answer the user's question. 
-      If the information doesn't contain the answer, say you don't have that information.
-      
-      KNOWLEDGE BASE:
-      ${knowledgeContext}
-      
-      USER QUESTION: ${message}`,
-      maxTokens: 500,
+    // Generate AI response using OpenAI directly
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are an AI assistant trained on specific knowledge. 
+          Use the following information to answer the user's question. 
+          If the information doesn't contain the answer, say you don't have that information.
+          
+          KNOWLEDGE BASE:
+          ${knowledgeContext}`,
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+      max_tokens: 500,
     })
+
+    const text = completion.choices[0].message.content
 
     // Save to chat history
     await sql`
