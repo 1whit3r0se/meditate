@@ -107,75 +107,69 @@ async function initializeDatabase() {
 initializeDatabase()
 
 app.post("/api/search", async (req, res) => {
-  const { query } = req.body;
-
-  if (!query) {
-    return res.status(400).json({ error: "Query is required" });
-  }
-
-  try {
-    const keywords = extractKeywords(query);
-    const searchQuery = keywords.join(" | ");
-
-    const result = await sql`
-      SELECT "id", "title", "question", "answer", "content",
-             ts_rank(to_tsvector('english', 
-               COALESCE("title", '') || ' ' || 
-               COALESCE("question", '') || ' ' || 
-               COALESCE("answer", '') || ' ' || 
-               COALESCE("content", '')
-             ), to_tsquery('english', ${searchQuery})) AS rank
-      FROM "knowledge_base"
-      WHERE to_tsvector('english', 
-        COALESCE("title", '') || ' ' || 
-        COALESCE("question", '') || ' ' || 
-        COALESCE("answer", '') || ' ' || 
-        COALESCE("content", '')
-      ) @@ plainto_tsquery('english', ${query})
-      ORDER BY rank DESC
-      LIMIT 10
-    `;
-
-    if (result.rows.length > 0) {
-      return res.json({ articles: result.rows });
-    } else {
-      return res.json({ articles: [] });
+    const { query } = req.body
+  
+    if (!query) {
+      return res.status(400).json({ error: "Query is required" })
     }
-  } catch (error) {
-    console.error("Error querying database:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
-
+  
+    try {
+      const result = await sql`
+        SELECT "id", "title", "question", "answer", "content",
+               ts_rank(to_tsvector('english', 
+                 COALESCE("title", '') || ' ' || 
+                 COALESCE("question", '') || ' ' || 
+                 COALESCE("answer", '') || ' ' || 
+                 COALESCE("content", '')
+               ), plainto_tsquery('english', ${query})) AS rank
+        FROM "knowledge_base"
+        WHERE to_tsvector('english', 
+          COALESCE("title", '') || ' ' || 
+          COALESCE("question", '') || ' ' || 
+          COALESCE("answer", '') || ' ' || 
+          COALESCE("content", '')
+        ) @@ plainto_tsquery('english', ${query})
+        ORDER BY rank DESC
+        LIMIT 10
+      `
+  
+      return res.json({ articles: result.rows })
+    } catch (error) {
+      console.error("Error querying database:", error)
+      return res.status(500).json({ error: "Internal server error" })
+    }
+  })
+  
 // Add a new endpoint for autocomplete suggestions
 app.post("/api/autocomplete", async (req, res) => {
-  const { query } = req.body;
-
-  if (!query) {
-    return res.status(400).json({ error: "Query is required" });
-  }
-
-  try {
-    const result = await sql`
-      SELECT "id", "title", "question"
-      FROM "knowledge_base"
-      WHERE to_tsvector('english', 
-        COALESCE("title", '') || ' ' || 
-        COALESCE("question", '')
-      ) @@ plainto_tsquery('english', ${query})
-      ORDER BY ts_rank(to_tsvector('english', 
-        COALESCE("title", '') || ' ' || 
-        COALESCE("question", '')
-      ), plainto_tsquery('english', ${query})) DESC
-      LIMIT 5
-    `;
-
-    return res.json({ suggestions: result.rows });
-  } catch (error) {
-    console.error("Error querying database for autocomplete:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
+    const { query } = req.body
+  
+    if (!query) {
+      return res.status(400).json({ error: "Query is required" })
+    }
+  
+    try {
+      const result = await sql`
+        SELECT "id", "title", "question"
+        FROM "knowledge_base"
+        WHERE to_tsvector('english', 
+          COALESCE("title", '') || ' ' || 
+          COALESCE("question", '')
+        ) @@ plainto_tsquery('english', ${query})
+        ORDER BY ts_rank(to_tsvector('english', 
+          COALESCE("title", '') || ' ' || 
+          COALESCE("question", '')
+        ), plainto_tsquery('english', ${query})) DESC
+        LIMIT 5
+      `
+  
+      return res.json({ suggestions: result.rows })
+    } catch (error) {
+      console.error("Error querying database for autocomplete:", error)
+      return res.status(500).json({ error: "Internal server error" })
+    }
+  })
+  
 
 app.post("/api/admin/knowledge", async (req, res) => {
   const { title, content, question, answer } = req.body
