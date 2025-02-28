@@ -1132,7 +1132,7 @@
   });
 
   
-  
+
   // Add this to the sendMessage function to update command history
   async function sendMessage(message) {
     // Add to command history at the beginning
@@ -1164,7 +1164,7 @@
         addMessage('I found these relevant articles. Click on one to view its content:');
         resultsContainer.insertBefore(buttonsContainer, resultsContainer.firstChild);
       } else {
-        addMessage("No relevant information found. Try a different query or type '<help>' for assistance.");
+        addMessage("No relevant information found. Try a different query or type '&gt;help' for assistance.");
       }
     } catch (error) {
       console.error('Error:', error);
@@ -1181,20 +1181,27 @@
       
       if (message) {
         // Check for special commands
-        if (message === '<clear>') {
+        if (message === '>clear') {
           resultsContainer.innerHTML = '';
-          addMessage('Terminal cleared. Type your query to search the knowledge base.');
+          addMessage('Terminal cleared.');
+          commandInput.value = '';
+          return;
+        }
+
+        if (message === '>cls') {
+          resultsContainer.innerHTML = '';
+          addMessage('Terminal cleared.');
           commandInput.value = '';
           return;
         }
         
-        if (message === '<help>') {
+        if (message === '>help') {
           showHelp();
           commandInput.value = '';
           return;
         }
         
-        if (message === '<admin>') {
+        if (message === '>admin') {
           window.open('/admin', '_blank');
           addMessage('Opening admin panel in a new tab.');
           commandInput.value = '';
@@ -1215,9 +1222,9 @@
     const helpMessage = `
       <strong>Available Commands:</strong><br>
       <br>
-      <code>&lt;clear&gt;</code> - Clear the terminal<br>
-      <code>&lt;help&gt;</code> - Show this help message<br>
-      <code>&lt;admin&gt;</code> - Open the admin panel in a new tab<br>
+      <code>&gt;clear or &gt;cls</code> - Clear the terminal<br>
+      <code>&gt;help</code> - Show this help message<br>
+      <code>&gt;admin</code> - Open the admin panel in a new tab<br>
       <br>
       <strong>Keyboard Shortcuts:</strong><br>
       <br>
