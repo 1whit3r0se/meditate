@@ -23,7 +23,7 @@ export function createToken(user) {
     role: user.role,
   }
 
-  return jwt.sign(payload, process.env.JWT_SECRET || "your-secret-key", { expiresIn: "7d" })
+  return jwt.sign(payload, process.env.JWT_SECRET || "your-secret-key", { expiresIn: "1d" })
 }
 
 // Verify JWT token
@@ -60,12 +60,12 @@ export async function initializeAuthTables() {
       console.log("Created users table")
 
       // Create default admin user
-      const { hash, salt } = await hashPassword("admin123")
+      const { hash, salt } = await hashPassword("k985d2mm123")
       await sql`
         INSERT INTO "users" ("email", "password_hash", "password_salt", "role")
-        VALUES ('admin@example.com', ${hash}, ${salt}, 'admin')
+        VALUES ('kris@m', ${hash}, ${salt}, 'admin')
       `
-      console.log("Created default admin user: admin@example.com / admin123")
+      console.log("Created admin user: kris@e / k985d2mm123")
     }
 
     return true
@@ -97,7 +97,7 @@ export function authMiddleware(req, res, next) {
 // Admin middleware
 export function adminMiddleware(req, res, next) {
   if (!req.user || req.user.role !== "admin") {
-    return res.status(403).send("Forbidden")
+    return res.status(403).send("You are not authorized to enter admin page.")
   }
 
   next()

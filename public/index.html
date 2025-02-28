@@ -659,6 +659,28 @@
   </style>
 </head>
 <body>
+// Add this script at the beginning of the body, before the container div
+<script>
+  // Check if user is authenticated
+  async function checkAuth() {
+    try {
+      const response = await fetch('/api/auth/user');
+      const data = await response.json();
+      
+      if (!data.authenticated) {
+        // Redirect to login page if not authenticated
+        window.location.href = '/login';
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
+      // Redirect to login page on error
+      window.location.href = '/login';
+    }
+  }
+  
+  // Check authentication when page loads
+  document.addEventListener('DOMContentLoaded', checkAuth);
+</script>
   <div class="container">
     <header>
       <h1><i class="fas fa-terminal"></i> Apollo DB</h1>
