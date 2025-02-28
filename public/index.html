@@ -558,357 +558,394 @@ h1 {
   </div>
 
   <script>
-    // Theme toggle functionality
-    const themeToggle = document.getElementById('themeToggle');
-    const htmlElement = document.documentElement;
-    
-    // Check for saved theme preference
-    if (localStorage.getItem('darkMode') === 'true') {
-      htmlElement.classList.add('dark-mode');
-      themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-    }
-    
-    themeToggle.addEventListener('click', () => {
-      htmlElement.classList.toggle('dark-mode');
-      const isDarkMode = htmlElement.classList.contains('dark-mode');
-      localStorage.setItem('darkMode', isDarkMode);
-      
-      themeToggle.innerHTML = isDarkMode 
-        ? '<i class="fas fa-sun"></i>' 
-        : '<i class="fas fa-moon"></i>';
-    });
-
-    const suggestions = document.getElementById('suggestions');
-    
-    // Focus the command input on page load
-    window.addEventListener('load', () => {
-      commandInput.focus();
-      
-      // Simulate typing the welcome message
-      const welcomeMessage = document.querySelector('.bot-message');
-      welcomeMessage.innerHTML = '';
-      
-      const text = "Welcome to the Knowledge Base. Type your query and press Enter to search.";
-      let i = 0;
-      
-      function typeWriter() {
-        if (i < text.length) {
-          welcomeMessage.innerHTML += text.charAt(i);
-          i++;
-          setTimeout(typeWriter, 20);
-        }
-      }
-      
-      typeWriter();
-    });
-
-    // Loading indicator
-    function showLoading() {
-      document.getElementById('loading').classList.add('show');
-    }
-    
-    function hideLoading() {
-      document.getElementById('loading').classList.remove('show');
-    }
-
-    function addMessage(message, isUser = false) {
-      const messageElement = document.createElement('div');
-      messageElement.classList.add('message');
-      messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
-      
-      if (isUser) {
-        messageElement.textContent = message;
-      } else {
-        messageElement.innerHTML = message;
-      }
-      
-      resultsContainer.appendChild(messageElement);
-      
-      resultsContainer.scrollTop = resultsContainer.scrollHeight;
-    }
-
-    function showTypingIndicator() {
-      const indicator = document.createElement('div');
-      indicator.classList.add('typing-indicator');
-      indicator.id = 'typingIndicator';
-      indicator.innerHTML = `
-        <span></span>
-        <span></span>
-        <span></span>
-      `;
-      
-      resultsContainer.appendChild(indicator);
-      resultsContainer.scrollTop = resultsContainer.scrollHeight;
-    }
-
-    function removeTypingIndicator() {
-      const indicator = document.getElementById('typingIndicator');
-      if (indicator) {
-        indicator.remove();
-      }
-    }
-
-    function createArticleButtons(articles) {
-  const buttonsContainer = document.createElement('div');
-  buttonsContainer.classList.add('article-buttons');
+  // Theme toggle functionality
+  const themeToggle = document.getElementById('themeToggle');
+  const htmlElement = document.documentElement;
   
-  articles.forEach(article => {
-    const button = document.createElement('div');
-    button.classList.add('article-button');
+  // Check for saved theme preference
+  if (localStorage.getItem('darkMode') === 'true') {
+    htmlElement.classList.add('dark-mode');
+    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+  }
+  
+  themeToggle.addEventListener('click', () => {
+    htmlElement.classList.toggle('dark-mode');
+    const isDarkMode = htmlElement.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDarkMode);
     
-    button.innerHTML = `
-      <div class="article-title">${article.title || 'Untitled'}</div>
-      <div class="article-question">${article.question || ''}</div>
-      <div class="article-preview">${article.content.substring(0, 100)}...</div>
-      <div class="article-preview-popup">
-        <div class="article-title">${article.title || 'Untitled'}</div>
-        <div class="article-question">${article.question || ''}</div>
-        <div>${article.content.substring(0, 300)}...</div>
-      </div>
+    themeToggle.innerHTML = isDarkMode 
+      ? '<i class="fas fa-sun"></i>' 
+      : '<i class="fas fa-moon"></i>';
+  });
+
+  const commandInput = document.getElementById('commandInput');
+  const suggestions = document.getElementById('suggestions');
+  const resultsContainer = document.getElementById('resultsContainer');
+  
+  // Focus the command input on page load
+  window.addEventListener('load', () => {
+    commandInput.focus();
+    
+    // Simulate typing the welcome message
+    const welcomeMessage = document.querySelector('.bot-message');
+    welcomeMessage.innerHTML = '';
+    
+    const text = "Welcome to the Knowledge Base. Type your query and press Enter to search.";
+    let i = 0;
+    
+    function typeWriter() {
+      if (i < text.length) {
+        welcomeMessage.innerHTML += text.charAt(i);
+        i++;
+        setTimeout(typeWriter, 20);
+      }
+    }
+    
+    typeWriter();
+  });
+
+  // Loading indicator
+  function showLoading() {
+    document.getElementById('loading').classList.add('show');
+  }
+  
+  function hideLoading() {
+    document.getElementById('loading').classList.remove('show');
+  }
+
+  function addMessage(message, isUser = false) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+    messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
+    
+    if (isUser) {
+      messageElement.textContent = message;
+    } else {
+      messageElement.innerHTML = message;
+    }
+    
+    resultsContainer.appendChild(messageElement);
+    
+    resultsContainer.scrollTop = resultsContainer.scrollHeight;
+  }
+
+  function showTypingIndicator() {
+    const indicator = document.createElement('div');
+    indicator.classList.add('typing-indicator');
+    indicator.id = 'typingIndicator';
+    indicator.innerHTML = `
+      <span></span>
+      <span></span>
+      <span></span>
     `;
     
-    button.addEventListener('click', () => {
-      // Remove any existing article content
-      const existingContent = document.querySelector('.article-content');
-      if (existingContent) {
-        existingContent.remove();
-      }
+    resultsContainer.appendChild(indicator);
+    resultsContainer.scrollTop = resultsContainer.scrollHeight;
+  }
+
+  function removeTypingIndicator() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) {
+      indicator.remove();
+    }
+  }
+
+  function createArticleButtons(articles) {
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.classList.add('article-buttons');
+    
+    articles.forEach(article => {
+      const button = document.createElement('div');
+      button.classList.add('article-button');
       
-      // Create and append the article content
-      const contentElement = document.createElement('div');
-      contentElement.classList.add('article-content');
-      
-      // Format the content with proper HTML structure
-      const formattedContent = formatArticleContent(article.content);
-      contentElement.innerHTML = `
-        <h2>${article.title || 'Untitled'}</h2>
+      button.innerHTML = `
+        <div class="article-title">${article.title || 'Untitled'}</div>
         <div class="article-question">${article.question || ''}</div>
-        <div class="article-body">${formattedContent}</div>
+        <div class="article-preview">${article.content.substring(0, 100)}...</div>
+        <div class="article-preview-popup">
+          <div class="article-title">${article.title || 'Untitled'}</div>
+          <div class="article-question">${article.question || ''}</div>
+          <div>${article.content.substring(0, 300)}...</div>
+        </div>
       `;
       
-      resultsContainer.appendChild(contentElement);
-      resultsContainer.scrollTop = resultsContainer.scrollHeight;
-      
-      // Scroll to the article content
-      contentElement.scrollIntoView({ behavior: 'smooth' });
-    });
-    
-    buttonsContainer.appendChild(button);
-  });
-  
-  return buttonsContainer;
-}
-
-// Helper function to format article content with proper spacing and structure
-function formatArticleContent(content) {
-  // Replace multiple newlines with proper paragraph breaks
-  let formatted = content.replace(/\n{2,}/g, '</p><p>');
-  
-  // Wrap in paragraph tags if not already
-  if (!formatted.startsWith('<p>')) {
-    formatted = '<p>' + formatted;
-  }
-  if (!formatted.endsWith('</p>')) {
-    formatted = formatted + '</p>';
-  }
-  
-  // Replace single newlines with line breaks
-  formatted = formatted.replace(/\n/g, '<br>');
-  
-  return formatted;
-}
-
-    // Real-time search suggestions
-    let suggestionsTimeout;
-    
-    commandInput.addEventListener('input', () => {
-      const query = commandInput.value.trim();
-      
-      clearTimeout(suggestionsTimeout);
-      
-      if (query.length < 2) {
-        suggestions.classList.remove('active');
-        return;
-      }
-      
-      suggestionsTimeout = setTimeout(async () => {
-        try {
-          const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ query }),
-          });
-          
-          const data = await response.json();
-          
-          if (data.articles && data.articles.length > 0) {
-            suggestions.innerHTML = '';
-            
-            data.articles.forEach(article => {
-              const item = document.createElement('div');
-              item.classList.add('suggestion-item');
-              item.textContent = article.question || article.title;
-              
-              item.addEventListener('click', () => {
-                commandInput.value = article.question || article.title;
-                suggestions.classList.remove('active');
-                commandInput.focus();
-              });
-              
-              suggestions.appendChild(item);
-            });
-            
-            suggestions.classList.add('active');
-          } else {
-            suggestions.classList.remove('active');
-          }
-        } catch (error) {
-          console.error('Error fetching suggestions:', error);
+      button.addEventListener('click', () => {
+        // Remove any existing article content
+        const existingContent = document.querySelector('.article-content');
+        if (existingContent) {
+          existingContent.remove();
         }
-      }, 300);
-    });
-
-    // Hide suggestions when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.search-container')) {
-        suggestions.classList.remove('active');
-      }
-    });
-
-    async function sendMessage(message) {
-      try {
-        showTypingIndicator();
-        showLoading();
         
+        // Create and append the article content
+        const contentElement = document.createElement('div');
+        contentElement.classList.add('article-content');
+        
+        // Format the content with proper HTML structure
+        const formattedContent = formatArticleContent(article.content);
+        contentElement.innerHTML = `
+          <h2>${article.title || 'Untitled'}</h2>
+          <div class="article-question">${article.question || ''}</div>
+          <div class="article-body">${formattedContent}</div>
+        `;
+        
+        resultsContainer.appendChild(contentElement);
+        resultsContainer.scrollTop = resultsContainer.scrollHeight;
+        
+        // Scroll to the article content
+        contentElement.scrollIntoView({ behavior: 'smooth' });
+      });
+      
+      buttonsContainer.appendChild(button);
+    });
+    
+    return buttonsContainer;
+  }
+
+  // Helper function to format article content with proper spacing and structure
+  function formatArticleContent(content) {
+    // Replace multiple newlines with proper paragraph breaks
+    let formatted = content.replace(/\n{2,}/g, '</p><p>');
+    
+    // Wrap in paragraph tags if not already
+    if (!formatted.startsWith('<p>')) {
+      formatted = '<p>' + formatted;
+    }
+    if (!formatted.endsWith('</p>')) {
+      formatted = formatted + '</p>';
+    }
+    
+    // Replace single newlines with line breaks
+    formatted = formatted.replace(/\n/g, '<br>');
+    
+    return formatted;
+  }
+
+  // Real-time search suggestions
+  let suggestionsTimeout;
+  
+  commandInput.addEventListener('input', () => {
+    const query = commandInput.value.trim();
+    
+    clearTimeout(suggestionsTimeout);
+    
+    if (query.length < 2) {
+      suggestions.classList.remove('active');
+      return;
+    }
+    
+    suggestionsTimeout = setTimeout(async () => {
+      try {
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ query: message }),
+          body: JSON.stringify({ query }),
         });
         
-        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
-        removeTypingIndicator();
+        const data = await response.json();
+        console.log('Suggestions data:', data);  // Log the received data
         
         if (data.articles && data.articles.length > 0) {
-          const buttonsContainer = createArticleButtons(data.articles);
-          addMessage('I found these relevant articles. Click on one to view its content:');
-          resultsContainer.appendChild(buttonsContainer);
+          suggestions.innerHTML = '';
+          
+          data.articles.forEach(article => {
+            const item = document.createElement('div');
+            item.classList.add('suggestion-item');
+            item.textContent = article.question || article.title;
+            
+            item.addEventListener('click', () => {
+              commandInput.value = article.question || article.title;
+              suggestions.classList.remove('active');
+              commandInput.focus();
+            });
+            
+            suggestions.appendChild(item);
+          });
+          
+          suggestions.classList.add('active');
         } else {
-          addMessage("Command not recognized. No relevant information found. Try a different query or type 'help' for assistance.");
+          suggestions.classList.remove('active');
         }
       } catch (error) {
-        console.error('Error:', error);
-        removeTypingIndicator();
-        addMessage('Error: Connection failed. Please check your network and try again.');
-      } finally {
-        hideLoading();
+        console.error('Error fetching suggestions:', error);
+      }
+    }, 300);
+  });
+
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-container')) {
+      suggestions.classList.remove('active');
+    }
+  });
+
+  async function sendMessage(message) {
+    try {
+      showTypingIndicator();
+      showLoading();
+      
+      console.log('Sending message:', message);  // Log the message being sent
+      
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: message }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Received data:', data);  // Log the received data
+      
+      removeTypingIndicator();
+      
+      if (data.articles && data.articles.length > 0) {
+        const buttonsContainer = createArticleButtons(data.articles);
+        addMessage('I found these relevant articles. Click on one to view its content:');
+        resultsContainer.appendChild(buttonsContainer);
+      } else {
+        addMessage("No relevant information found. Try a different query or type 'help' for assistance.");
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      removeTypingIndicator();
+      addMessage('Error: Connection failed. Please check your network and try again.');
+    } finally {
+      hideLoading();
+    }
+  }
+
+  commandInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      const message = commandInput.value.trim();
+      
+      if (message) {
+        console.log('Enter pressed, message:', message);  // Log when Enter is pressed
+        addMessage(message, true);
+        commandInput.value = '';
+        suggestions.classList.remove('active');
+        sendMessage(message);
       }
     }
+  });
 
-    const commandInput = document.getElementById('commandInput');
-    const resultsContainer = document.getElementById('resultsContainer');
-
-    commandInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        const message = commandInput.value.trim();
-        
-        if (message) {
-          addMessage(message, true);
-          commandInput.value = '';
-          suggestions.classList.remove('active');
-          sendMessage(message);
-        }
-      }
-    });
-
-    // Add some terminal-like commands
-    commandInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        
-        const firstSuggestion = suggestions.querySelector('.suggestion-item');
-        if (firstSuggestion) {
-          commandInput.value = firstSuggestion.textContent;
-        }
-      }
+  // Add some terminal-like commands
+  commandInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
       
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        
-        const userMessages = Array.from(document.querySelectorAll('.user-message'));
-        
-        if (userMessages.length > 0) {
-          if (e.key === 'ArrowUp') {
-            const lastMessage = userMessages[userMessages.length - 1];
-            commandInput.value = lastMessage.textContent;
-          }
+      const firstSuggestion = suggestions.querySelector('.suggestion-item');
+      if (firstSuggestion) {
+        commandInput.value = firstSuggestion.textContent;
+      }
+    }
+    
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      
+      const userMessages = Array.from(document.querySelectorAll('.user-message'));
+      
+      if (userMessages.length > 0) {
+        if (e.key === 'ArrowUp') {
+          const lastMessage = userMessages[userMessages.length - 1];
+          commandInput.value = lastMessage.textContent;
         }
       }
+    }
+    
+    if (e.ctrlKey && e.key === 'l') {
+      e.preventDefault();
       
-      if (e.ctrlKey && e.key === 'l') {
+      // Clear the terminal
+      resultsContainer.innerHTML = '';
+      addMessage('Terminal cleared. Type your query to search the knowledge base.');
+    }
+  });
+
+  // Help command
+  function showHelp() {
+    const helpMessage = `
+      <strong>Available Commands:</strong><br>
+      <br>
+      <code>search [query]</code> - Search the knowledge base<br>
+      <code>clear</code> - Clear the terminal<br>
+      <code>help</code> - Show this help message<br>
+      <br>
+      <strong>Keyboard Shortcuts:</strong><br>
+      <br>
+      <code>Tab</code> - Autocomplete suggestion<br>
+      <code>Up Arrow</code> - Recall previous command<br>
+      <code>Ctrl+L</code> - Clear terminal<br>
+    `;
+    
+    addMessage(helpMessage);
+  }
+
+  // Process commands
+  commandInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      const command = commandInput.value.trim().toLowerCase();
+      
+      if (command === 'clear') {
         e.preventDefault();
-        
-        // Clear the terminal
         resultsContainer.innerHTML = '';
         addMessage('Terminal cleared. Type your query to search the knowledge base.');
+        commandInput.value = '';
+        return;
       }
-    });
-
-    // Help command
-    function showHelp() {
-      const helpMessage = `
-        <strong>Available Commands:</strong><br>
-        <br>
-        <code>search [query]</code> - Search the knowledge base<br>
-        <code>clear</code> - Clear the terminal<br>
-        <code>help</code> - Show this help message<br>
-        <br>
-        <strong>Keyboard Shortcuts:</strong><br>
-        <br>
-        <code>Tab</code> - Autocomplete suggestion<br>
-        <code>Up Arrow</code> - Recall previous command<br>
-        <code>Ctrl+L</code> - Clear terminal<br>
-      `;
       
-      addMessage(helpMessage);
-    }
-
-    // Process commands
-    commandInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        const command = commandInput.value.trim().toLowerCase();
-        
-        if (command === 'clear') {
-          e.preventDefault();
-          resultsContainer.innerHTML = '';
-          addMessage('Terminal cleared. Type your query to search the knowledge base.');
-          commandInput.value = '';
-          return;
-        }
-        
-        if (command === 'help') {
-          e.preventDefault();
-          showHelp();
-          commandInput.value = '';
-          return;
-        }
-        
-        if (command.startsWith('search ')) {
-          e.preventDefault();
-          const query = command.substring(7);
-          addMessage(query, true);
-          commandInput.value = '';
-          sendMessage(query);
-          return;
-        }
+      if (command === 'help') {
+        e.preventDefault();
+        showHelp();
+        commandInput.value = '';
+        return;
       }
-    });
-  </script>
+      
+      if (command.startsWith('search ')) {
+        e.preventDefault();
+        const query = command.substring(7);
+        addMessage(query, true);
+        commandInput.value = '';
+        sendMessage(query);
+        return;
+      }
+    }
+  });
+
+  // Test API connection
+  async function testApiConnection() {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: 'test' }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('API test successful:', data);
+    } catch (error) {
+      console.error('API test failed:', error);
+    }
+  }
+
+  // Run API test on page load
+  window.addEventListener('load', testApiConnection);
+</script>
 </body>
 </html>
 
