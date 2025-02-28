@@ -215,13 +215,10 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      max-height: 600px;
-      overflow-y: auto;
-      padding-right: 10px;
+      gap: 20px;
     }
 
     .message {
-      margin-bottom: 20px;
       padding: 15px;
       border-radius: var(--border-radius);
       position: relative;
@@ -271,16 +268,15 @@
     .article-buttons {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 15px;
       margin-top: 20px;
       animation: fadeIn 0.5s;
-      width: 100%;
     }
 
     .article-button {
       background-color: white;
       border: 1px solid #e0e0e0;
-      padding: 15px;
+      padding: 20px;
       text-align: left;
       cursor: pointer;
       border-radius: var(--border-radius);
@@ -288,7 +284,6 @@
       position: relative;
       overflow: visible;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-      width: 100%;
     }
 
     .dark-mode .article-button {
@@ -312,13 +307,14 @@
 
     .article-title {
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       color: var(--primary);
+      font-size: 1.1rem;
     }
 
     .article-question {
       font-style: italic;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       color: var(--gray);
     }
 
@@ -326,7 +322,7 @@
       color: var(--dark);
       font-size: 0.9rem;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -337,10 +333,9 @@
 
     .article-preview-popup {
       position: absolute;
-      top: -20px;
-      right: -320px;
+      top: 0;
+      left: 105%;
       width: 300px;
-      max-height: 300px;
       background-color: white;
       border: 1px solid #e0e0e0;
       border-radius: var(--border-radius);
@@ -350,7 +345,6 @@
       visibility: hidden;
       transition: all 0.3s ease;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      overflow-y: auto;
     }
 
     .dark-mode .article-preview-popup {
@@ -366,7 +360,7 @@
 
     @media (max-width: 768px) {
       .article-preview-popup {
-        right: 0;
+        left: 0;
         top: 100%;
         width: 100%;
       }
@@ -381,12 +375,9 @@
       animation: fadeIn 0.5s;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
       line-height: 1.7;
-      width: 100%;
       overflow-wrap: break-word;
       word-wrap: break-word;
       hyphens: auto;
-      max-height: 500px;
-      overflow-y: auto;
     }
 
     .dark-mode .article-content {
@@ -468,6 +459,11 @@
     }
 
     .typing-indicator span:nth-child(2) {
+      animation: pulse 1s infinite 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      
       animation: pulse 1s infinite 0.2s;
     }
 
@@ -649,8 +645,8 @@
       messageElement.innerHTML = message;
     }
     
-    // Insert at the beginning to show latest messages at the top
-    resultsContainer.prepend(messageElement);
+    resultsContainer.appendChild(messageElement);
+    resultsContainer.scrollTop = resultsContainer.scrollHeight;
   }
 
   function showTypingIndicator() {
@@ -663,8 +659,8 @@
       <span></span>
     `;
     
-    // Insert at the beginning for consistent message ordering
-    resultsContainer.prepend(indicator);
+    resultsContainer.appendChild(indicator);
+    resultsContainer.scrollTop = resultsContainer.scrollHeight;
   }
 
   function removeTypingIndicator() {
@@ -699,7 +695,7 @@
       button.classList.add('article-button', 'highlighted-article');
       
       // Highlight matching text in the content preview
-      const highlightedContent = highlightText(article.content.substring(0, 100), query);
+      const highlightedContent = highlightText(article.content.substring(0, 150), query);
       
       button.innerHTML = `
         <div class="article-title">${article.title || 'Untitled'}</div>
@@ -731,8 +727,7 @@
           <div class="article-body">${formattedContent}</div>
         `;
         
-        // Insert at the beginning for consistent ordering
-        resultsContainer.prepend(contentElement);
+        resultsContainer.appendChild(contentElement);
         
         // Scroll to the article content
         contentElement.scrollIntoView({ behavior: 'smooth' });
@@ -859,8 +854,7 @@
       if (data.articles && data.articles.length > 0) {
         const buttonsContainer = createArticleButtons(data.articles, message);
         addMessage('I found these relevant articles. Click on one to view its content:');
-        // Insert at the beginning for consistent ordering
-        resultsContainer.prepend(buttonsContainer);
+        resultsContainer.appendChild(buttonsContainer);
       } else {
         addMessage("No relevant information found. Try a different query or type '<help>' for assistance.");
       }
@@ -926,7 +920,7 @@
       
       if (userMessages.length > 0) {
         if (e.key === 'ArrowUp') {
-          const lastMessage = userMessages[0]; // Get the most recent message (now at the top)
+          const lastMessage = userMessages[userMessages.length - 1];
           commandInput.value = lastMessage.textContent;
         }
       }
@@ -978,4 +972,3 @@
 </script>
 </body>
 </html>
-
