@@ -274,6 +274,7 @@
       gap: 12px;
       margin-top: 20px;
       animation: fadeIn 0.5s;
+      width: 100%;
     }
 
     .article-button {
@@ -287,6 +288,7 @@
       position: relative;
       overflow: visible;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      width: 100%;
     }
 
     .dark-mode .article-button {
@@ -335,8 +337,8 @@
 
     .article-preview-popup {
       position: absolute;
-      top: 0;
-      left: 105%;
+      top: -20px;
+      right: -320px;
       width: 300px;
       max-height: 300px;
       background-color: white;
@@ -346,7 +348,6 @@
       z-index: 20;
       opacity: 0;
       visibility: hidden;
-      transform: translateY(-10px);
       transition: all 0.3s ease;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
       overflow-y: auto;
@@ -361,12 +362,11 @@
     .article-button:hover .article-preview-popup {
       opacity: 1;
       visibility: visible;
-      transform: translateY(0);
     }
 
     @media (max-width: 768px) {
       .article-preview-popup {
-        left: 0;
+        right: 0;
         top: 100%;
         width: 100%;
       }
@@ -381,7 +381,7 @@
       animation: fadeIn 0.5s;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
       line-height: 1.7;
-      max-width: 100%;
+      width: 100%;
       overflow-wrap: break-word;
       word-wrap: break-word;
       hyphens: auto;
@@ -544,6 +544,11 @@
       color: #000;
     }
 
+    .highlighted-article {
+      border-left: 5px solid var(--highlight-color);
+      border-color: var(--highlight-color);
+    }
+
     @media (max-width: 768px) {
       .container {
         padding: 20px 15px;
@@ -691,7 +696,7 @@
     
     articles.forEach(article => {
       const button = document.createElement('div');
-      button.classList.add('article-button');
+      button.classList.add('article-button', 'highlighted-article');
       
       // Highlight matching text in the content preview
       const highlightedContent = highlightText(article.content.substring(0, 100), query);
@@ -973,3 +978,4 @@
 </script>
 </body>
 </html>
+
