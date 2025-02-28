@@ -29,7 +29,11 @@ const upload = multer({
   },
 })
 
+let databaseInitialized = false
+
 async function initializeDatabase() {
+  if (databaseInitialized) return
+
   try {
     // Check if knowledge_base table exists
     const tableExists = await sql`
@@ -114,12 +118,26 @@ async function initializeDatabase() {
     `
 
     console.log("Database initialized successfully")
+    databaseInitialized = true
   } catch (error) {
     console.error("Error initializing database:", error)
+    throw error
   }
 }
 
-initializeDatabase()
+// Middleware to ensure database is initialized
+app.use(async (req, res, next) => {
+  if (!databaseInitialized) {
+    try {
+      await initializeDatabase()
+      next()
+    } catch (error) {
+      res.status(500).json({ error: "Failed to initialize database" })
+    }
+  } else {
+    next()
+  }
+})
 
 app.post("/api/chat", async (req, res) => {
   const { query } = req.body
