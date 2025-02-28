@@ -268,15 +268,15 @@
     .article-buttons {
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      margin-top: 20px;
+      gap: 12px;
       animation: fadeIn 0.5s;
+      width: 100%;
     }
 
     .article-button {
       background-color: white;
       border: 1px solid #e0e0e0;
-      padding: 20px;
+      padding: 15px;
       text-align: left;
       cursor: pointer;
       border-radius: var(--border-radius);
@@ -284,6 +284,7 @@
       position: relative;
       overflow: visible;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      width: 100%;
     }
 
     .dark-mode .article-button {
@@ -307,14 +308,13 @@
 
     .article-title {
       font-weight: 600;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       color: var(--primary);
-      font-size: 1.1rem;
     }
 
     .article-question {
       font-style: italic;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       color: var(--gray);
     }
 
@@ -322,7 +322,7 @@
       color: var(--dark);
       font-size: 0.9rem;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -333,8 +333,8 @@
 
     .article-preview-popup {
       position: absolute;
-      top: 0;
-      left: 105%;
+      top: 50%;
+      left: calc(100% + 20px);
       width: 300px;
       background-color: white;
       border: 1px solid #e0e0e0;
@@ -345,6 +345,7 @@
       visibility: hidden;
       transition: all 0.3s ease;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      transform: translateY(-50%);
     }
 
     .dark-mode .article-preview-popup {
@@ -358,11 +359,12 @@
       visibility: visible;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
       .article-preview-popup {
         left: 0;
         top: 100%;
         width: 100%;
+        transform: translateY(0);
       }
     }
 
@@ -375,6 +377,7 @@
       animation: fadeIn 0.5s;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
       line-height: 1.7;
+      width: 100%;
       overflow-wrap: break-word;
       word-wrap: break-word;
       hyphens: auto;
@@ -459,11 +462,6 @@
     }
 
     .typing-indicator span:nth-child(2) {
-      animation: pulse 1s infinite 0.2s;
-    }
-
-    .typing-indicator span:nth-child(3) {
-      
       animation: pulse 1s infinite 0.2s;
     }
 
@@ -695,7 +693,7 @@
       button.classList.add('article-button', 'highlighted-article');
       
       // Highlight matching text in the content preview
-      const highlightedContent = highlightText(article.content.substring(0, 150), query);
+      const highlightedContent = highlightText(article.content.substring(0, 100), query);
       
       button.innerHTML = `
         <div class="article-title">${article.title || 'Untitled'}</div>
@@ -727,7 +725,7 @@
           <div class="article-body">${formattedContent}</div>
         `;
         
-        resultsContainer.appendChild(contentElement);
+        buttonsContainer.insertAdjacentElement('afterend', contentElement);
         
         // Scroll to the article content
         contentElement.scrollIntoView({ behavior: 'smooth' });
@@ -972,3 +970,4 @@
 </script>
 </body>
 </html>
+

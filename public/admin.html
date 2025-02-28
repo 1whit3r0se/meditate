@@ -373,12 +373,32 @@
     }
 
     .knowledge-item {
-      animation: fadeIn 0.5s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      background-color: #f9f9f9;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #3498db;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .knowledge-content {
+      flex-grow: 1;
+      margin-right: 15px;
+    }
+
+    .knowledge-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-btn {
+      padding: 8px 12px;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      cursor: pointer;
     }
 
     .edit-mode {
@@ -705,11 +725,12 @@
             row.style.animationDelay = `${index * 0.1}s`;
             
             row.innerHTML = `
-              <td>${item.id}</td>
-              <td>${escapeHtml(item.title || '')}</td>
-              <td>${escapeHtml(item.question || '')}</td>
-              <td class="content-preview">${item.content.substring(0, 100)}...</td>
-              <td>
+              <td class="knowledge-content">
+                <div class="knowledge-topic">${escapeHtml(item.title || '')}</div>
+                <div class="knowledge-question">${escapeHtml(item.question || '')}</div>
+                <div class="knowledge-preview">${item.content.substring(0, 100)}...</div>
+              </td>
+              <td class="knowledge-actions">
                 <button class="btn btn-primary action-btn edit-btn" data-id="${item.id}">
                   <i class="fas fa-edit"></i> Edit
                 </button>
@@ -731,7 +752,7 @@
             button.addEventListener('click', loadKnowledgeForEdit);
           });
         } else {
-          tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No knowledge entries found</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="2" style="text-align: center;">No knowledge entries found</td></tr>';
         }
       } catch (error) {
         console.error('Error:', error);
