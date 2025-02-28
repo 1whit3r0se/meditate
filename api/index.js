@@ -540,6 +540,50 @@ app.delete("/api/admin/knowledge/:id", async (req, res) => {
   }
 })
 
+// Add this new route after your other admin routes
+app.post("/api/admin/create-user", authMiddleware, adminMiddleware, async (req, res) => {
+  const { email, password, role } = req.body
+
+  if (!email || !password || !role) {
+    return res.status(400).json({ error: "Email, password, and role are required" })
+  }
+
+  try {
+    // Check if user already exists
+    const existingUser = await sql`
+      SELECT * FROM "users" WHERE "email" = ${email}
+    `
+
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: "User already exists" })
+    }
+
+    const { hashPassword } = await import("./auth.js")
+    const { hash, salt } = await hashPassword(password)
+
+    const result = await sql`
+      INSERT INTO "users" ("email", "password_hash", "password_salt", "role")
+      VALUES (${email}, ${hash}, ${salt}, ${role})
+      RETURNING "id", "email", "role"
+    `
+
+    const newUser = result.rows[0]
+
+    return res.status(201).json({
+      success: true,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        role: newUser.role,
+      },
+    })
+  } catch (error) {
+    console.error("User creation error:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+
 // New endpoint to delete a specific file attachment
 app.delete("/api/admin/files/:id", async (req, res) => {
   const { id } = req.params
