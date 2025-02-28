@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Knowledge Base Admin</title>
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <title>Knowledge Base Chat</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
@@ -20,18 +19,26 @@
       --border-radius: 8px;
       --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       --transition: all 0.3s ease;
+      --terminal-bg: #1e1e2e;
+      --terminal-text: #a9b1d6;
+      --terminal-prompt: #7aa2f7;
+      --terminal-highlight: #bb9af7;
     }
 
     .dark-mode {
-      --primary: #4cc9f0;
-      --primary-dark: #4361ee;
-      --secondary: #7209b7;
-      --success: #4cc9f0;
-      --danger: #f72585;
-      --warning: #f8961e;
-      --light: #2b2d42;
-      --dark: #edf2f4;
-      --gray: #adb5bd;
+      --primary: #7aa2f7;
+      --primary-dark: #7dcfff;
+      --secondary: #bb9af7;
+      --success: #9ece6a;
+      --danger: #f7768e;
+      --warning: #e0af68;
+      --light: #a9b1d6;
+      --dark: #c0caf5;
+      --gray: #565f89;
+      --terminal-bg: #1a1b26;
+      --terminal-text: #a9b1d6;
+      --terminal-prompt: #7aa2f7;
+      --terminal-highlight: #bb9af7;
     }
 
     * {
@@ -41,19 +48,20 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5f7fa;
-      color: var(--dark);
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+      background-color: var(--terminal-bg);
+      color: var(--terminal-text);
       transition: var(--transition);
       min-height: 100vh;
-    }
-
-    .dark-mode body {
-      background-color: #121212;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
     .container {
-      max-width: 1200px;
+      width: 90%;
+      max-width: 800px;
       margin: 0 auto;
       padding: 20px;
     }
@@ -64,19 +72,20 @@
       align-items: center;
       margin-bottom: 30px;
       padding-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(169, 177, 214, 0.3);
     }
 
-    h1, h2 {
-      color: var(--dark);
+    h1 {
+      color: var(--terminal-text);
       margin-bottom: 20px;
       font-weight: 600;
+      text-align: center;
     }
 
     .theme-toggle {
       background: none;
       border: none;
-      color: var(--dark);
+      color: var(--terminal-text);
       font-size: 1.5rem;
       cursor: pointer;
       transition: var(--transition);
@@ -84,220 +93,311 @@
 
     .theme-toggle:hover {
       transform: rotate(30deg);
+      color: var(--terminal-highlight);
     }
 
-    .card {
-      background-color: white;
+    .terminal-container {
+      display: flex;
+      flex-direction: column;
+      height: 70vh;
       border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      padding: 25px;
-      margin-bottom: 30px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      background-color: var(--terminal-bg);
       transition: var(--transition);
-    }
-
-    .dark-mode .card {
-      background-color: #1e1e1e;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    .card:hover {
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-      transform: translateY(-5px);
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: var(--dark);
-    }
-
-    input, .ql-container {
       width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      background-color: rgba(0, 0, 0, 0.3);
+      color: var(--terminal-text);
+    }
+
+    .terminal-header .controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .terminal-header .control {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .terminal-header .close {
+      background-color: #f7768e;
+    }
+
+    .terminal-header .minimize {
+      background-color: #e0af68;
+    }
+
+    .terminal-header .maximize {
+      background-color: #9ece6a;
+    }
+
+    .terminal-title {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .terminal-output {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: var(--terminal-bg);
+      transition: var(--transition);
+      scrollbar-width: thin;
+      scrollbar-color: var(--gray) var(--terminal-bg);
+    }
+
+    .terminal-output::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .terminal-output::-webkit-scrollbar-track {
+      background: var(--terminal-bg);
+    }
+
+    .terminal-output::-webkit-scrollbar-thumb {
+      background-color: var(--gray);
+      border-radius: 20px;
+      border: 3px solid var(--terminal-bg);
+    }
+
+    .message {
+      margin-bottom: 20px;
+      padding: 10px 15px;
       border-radius: var(--border-radius);
-      font-size: 16px;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      color: var(--terminal-prompt);
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .user-message::before {
+      content: ">";
+      margin-right: 10px;
+      color: var(--terminal-prompt);
+      font-weight: bold;
+    }
+
+    .bot-message {
+      color: var(--terminal-text);
+      background-color: rgba(169, 177, 214, 0.05);
+      border-left: 3px solid var(--terminal-highlight);
+    }
+
+    .search-container {
+      position: relative;
+      margin: 20px 0;
+      width: 100%;
+    }
+
+    .command-input {
+      width: 100%;
+      padding: 12px 15px 12px 30px;
+      background-color: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(169, 177, 214, 0.3);
+      border-radius: var(--border-radius);
+      color: var(--terminal-text);
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+      font-size: 1rem;
       transition: var(--transition);
     }
 
-    .dark-mode input, .dark-mode .ql-container, .dark-mode .ql-toolbar {
-      background-color: #333;
-      border-color: #444;
-      color: white;
-    }
-
-    .dark-mode .ql-toolbar .ql-stroke {
-      stroke: white;
-    }
-
-    .dark-mode .ql-toolbar .ql-fill {
-      fill: white;
-    }
-
-    .dark-mode .ql-toolbar .ql-picker {
-      color: white;
-    }
-
-    input:focus, .ql-container:focus {
+    .command-input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+      border-color: var(--terminal-highlight);
+      box-shadow: 0 0 0 3px rgba(187, 154, 247, 0.2);
     }
 
-    .ql-toolbar {
-      border-top-left-radius: var(--border-radius);
-      border-top-right-radius: var(--border-radius);
+    .command-prompt {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--terminal-prompt);
+      font-weight: bold;
+      pointer-events: none;
     }
 
-    .ql-container {
-      border-bottom-left-radius: var(--border-radius);
-      border-bottom-right-radius: var(--border-radius);
-      height: 250px;
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: var(--terminal-bg);
+      border: 1px solid rgba(169, 177, 214, 0.3);
+      border-top: none;
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
     }
 
-    .btn {
-      display: inline-block;
-      font-weight: 500;
-      text-align: center;
-      white-space: nowrap;
-      vertical-align: middle;
-      user-select: none;
-      border: 1px solid transparent;
-      padding: 12px 20px;
-      font-size: 16px;
-      line-height: 1.5;
+    .suggestions.active {
+      display: block;
+      animation: slideDown 0.2s ease;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .suggestion-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: var(--transition);
+      border-bottom: 1px solid rgba(169, 177, 214, 0.1);
+    }
+
+    .suggestion-item:hover {
+      background-color: rgba(169, 177, 214, 0.1);
+    }
+
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .article-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+      animation: fadeIn 0.5s;
+    }
+
+    .article-button {
+      background-color: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(169, 177, 214, 0.3);
+      padding: 15px;
+      text-align: left;
+      cursor: pointer;
       border-radius: var(--border-radius);
       transition: var(--transition);
-      cursor: pointer;
+      position: relative;
+      overflow: hidden;
     }
 
-    .btn-primary {
-      color: white;
-      background-color: var(--primary);
-      border-color: var(--primary);
-    }
-
-    .btn-primary:hover {
-      background-color: var(--primary-dark);
-      border-color: var(--primary-dark);
+    .article-button:hover {
+      background-color: rgba(169, 177, 214, 0.1);
+      border-color: var(--terminal-highlight);
       transform: translateY(-2px);
     }
 
-    .btn-danger {
-      color: white;
-      background-color: var(--danger);
-      border-color: var(--danger);
+    .article-button:hover .article-preview-popup {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
     }
 
-    .btn-danger:hover {
-      background-color: #d91a6d;
-      border-color: #d91a6d;
+    .article-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--terminal-prompt);
     }
 
-    .table-container {
-      overflow-x: auto;
+    .article-question {
+      font-style: italic;
+      margin-bottom: 10px;
+      color: var(--gray);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .article-preview {
+      color: var(--terminal-text);
+      font-size: 0.9rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .article-preview-popup {
+      position: absolute;
+      top: 0;
+      left: 100%;
+      width: 300px;
+      background-color: var(--terminal-bg);
+      border: 1px solid rgba(169, 177, 214, 0.3);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      z-index: 20;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 768px) {
+      .article-preview-popup {
+        left: 0;
+        top: 100%;
+        width: 100%;
+      }
+    }
+
+    .article-content {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: var(--border-radius);
+      border-left: 3px solid var(--terminal-highlight);
+      animation: fadeIn 0.5s;
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
       margin-bottom: 20px;
     }
 
-    th, td {
-      padding: 15px;
-      text-align: left;
-      border-bottom: 1px solid #e0e0e0;
+    .typing-indicator span {
+      height: 8px;
+      width: 8px;
+      margin: 0 2px;
+      background-color: var(--terminal-text);
+      border-radius: 50%;
+      display: inline-block;
+      opacity: 0.4;
     }
 
-    .dark-mode th, .dark-mode td {
-      border-bottom: 1px solid #333;
+    .typing-indicator span:nth-child(1) {
+      animation: pulse 1s infinite;
     }
 
-    th {
-      background-color: #f8f9fa;
-      font-weight: 600;
-      color: var(--dark);
+    .typing-indicator span:nth-child(2) {
+      animation: pulse 1s infinite 0.2s;
     }
 
-    .dark-mode th {
-      background-color: #2a2a2a;
+    .typing-indicator span:nth-child(3) {
+      animation: pulse 1s infinite 0.4s;
     }
 
-    tr {
-      transition: var(--transition);
-    }
-
-    tr:hover {
-      background-color: rgba(67, 97, 238, 0.05);
-    }
-
-    .dark-mode tr:hover {
-      background-color: rgba(76, 201, 240, 0.05);
-    }
-
-    .action-btn {
-      padding: 8px 12px;
-      border-radius: var(--border-radius);
-      font-size: 14px;
-    }
-
-    .content-preview {
-      max-height: 100px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .toast {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: white;
-      color: var(--dark);
-      padding: 15px 25px;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-      display: flex;
-      align-items: center;
-      z-index: 1000;
-      transform: translateX(150%);
-      transition: transform 0.3s ease;
-    }
-
-    .dark-mode .toast {
-      background-color: #333;
-      color: white;
-    }
-
-    .toast.show {
-      transform: translateX(0);
-    }
-
-    .toast-success {
-      border-left: 4px solid var(--success);
-    }
-
-    .toast-error {
-      border-left: 4px solid var(--danger);
-    }
-
-    .toast-icon {
-      margin-right: 10px;
-      font-size: 20px;
-    }
-
-    .toast-success .toast-icon {
-      color: var(--success);
-    }
-
-    .toast-error .toast-icon {
-      color: var(--danger);
+    @keyframes pulse {
+      0% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0.4; transform: scale(1); }
     }
 
     .loading {
@@ -306,7 +406,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(255, 255, 255, 0.7);
+      background-color: rgba(0, 0, 0, 0.7);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -314,10 +414,6 @@
       opacity: 0;
       visibility: hidden;
       transition: var(--transition);
-    }
-
-    .dark-mode .loading {
-      background-color: rgba(0, 0, 0, 0.7);
     }
 
     .loading.show {
@@ -328,8 +424,8 @@
     .spinner {
       width: 50px;
       height: 50px;
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid var(--primary);
+      border: 3px solid rgba(169, 177, 214, 0.3);
+      border-top: 3px solid var(--terminal-highlight);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -339,135 +435,61 @@
       100% { transform: rotate(360deg); }
     }
 
-    .knowledge-item {
-      animation: fadeIn 0.5s ease;
+    .blink {
+      animation: blink 1s step-end infinite;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes blink {
+      50% { opacity: 0; }
     }
 
     @media (max-width: 768px) {
       .container {
         padding: 15px;
+        width: 95%;
       }
       
-      .card {
-        padding: 15px;
+      .terminal-container {
+        height: 80vh;
       }
-      
-      th, td {
-        padding: 10px;
-      }
-      
-      .btn {
-        padding: 10px 15px;
-      }
-    }
-
-    /* Responsive table */
-    @media (max-width: 600px) {
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-      
-      thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-      }
-      
-      tr {
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: var(--border-radius);
-      }
-      
-      td {
-        border: none;
-        border-bottom: 1px solid #ddd;
-        position: relative;
-        padding-left: 50%;
-      }
-      
-      td:before {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        width: 45%;
-        padding-right: 10px;
-        white-space: nowrap;
-        font-weight: bold;
-      }
-      
-      td:nth-of-type(1):before { content: "ID"; }
-      td:nth-of-type(2):before { content: "Title"; }
-      td:nth-of-type(3):before { content: "Question"; }
-      td:nth-of-type(4):before { content: "Content"; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1><i class="fas fa-brain"></i> Knowledge Base Admin</h1>
+      <h1><i class="fas fa-terminal"></i> Knowledge Base Terminal</h1>
       <button id="themeToggle" class="theme-toggle">
         <i class="fas fa-moon"></i>
       </button>
     </header>
     
-    <div class="card">
-      <h2><i class="fas fa-plus-circle"></i> Add New Knowledge</h2>
-      <form id="knowledgeForm">
-        <div class="form-group">
-          <label for="title">Title:</label>
-          <input type="text" id="title" name="title" required>
+    <div class="terminal-container">
+      <div class="terminal-header">
+        <div class="controls">
+          <div class="control close"></div>
+          <div class="control minimize"></div>
+          <div class="control maximize"></div>
         </div>
-        <div class="form-group">
-          <label for="question">Question:</label>
-          <input type="text" id="question" name="question" required>
+        <div class="terminal-title">knowledge-base@terminal ~ </div>
+      </div>
+      <div class="terminal-output" id="terminalOutput">
+        <div class="message bot-message">
+          Welcome to the Knowledge Base Terminal. Type your query and press Enter to search.
         </div>
-        <div class="form-group">
-          <label for="editor">Content:</label>
-          <div id="editor"></div>
-        </div>
-        <button type="submit" class="btn btn-primary">
-          <i class="fas fa-save"></i> Add Knowledge
-        </button>
-      </form>
-    </div>
-
-    <div class="card">
-      <h2><i class="fas fa-list"></i> Existing Knowledge</h2>
-      <div class="table-container">
-        <table id="knowledgeTable">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Question</th>
-              <th>Content</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Knowledge entries will be loaded here -->
-          </tbody>
-        </table>
+      </div>
+      <div class="search-container">
+        <span class="command-prompt">></span>
+        <input type="text" id="commandInput" class="command-input" placeholder="Type your query here...">
+        <div class="suggestions" id="suggestions"></div>
       </div>
     </div>
-  </div>
-
-  <div id="toast" class="toast">
-    <span class="toast-icon"></span>
-    <span id="toastMessage"></span>
   </div>
 
   <div id="loading" class="loading">
     <div class="spinner"></div>
   </div>
 
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
   <script>
     // Theme toggle functionality
     const themeToggle = document.getElementById('themeToggle');
@@ -489,52 +511,37 @@
         : '<i class="fas fa-moon"></i>';
     });
 
-    // Initialize Quill editor
-    var quill = new Quill('#editor', {
-      theme: 'snow',
-      placeholder: 'Write your content here...',
-      modules: {
-        toolbar: [
-          ['bold', 'italic', 'underline', 'strike'],
-          ['blockquote', 'code-block'],
-          [{ 'header': 1 }, { 'header': 2 }],
-          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-          [{ 'script': 'sub'}, { 'script': 'super' }],
-          [{ 'indent': '-1'}, { 'indent': '+1' }],
-          [{ 'direction': 'rtl' }],
-          [{ 'size': ['small', false, 'large', 'huge'] }],
-          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-          [{ 'color': [] }, { 'background': [] }],
-          [{ 'font': [] }],
-          [{ 'align': [] }],
-          ['clean'],
-          ['link', 'image']
-        ]
+    const terminalOutput = document.getElementById('terminalOutput');
+    const commandInput = document.getElementById('commandInput');
+    const suggestions = document.getElementById('suggestions');
+    
+    // Focus the command input on page load
+    window.addEventListener('load', () => {
+      commandInput.focus();
+      
+      // Add a blinking cursor effect
+      const cursor = document.createElement('span');
+      cursor.classList.add('blink');
+      cursor.textContent = '█';
+      cursor.style.marginLeft = '2px';
+      
+      // Simulate typing the welcome message
+      const welcomeMessage = document.querySelector('.bot-message');
+      welcomeMessage.innerHTML = '';
+      
+      const text = "Welcome to the Knowledge Base Terminal. Type your query and press Enter to search.";
+      let i = 0;
+      
+      function typeWriter() {
+        if (i < text.length) {
+          welcomeMessage.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(typeWriter, 20);
+        }
       }
+      
+      typeWriter();
     });
-
-    // Toast notification
-    function showToast(message, type = 'success') {
-      const toast = document.getElementById('toast');
-      const toastMessage = document.getElementById('toastMessage');
-      const toastIcon = toast.querySelector('.toast-icon');
-      
-      toast.className = 'toast';
-      toast.classList.add(`toast-${type}`);
-      
-      toastIcon.className = 'toast-icon';
-      toastIcon.innerHTML = type === 'success' 
-        ? '<i class="fas fa-check-circle"></i>' 
-        : '<i class="fas fa-exclamation-circle"></i>';
-      
-      toastMessage.textContent = message;
-      
-      toast.classList.add('show');
-      
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
-    }
 
     // Loading indicator
     function showLoading() {
@@ -545,142 +552,272 @@
       document.getElementById('loading').classList.remove('show');
     }
 
-    // Load knowledge entries
-    async function loadKnowledge() {
-      try {
-        showLoading();
-        const response = await fetch('/api/admin/knowledge');
-        const data = await response.json();
-        
-        const tableBody = document.querySelector('#knowledgeTable tbody');
-        tableBody.innerHTML = '';
-        
-        if (data.knowledge && data.knowledge.length > 0) {
-          data.knowledge.forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.className = 'knowledge-item';
-            row.style.animationDelay = `${index * 0.1}s`;
-            
-            row.innerHTML = `
-              <td>${item.id}</td>
-              <td>${escapeHtml(item.title || '')}</td>
-              <td>${escapeHtml(item.question || '')}</td>
-              <td class="content-preview">${item.content.substring(0, 100)}...</td>
-              <td>
-                <button class="btn btn-danger action-btn delete-btn" data-id="${item.id}">
-                  <i class="fas fa-trash-alt"></i> Delete
-                </button>
-              </td>
-            `;
-            
-            tableBody.appendChild(row);
-          });
-          
-          document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', deleteKnowledge);
-          });
-        } else {
-          tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No knowledge entries found</td></tr>';
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        showToast('An error occurred while loading knowledge', 'error');
-      } finally {
-        hideLoading();
+    function addMessage(message, isUser = false) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message');
+      messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
+      
+      if (isUser) {
+        messageElement.textContent = message;
+      } else {
+        messageElement.innerHTML = message;
+      }
+      
+      terminalOutput.appendChild(messageElement);
+      
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const indicator = document.createElement('div');
+      indicator.classList.add('typing-indicator');
+      indicator.id = 'typingIndicator';
+      indicator.innerHTML = `
+        <span></span>
+        <span></span>
+        <span></span>
+      `;
+      
+      terminalOutput.appendChild(indicator);
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) {
+        indicator.remove();
       }
     }
 
-    // Add knowledge
-    document.getElementById('knowledgeForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    function createArticleButtons(articles) {
+      const buttonsContainer = document.createElement('div');
+      buttonsContainer.classList.add('article-buttons');
       
-      const title = document.getElementById('title').value;
-      const question = document.getElementById('question').value;
-      const content = quill.root.innerHTML;
+      articles.forEach(article => {
+        const button = document.createElement('div');
+        button.classList.add('article-button');
+        
+        button.innerHTML = `
+          <div class="article-title">${article.title || 'Untitled'}</div>
+          <div class="article-question">${article.question || ''}</div>
+          <div class="article-preview">${article.content.substring(0, 100)}...</div>
+          <div class="article-preview-popup">
+            <div class="article-title">${article.title || 'Untitled'}</div>
+            <div class="article-question">${article.question || ''}</div>
+            <div>${article.content.substring(0, 300)}...</div>
+          </div>
+        `;
+        
+        button.addEventListener('click', () => {
+          // Remove any existing article content
+          const existingContent = document.querySelector('.article-content');
+          if (existingContent) {
+            existingContent.remove();
+          }
+          
+          // Create and append the article content
+          const contentElement = document.createElement('div');
+          contentElement.classList.add('article-content');
+          contentElement.innerHTML = article.content;
+          
+          terminalOutput.appendChild(contentElement);
+          terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        });
+        
+        buttonsContainer.appendChild(button);
+      });
       
-      if (!title || !question || !content) {
-        showToast('Please fill in all fields', 'error');
+      return buttonsContainer;
+    }
+
+    // Real-time search suggestions
+    let suggestionsTimeout;
+    
+    commandInput.addEventListener('input', () => {
+      const query = commandInput.value.trim();
+      
+      clearTimeout(suggestionsTimeout);
+      
+      if (query.length < 2) {
+        suggestions.classList.remove('active');
         return;
       }
       
+      suggestionsTimeout = setTimeout(async () => {
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query }),
+          });
+          
+          const data = await response.json();
+          
+          if (data.articles && data.articles.length > 0) {
+            suggestions.innerHTML = '';
+            
+            data.articles.forEach(article => {
+              const item = document.createElement('div');
+              item.classList.add('suggestion-item');
+              item.textContent = article.question || article.title;
+              
+              item.addEventListener('click', () => {
+                commandInput.value = article.question || article.title;
+                suggestions.classList.remove('active');
+                commandInput.focus();
+              });
+              
+              suggestions.appendChild(item);
+            });
+            
+            suggestions.classList.add('active');
+          } else {
+            suggestions.classList.remove('active');
+          }
+        } catch (error) {
+          console.error('Error fetching suggestions:', error);
+        }
+      }, 300);
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-container')) {
+        suggestions.classList.remove('active');
+      }
+    });
+
+    async function sendMessage(message) {
       try {
+        showTypingIndicator();
         showLoading();
-        const response = await fetch('/api/admin/knowledge', {
+        
+        const response = await fetch('/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ title, content, question }),
+          body: JSON.stringify({ query: message }),
         });
         
-        if (response.ok) {
-          document.getElementById('title').value = '';
-          document.getElementById('question').value = '';
-          quill.setContents([]);
-          
-          loadKnowledge();
-          
-          showToast('Knowledge added successfully!');
+        const data = await response.json();
+        
+        removeTypingIndicator();
+        
+        if (data.articles && data.articles.length > 0) {
+          const buttonsContainer = createArticleButtons(data.articles);
+          addMessage('I found these relevant articles. Click on one to view its content:');
+          terminalOutput.appendChild(buttonsContainer);
         } else {
-          const data = await response.json();
-          showToast(`Error: ${data.error || 'Failed to add knowledge'}`, 'error');
+          addMessage("Command not recognized. No relevant information found. Try a different query or type 'help' for assistance.");
         }
       } catch (error) {
         console.error('Error:', error);
-        showToast('An error occurred while adding knowledge', 'error');
+        removeTypingIndicator();
+        addMessage('Error: Connection failed. Please check your network and try again.');
       } finally {
         hideLoading();
       }
-    });
+    }
 
-    // Delete knowledge
-    async function deleteKnowledge() {
-      const id = this.getAttribute('data-id');
-      const row = this.closest('tr');
-      
-      if (confirm('Are you sure you want to delete this knowledge entry?')) {
-        try {
-          showLoading();
-          const response = await fetch(`/api/admin/knowledge/${id}`, {
-            method: 'DELETE',
-          });
-          
-          if (response.ok) {
-            // Add fade out animation before removing
-            row.style.transition = 'opacity 0.5s, transform 0.5s';
-            row.style.opacity = '0';
-            row.style.transform = 'translateX(20px)';
-            
-            setTimeout(() => {
-              loadKnowledge();
-            }, 500);
-            
-            showToast('Knowledge deleted successfully!');
-          } else {
-            const data = await response.json();
-            showToast(`Error: ${data.error || 'Failed to delete knowledge'}`, 'error');
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          showToast('An error occurred while deleting knowledge', 'error');
-        } finally {
-          hideLoading();
+    commandInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const message = commandInput.value.trim();
+        
+        if (message) {
+          addMessage(message, true);
+          commandInput.value = '';
+          suggestions.classList.remove('active');
+          sendMessage(message);
         }
       }
+    });
+
+    // Add some terminal-like commands
+    commandInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        
+        const firstSuggestion = suggestions.querySelector('.suggestion-item');
+        if (firstSuggestion) {
+          commandInput.value = firstSuggestion.textContent;
+        }
+      }
+      
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        
+        const userMessages = Array.from(document.querySelectorAll('.user-message'));
+        
+        if (userMessages.length > 0) {
+          if (e.key === 'ArrowUp') {
+            const lastMessage = userMessages[userMessages.length - 1];
+            commandInput.value = lastMessage.textContent;
+          }
+        }
+      }
+      
+      if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        
+        // Clear the terminal
+        terminalOutput.innerHTML = '';
+        addMessage('Terminal cleared. Type your query to search the knowledge base.');
+      }
+    });
+
+    // Help command
+    function showHelp() {
+      const helpMessage = `
+        <strong>Available Commands:</strong><br>
+        <br>
+        <code>search [query]</code> - Search the knowledge base<br>
+        <code>clear</code> - Clear the terminal<br>
+        <code>help</code> - Show this help message<br>
+        <br>
+        <strong>Keyboard Shortcuts:</strong><br>
+        <br>
+        <code>Tab</code> - Autocomplete suggestion<br>
+        <code>Up Arrow</code> - Recall previous command<br>
+        <code>Ctrl+L</code> - Clear terminal<br>
+      `;
+      
+      addMessage(helpMessage);
     }
 
-    // Escape HTML to prevent XSS
-    function escapeHtml(unsafe) {
-      return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    // Load knowledge on page load
-    document.addEventListener('DOMContentLoaded', loadKnowledge);
+    // Process commands
+    commandInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const command = commandInput.value.trim().toLowerCase();
+        
+        if (command === 'clear') {
+          e.preventDefault();
+          terminalOutput.innerHTML = '';
+          addMessage('Terminal cleared. Type your query to search the knowledge base.');
+          commandInput.value = '';
+          return;
+        }
+        
+        if (command === 'help') {
+          e.preventDefault();
+          showHelp();
+          commandInput.value = '';
+          return;
+        }
+        
+        if (command.startsWith('search ')) {
+          e.preventDefault();
+          const query = command.substring(7);
+          addMessage(query, true);
+          commandInput.value = '';
+          sendMessage(query);
+          return;
+        }
+      }
+    });
   </script>
 </body>
 </html>
+
