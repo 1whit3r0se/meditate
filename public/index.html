@@ -268,15 +268,15 @@
     .article-buttons {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 15px;
+      margin-top: 20px;
       animation: fadeIn 0.5s;
-      width: 100%;
     }
 
     .article-button {
       background-color: white;
       border: 1px solid #e0e0e0;
-      padding: 15px;
+      padding: 20px;
       text-align: left;
       cursor: pointer;
       border-radius: var(--border-radius);
@@ -284,7 +284,6 @@
       position: relative;
       overflow: visible;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-      width: 100%;
     }
 
     .dark-mode .article-button {
@@ -308,13 +307,14 @@
 
     .article-title {
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       color: var(--primary);
+      font-size: 1.1rem;
     }
 
     .article-question {
       font-style: italic;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       color: var(--gray);
     }
 
@@ -322,7 +322,7 @@
       color: var(--dark);
       font-size: 0.9rem;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -333,9 +333,11 @@
 
     .article-preview-popup {
       position: absolute;
-      top: 50%;
-      left: calc(100% + 20px);
+      top: 0;
+      left: 105%;
       width: 300px;
+      max-height: 300px;
+      overflow-y: auto;
       background-color: white;
       border: 1px solid #e0e0e0;
       border-radius: var(--border-radius);
@@ -345,7 +347,6 @@
       visibility: hidden;
       transition: all 0.3s ease;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      transform: translateY(-50%);
     }
 
     .dark-mode .article-preview-popup {
@@ -359,12 +360,11 @@
       visibility: visible;
     }
 
-    @media (max-width: 1024px) {
+    @media (max-width: 768px) {
       .article-preview-popup {
         left: 0;
         top: 100%;
         width: 100%;
-        transform: translateY(0);
       }
     }
 
@@ -377,7 +377,6 @@
       animation: fadeIn 0.5s;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
       line-height: 1.7;
-      width: 100%;
       overflow-wrap: break-word;
       word-wrap: break-word;
       hyphens: auto;
@@ -462,6 +461,11 @@
     }
 
     .typing-indicator span:nth-child(2) {
+      animation: pulse 1s infinite 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      
       animation: pulse 1s infinite 0.2s;
     }
 
@@ -633,19 +637,19 @@
   }
 
   function addMessage(message, isUser = false) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message');
-    messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
-    
-    if (isUser) {
-      messageElement.textContent = message;
-    } else {
-      messageElement.innerHTML = message;
-    }
-    
-    resultsContainer.appendChild(messageElement);
-    resultsContainer.scrollTop = resultsContainer.scrollHeight;
+  const messageElement = document.createElement('div');
+  messageElement.classList.add('message');
+  messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
+  
+  if (isUser) {
+    messageElement.textContent = message;
+  } else {
+    messageElement.innerHTML = message;
   }
+  
+  // Insert at the top instead of appending to the bottom
+  resultsContainer.insertBefore(messageElement, resultsContainer.firstChild);
+}
 
   function showTypingIndicator() {
     const indicator = document.createElement('div');
@@ -693,7 +697,7 @@
       button.classList.add('article-button', 'highlighted-article');
       
       // Highlight matching text in the content preview
-      const highlightedContent = highlightText(article.content.substring(0, 100), query);
+      const highlightedContent = highlightText(article.content.substring(0, 150), query);
       
       button.innerHTML = `
         <div class="article-title">${article.title || 'Untitled'}</div>
@@ -725,7 +729,7 @@
           <div class="article-body">${formattedContent}</div>
         `;
         
-        buttonsContainer.insertAdjacentElement('afterend', contentElement);
+        resultsContainer.appendChild(contentElement);
         
         // Scroll to the article content
         contentElement.scrollIntoView({ behavior: 'smooth' });
@@ -828,42 +832,117 @@
     }
   });
 
-  async function sendMessage(message) {
-    try {
-      showTypingIndicator();
-      showLoading();
+  // Track currently selected suggestion and command history position
+let selectedSuggestionIndex = -1;
+let commandHistoryIndex = -1;
+const commandHistory = [];
+
+commandInput.addEventListener('keydown', function(e) {
+  const suggestionItems = Array.from(suggestions.querySelectorAll('.suggestion-item'));
+  
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    
+    if (suggestionItems.length > 0) {
+      // Move to next suggestion
+      selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestionItems.length;
       
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query: message }),
+      // Highlight the selected suggestion
+      suggestionItems.forEach((item, index) => {
+        if (index === selectedSuggestionIndex) {
+          item.style.backgroundColor = 'var(--primary)';
+          item.style.color = 'white';
+          commandInput.value = item.textContent;
+        } else {
+          item.style.backgroundColor = '';
+          item.style.color = '';
+        }
       });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      removeTypingIndicator();
-      
-      if (data.articles && data.articles.length > 0) {
-        const buttonsContainer = createArticleButtons(data.articles, message);
-        addMessage('I found these relevant articles. Click on one to view its content:');
-        resultsContainer.appendChild(buttonsContainer);
-      } else {
-        addMessage("No relevant information found. Try a different query or type '<help>' for assistance.");
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      removeTypingIndicator();
-      addMessage('Error: Connection failed. Please check your network and try again.');
-    } finally {
-      hideLoading();
     }
   }
+  
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    
+    const userMessages = Array.from(document.querySelectorAll('.user-message'));
+    
+    if (userMessages.length > 0) {
+      // Store command history if not already stored
+      if (commandHistory.length === 0) {
+        userMessages.forEach(msg => {
+          commandHistory.unshift(msg.textContent);
+        });
+      }
+      
+      // Move up in command history (or cycle back to the beginning)
+      if (commandHistory.length > 0) {
+        commandHistoryIndex = (commandHistoryIndex + 1) % commandHistory.length;
+        commandInput.value = commandHistory[commandHistoryIndex];
+      }
+    }
+  }
+  
+  if (e.key === 'ArrowDown' && commandHistoryIndex > -1) {
+    e.preventDefault();
+    
+    // Move down in command history
+    if (commandHistory.length > 0) {
+      commandHistoryIndex = (commandHistoryIndex - 1 + commandHistory.length) % commandHistory.length;
+      commandInput.value = commandHistory[commandHistoryIndex];
+    }
+  }
+  
+  // Reset suggestion selection when typing
+  if (e.key !== 'Tab' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') {
+    selectedSuggestionIndex = -1;
+    suggestionItems.forEach(item => {
+      item.style.backgroundColor = '';
+      item.style.color = '';
+    });
+  }
+});
+
+// Add this to the sendMessage function to update command history
+async function sendMessage(message) {
+  // Add to command history at the beginning
+  commandHistory.unshift(message);
+  commandHistoryIndex = -1;
+  
+  try {
+    showTypingIndicator();
+    showLoading();
+    
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query: message }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    removeTypingIndicator();
+    
+    if (data.articles && data.articles.length > 0) {
+      const buttonsContainer = createArticleButtons(data.articles, message);
+      addMessage('I found these relevant articles. Click on one to view its content:');
+      resultsContainer.insertBefore(buttonsContainer, resultsContainer.firstChild);
+    } else {
+      addMessage("No relevant information found. Try a different query or type '<help>' for assistance.");
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    removeTypingIndicator();
+    addMessage('Error: Connection failed. Please check your network and try again.');
+  } finally {
+    hideLoading();
+  }
+}
 
   commandInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -901,29 +980,7 @@
   });
 
   // Add some terminal-like commands
-  commandInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      
-      const firstSuggestion = suggestions.querySelector('.suggestion-item');
-      if (firstSuggestion) {
-        commandInput.value = firstSuggestion.textContent;
-      }
-    }
-    
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      e.preventDefault();
-      
-      const userMessages = Array.from(document.querySelectorAll('.user-message'));
-      
-      if (userMessages.length > 0) {
-        if (e.key === 'ArrowUp') {
-          const lastMessage = userMessages[userMessages.length - 1];
-          commandInput.value = lastMessage.textContent;
-        }
-      }
-    }
-  });
+  
 
   // Help command
   function showHelp() {

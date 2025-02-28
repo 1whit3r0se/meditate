@@ -373,32 +373,12 @@
     }
 
     .knowledge-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      background-color: #f9f9f9;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border-left: 4px solid #3498db;
+      animation: fadeIn 0.5s ease;
     }
 
-    .knowledge-content {
-      flex-grow: 1;
-      margin-right: 15px;
-    }
-
-    .knowledge-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .action-btn {
-      padding: 8px 12px;
-      border-radius: var(--border-radius);
-      font-size: 14px;
-      cursor: pointer;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .edit-mode {
@@ -724,35 +704,40 @@
             row.className = 'knowledge-item';
             row.style.animationDelay = `${index * 0.1}s`;
             
+            // Create the row and cells separately to avoid HTML injection issues
             row.innerHTML = `
-              <td class="knowledge-content">
-                <div class="knowledge-topic">${escapeHtml(item.title || '')}</div>
-                <div class="knowledge-question">${escapeHtml(item.question || '')}</div>
-                <div class="knowledge-preview">${item.content.substring(0, 100)}...</div>
-              </td>
-              <td class="knowledge-actions">
-                <button class="btn btn-primary action-btn edit-btn" data-id="${item.id}">
-                  <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="btn btn-danger action-btn delete-btn" data-id="${item.id}">
-                  <i class="fas fa-trash-alt"></i> Delete
-                </button>
-              </td>
+              <td>${item.id}</td>
+              <td>${escapeHtml(item.title || '')}</td>
+              <td>${escapeHtml(item.question || '')}</td>
+              <td class="content-preview">${escapeHtml(item.content.substring(0, 100))}...</td>
+              <td id="actions-${item.id}"></td>
             `;
+
+            // Create action buttons programmatically
+            const actionsCell = row.querySelector(`#actions-${item.id}`);
+
+            // Create Edit button
+            const editButton = document.createElement('button');
+            editButton.className = 'btn btn-primary action-btn edit-btn';
+            editButton.dataset.id = item.id;
+            editButton.innerHTML = '<i class="fas fa-edit"></i> Edit';
+            editButton.addEventListener('click', loadKnowledgeForEdit);
+            actionsCell.appendChild(editButton);
+
+            // Create Delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'btn btn-danger action-btn delete-btn';
+            deleteButton.dataset.id = item.id;
+            deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+            deleteButton.addEventListener('click', deleteKnowledge);
+            actionsCell.appendChild(deleteButton);
             
             tableBody.appendChild(row);
           });
           
-          // Add event listeners to buttons
-          document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', deleteKnowledge);
-          });
-          
-          document.querySelectorAll('.edit-btn').forEach(button => {
-            button.addEventListener('click', loadKnowledgeForEdit);
-          });
+          // Event listeners are now added directly to each button when created
         } else {
-          tableBody.innerHTML = '<tr><td colspan="2" style="text-align: center;">No knowledge entries found</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No knowledge entries found</td></tr>';
         }
       } catch (error) {
         console.error('Error:', error);
