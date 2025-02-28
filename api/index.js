@@ -149,6 +149,50 @@ app.get("/api/admin/knowledge", async (req, res) => {
   }
 })
 
+// Add endpoint to get a single knowledge entry by ID
+app.get("/api/admin/knowledge/:id", async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const result = await sql`
+      SELECT "id", "title", "question", "content" FROM "knowledge_base" 
+      WHERE "id" = ${id}
+    `
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Knowledge entry not found" })
+    }
+
+    return res.json({ knowledge: result.rows[0] })
+  } catch (error) {
+    console.error("Error fetching knowledge:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// Add endpoint to update a knowledge entry
+app.put("/api/admin/knowledge/:id", async (req, res) => {
+  const { id } = req.params
+  const { title, content, question } = req.body
+
+  if (!title || !content || !question) {
+    return res.status(400).json({ error: "Title, question, and content are required" })
+  }
+
+  try {
+    await sql`
+      UPDATE "knowledge_base" 
+      SET "title" = ${title}, "content" = ${content}, "question" = ${question}
+      WHERE "id" = ${id}
+    `
+
+    return res.json({ message: "Knowledge updated successfully" })
+  } catch (error) {
+    console.error("Error updating knowledge:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
 app.delete("/api/admin/knowledge/:id", async (req, res) => {
   const { id } = req.params
 

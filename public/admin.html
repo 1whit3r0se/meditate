@@ -20,18 +20,26 @@
       --border-radius: 8px;
       --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       --transition: all 0.3s ease;
+      --terminal-bg: #1e1e2e;
+      --terminal-text: #a9b1d6;
+      --terminal-prompt: #7aa2f7;
+      --terminal-highlight: #bb9af7;
     }
 
     .dark-mode {
-      --primary: #4cc9f0;
-      --primary-dark: #4361ee;
-      --secondary: #7209b7;
-      --success: #4cc9f0;
-      --danger: #f72585;
-      --warning: #f8961e;
-      --light: #2b2d42;
-      --dark: #edf2f4;
-      --gray: #adb5bd;
+      --primary: #7aa2f7;
+      --primary-dark: #7dcfff;
+      --secondary: #bb9af7;
+      --success: #9ece6a;
+      --danger: #f7768e;
+      --warning: #e0af68;
+      --light: #a9b1d6;
+      --dark: #c0caf5;
+      --gray: #565f89;
+      --terminal-bg: #1a1b26;
+      --terminal-text: #a9b1d6;
+      --terminal-prompt: #7aa2f7;
+      --terminal-highlight: #bb9af7;
     }
 
     * {
@@ -41,7 +49,7 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
       background-color: #f5f7fa;
       color: var(--dark);
       transition: var(--transition);
@@ -73,6 +81,10 @@
       font-weight: 600;
     }
 
+    .dark-mode h1, .dark-mode h2 {
+      color: var(--light);
+    }
+
     .theme-toggle {
       background: none;
       border: none;
@@ -80,6 +92,10 @@
       font-size: 1.5rem;
       cursor: pointer;
       transition: var(--transition);
+    }
+
+    .dark-mode .theme-toggle {
+      color: var(--light);
     }
 
     .theme-toggle:hover {
@@ -114,6 +130,10 @@
       margin-bottom: 8px;
       font-weight: 500;
       color: var(--dark);
+    }
+
+    .dark-mode label {
+      color: var(--light);
     }
 
     input, .ql-container {
@@ -199,6 +219,17 @@
       border-color: #d91a6d;
     }
 
+    .btn-secondary {
+      color: white;
+      background-color: var(--secondary);
+      border-color: var(--secondary);
+    }
+
+    .btn-secondary:hover {
+      background-color: #3630b3;
+      border-color: #3630b3;
+    }
+
     .table-container {
       overflow-x: auto;
     }
@@ -227,6 +258,7 @@
 
     .dark-mode th {
       background-color: #2a2a2a;
+      color: var(--light);
     }
 
     tr {
@@ -245,6 +277,7 @@
       padding: 8px 12px;
       border-radius: var(--border-radius);
       font-size: 14px;
+      margin-right: 5px;
     }
 
     .content-preview {
@@ -348,6 +381,32 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    .edit-mode {
+      display: none;
+    }
+
+    .edit-mode.active {
+      display: block;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .back-to-list {
+      margin-bottom: 15px;
+      display: inline-block;
+      cursor: pointer;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .back-to-list:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 768px) {
       .container {
         padding: 15px;
@@ -405,6 +464,7 @@
       td:nth-of-type(2):before { content: "Title"; }
       td:nth-of-type(3):before { content: "Question"; }
       td:nth-of-type(4):before { content: "Content"; }
+      td:nth-of-type(5):before { content: "Actions"; }
     }
   </style>
 </head>
@@ -417,43 +477,77 @@
       </button>
     </header>
     
-    <div class="card">
-      <h2><i class="fas fa-plus-circle"></i> Add New Knowledge</h2>
-      <form id="knowledgeForm">
-        <div class="form-group">
-          <label for="title">Title:</label>
-          <input type="text" id="title" name="title" required>
+    <div id="listView">
+      <div class="card">
+        <h2><i class="fas fa-plus-circle"></i> Add New Knowledge</h2>
+        <form id="knowledgeForm">
+          <div class="form-group">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" required>
+          </div>
+          <div class="form-group">
+            <label for="question">Question:</label>
+            <input type="text" id="question" name="question" required>
+          </div>
+          <div class="form-group">
+            <label for="editor">Content:</label>
+            <div id="editor"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Add Knowledge
+          </button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2><i class="fas fa-list"></i> Existing Knowledge</h2>
+        <div class="table-container">
+          <table id="knowledgeTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Question</th>
+                <th>Content</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Knowledge entries will be loaded here -->
+            </tbody>
+          </table>
         </div>
-        <div class="form-group">
-          <label for="question">Question:</label>
-          <input type="text" id="question" name="question" required>
-        </div>
-        <div class="form-group">
-          <label for="editor">Content:</label>
-          <div id="editor"></div>
-        </div>
-        <button type="submit" class="btn btn-primary">
-          <i class="fas fa-save"></i> Add Knowledge
-        </button>
-      </form>
+      </div>
     </div>
 
-    <div class="card">
-      <h2><i class="fas fa-list"></i> Existing Knowledge</h2>
-      <div class="table-container">
-        <table id="knowledgeTable">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Question</th>
-              <th>Content</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Knowledge entries will be loaded here -->
-          </tbody>
-        </table>
+    <div id="editView" class="edit-mode">
+      <a href="#" class="back-to-list" id="backToList"><i class="fas fa-arrow-left"></i> Back to List</a>
+      
+      <div class="card">
+        <h2><i class="fas fa-edit"></i> Edit Knowledge</h2>
+        <form id="editForm">
+          <input type="hidden" id="editId">
+          <div class="form-group">
+            <label for="editTitle">Title:</label>
+            <input type="text" id="editTitle" name="editTitle" required>
+          </div>
+          <div class="form-group">
+            <label for="editQuestion">Question:</label>
+            <input type="text" id="editQuestion" name="editQuestion" required>
+          </div>
+          <div class="form-group">
+            <label for="editEditor">Content:</label>
+            <div id="editEditor"></div>
+          </div>
+          <div class="btn-group">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Save Changes
+            </button>
+            <button type="button" id="discardChanges" class="btn btn-secondary">
+              <i class="fas fa-times"></i> Discard Changes
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -489,10 +583,33 @@
         : '<i class="fas fa-moon"></i>';
     });
 
-    // Initialize Quill editor
+    // Initialize Quill editors
     var quill = new Quill('#editor', {
       theme: 'snow',
       placeholder: 'Write your content here...',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline', 'strike'],
+          ['blockquote', 'code-block'],
+          [{ 'header': 1 }, { 'header': 2 }],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          [{ 'script': 'sub'}, { 'script': 'super' }],
+          [{ 'indent': '-1'}, { 'indent': '+1' }],
+          [{ 'direction': 'rtl' }],
+          [{ 'size': ['small', false, 'large', 'huge'] }],
+          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+          [{ 'color': [] }, { 'background': [] }],
+          [{ 'font': [] }],
+          [{ 'align': [] }],
+          ['clean'],
+          ['link', 'image']
+        ]
+      }
+    });
+
+    var editQuill = new Quill('#editEditor', {
+      theme: 'snow',
+      placeholder: 'Edit your content here...',
       modules: {
         toolbar: [
           ['bold', 'italic', 'underline', 'strike'],
@@ -545,6 +662,32 @@
       document.getElementById('loading').classList.remove('show');
     }
 
+    // View management
+    const listView = document.getElementById('listView');
+    const editView = document.getElementById('editView');
+    const backToList = document.getElementById('backToList');
+    const discardChanges = document.getElementById('discardChanges');
+
+    function showEditView() {
+      listView.style.display = 'none';
+      editView.classList.add('active');
+    }
+
+    function showListView() {
+      editView.classList.remove('active');
+      listView.style.display = 'block';
+    }
+
+    backToList.addEventListener('click', (e) => {
+      e.preventDefault();
+      showListView();
+    });
+
+    discardChanges.addEventListener('click', (e) => {
+      e.preventDefault();
+      showListView();
+    });
+
     // Load knowledge entries
     async function loadKnowledge() {
       try {
@@ -567,6 +710,9 @@
               <td>${escapeHtml(item.question || '')}</td>
               <td class="content-preview">${item.content.substring(0, 100)}...</td>
               <td>
+                <button class="btn btn-primary action-btn edit-btn" data-id="${item.id}">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
                 <button class="btn btn-danger action-btn delete-btn" data-id="${item.id}">
                   <i class="fas fa-trash-alt"></i> Delete
                 </button>
@@ -576,8 +722,13 @@
             tableBody.appendChild(row);
           });
           
+          // Add event listeners to buttons
           document.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', deleteKnowledge);
+          });
+          
+          document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', loadKnowledgeForEdit);
           });
         } else {
           tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No knowledge entries found</td></tr>';
@@ -585,6 +736,37 @@
       } catch (error) {
         console.error('Error:', error);
         showToast('An error occurred while loading knowledge', 'error');
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Load a single knowledge entry for editing
+    async function loadKnowledgeForEdit() {
+      const id = this.getAttribute('data-id');
+      
+      try {
+        showLoading();
+        const response = await fetch(`/api/admin/knowledge/${id}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const knowledge = data.knowledge;
+        
+        // Populate the edit form
+        document.getElementById('editId').value = knowledge.id;
+        document.getElementById('editTitle').value = knowledge.title || '';
+        document.getElementById('editQuestion').value = knowledge.question || '';
+        editQuill.root.innerHTML = knowledge.content || '';
+        
+        // Show the edit view
+        showEditView();
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred while loading the knowledge entry', 'error');
       } finally {
         hideLoading();
       }
@@ -628,6 +810,46 @@
       } catch (error) {
         console.error('Error:', error);
         showToast('An error occurred while adding knowledge', 'error');
+      } finally {
+        hideLoading();
+      }
+    });
+
+    // Update knowledge
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const id = document.getElementById('editId').value;
+      const title = document.getElementById('editTitle').value;
+      const question = document.getElementById('editQuestion').value;
+      const content = editQuill.root.innerHTML;
+      
+      if (!title || !question || !content) {
+        showToast('Please fill in all fields', 'error');
+        return;
+      }
+      
+      try {
+        showLoading();
+        const response = await fetch(`/api/admin/knowledge/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ title, content, question }),
+        });
+        
+        if (response.ok) {
+          showListView();
+          loadKnowledge();
+          showToast('Knowledge updated successfully!');
+        } else {
+          const data = await response.json();
+          showToast(`Error: ${data.error || 'Failed to update knowledge'}`, 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('An error occurred while updating knowledge', 'error');
       } finally {
         hideLoading();
       }
@@ -684,3 +906,4 @@
   </script>
 </body>
 </html>
+
