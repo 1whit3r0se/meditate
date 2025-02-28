@@ -331,12 +331,19 @@
       color: #ddd;
     }
 
+    .article-image {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 15px;
+      border-radius: var(--border-radius);
+    }
+
     .article-preview-popup {
       position: absolute;
       top: 0;
       left: 105%;
       width: 300px;
-      max-height: 300px;
+      max-height: 400px;
       overflow-y: auto;
       background-color: white;
       border: 1px solid #e0e0e0;
@@ -578,6 +585,13 @@
 .dark-mode .back-to-top {
   background-color: var(--primary-dark);
 }
+
+.bot-message img {
+  max-width: 100%;
+  height: auto;
+  margin: 10px 0;
+  border-radius: var(--border-radius);
+}
   </style>
 </head>
 <body>
@@ -725,49 +739,52 @@
     articles.forEach(article => {
       const button = document.createElement('div');
       button.classList.add('article-button', 'highlighted-article');
-      
+        
       // Highlight matching text in the content preview
       const highlightedContent = highlightText(article.content, query);
-      
+        
       button.innerHTML = `
         <div class="article-title">${article.title || 'Untitled'}</div>
         <div class="article-question">${article.question || ''}</div>
+        ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" class="article-image">` : ''}
         <div class="article-preview">${highlightedContent.substring(0, 150)}...</div>
         <div class="article-preview-popup">
           <div class="article-title">${article.title || 'Untitled'}</div>
           <div class="article-question">${article.question || ''}</div>
+          ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" class="article-image">` : ''}
           <div>${highlightedContent}</div>
         </div>
       `;
-      
+        
       button.addEventListener('click', () => {
         // Remove any existing article content
         const existingContent = document.querySelector('.article-content');
         if (existingContent) {
           existingContent.remove();
         }
-        
+          
         // Create and append the article content
         const contentElement = document.createElement('div');
         contentElement.classList.add('article-content');
-        
+          
         // Format the content with proper HTML structure and highlight matching text
         const formattedContent = formatArticleContent(article.content, query);
         contentElement.innerHTML = `
           <h2>${article.title || 'Untitled'}</h2>
           <div class="article-question">${article.question || ''}</div>
+          ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" class="article-image">` : ''}
           <div class="article-body">${formattedContent}</div>
         `;
-        
+          
         resultsContainer.appendChild(contentElement);
-        
+          
         // Scroll to the article content
         contentElement.scrollIntoView({ behavior: 'smooth' });
       });
-      
+        
       buttonsContainer.appendChild(button);
     });
-    
+      
     return buttonsContainer;
   }
 
@@ -775,7 +792,7 @@
   function formatArticleContent(content, query) {
     // Replace multiple newlines with proper paragraph breaks
     let formatted = content.replace(/\n{2,}/g, '</p><p>');
-    
+      
     // Wrap in paragraph tags if not already
     if (!formatted.startsWith('<p>')) {
       formatted = '<p>' + formatted;
@@ -783,13 +800,13 @@
     if (!formatted.endsWith('</p>')) {
       formatted = formatted + '</p>';
     }
-    
+      
     // Replace single newlines with line breaks
     formatted = formatted.replace(/\n/g, '<br>');
-    
+      
     // Highlight matching text
     formatted = highlightText(formatted, query);
-    
+      
     return formatted;
   }
 

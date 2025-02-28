@@ -33,25 +33,26 @@ async function initializeDatabase() {
           "title" TEXT,
           "question" TEXT NOT NULL,
           "content" TEXT NOT NULL,
+          "image_url" TEXT,
           "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `;
       console.log("Created knowledge_base table");
     } else {
-      // Check if question column exists
-      const questionColumnExists = await sql`
+      // Check if image_url column exists
+      const imageUrlColumnExists = await sql`
         SELECT EXISTS (
           SELECT FROM information_schema.columns
-          WHERE table_name = 'knowledge_base' AND column_name = 'question'
+          WHERE table_name = 'knowledge_base' AND column_name = 'image_url'
         );
       `;
       
-      // Add question column if it doesn't exist
-      if (!questionColumnExists.rows[0].exists) {
+      // Add image_url column if it doesn't exist
+      if (!imageUrlColumnExists.rows[0].exists) {
         await sql`
-          ALTER TABLE "knowledge_base" ADD COLUMN "question" TEXT NOT NULL DEFAULT '';
+          ALTER TABLE "knowledge_base" ADD COLUMN "image_url" TEXT;
         `;
-        console.log("Added 'question' column to knowledge_base table");
+        console.log("Added 'image_url' column to knowledge_base table");
       }
     }
 
@@ -96,7 +97,7 @@ app.post("/api/chat", async (req, res) => {
     const searchQuery = keywords.join(" | ")
 
     const result = await sql`
-      SELECT "id", "title", "question", "content",
+      SELECT "id", "title", "question", "content", "image_url",
              ts_rank(to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content"), to_tsquery('english', ${searchQuery})) AS rank
       FROM "knowledge_base"
       WHERE to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content") @@ to_tsquery('english', ${searchQuery})
@@ -116,7 +117,7 @@ app.post("/api/chat", async (req, res) => {
 })
 
 app.post("/api/admin/knowledge", async (req, res) => {
-  const { title, content, question } = req.body
+  const { title, content, question, image_url } = req.body
 
   if (!title || !content || !question) {
     return res.status(400).json({ error: "Title, question, and content are required" })
@@ -124,8 +125,8 @@ app.post("/api/admin/knowledge", async (req, res) => {
 
   try {
     await sql`
-      INSERT INTO "knowledge_base" ("title", "content", "question") 
-      VALUES (${title}, ${content}, ${question})
+      INSERT INTO "knowledge_base" ("title", "content", "question", "image_url") 
+      VALUES (${title}, ${content}, ${question}, ${image_url})
     `
 
     return res.status(201).json({ message: "Knowledge added successfully" })
@@ -138,7 +139,7 @@ app.post("/api/admin/knowledge", async (req, res) => {
 app.get("/api/admin/knowledge", async (req, res) => {
   try {
     const result = await sql`
-      SELECT "id", "title", "question", "content" FROM "knowledge_base" 
+      SELECT "id", "title", "question", "content", "image_url" FROM "knowledge_base" 
       ORDER BY "id" DESC
     `
 
@@ -149,13 +150,12 @@ app.get("/api/admin/knowledge", async (req, res) => {
   }
 })
 
-// Add endpoint to get a single knowledge entry by ID
 app.get("/api/admin/knowledge/:id", async (req, res) => {
   const { id } = req.params
 
   try {
     const result = await sql`
-      SELECT "id", "title", "question", "content" FROM "knowledge_base" 
+      SELECT "id", "title", "question", "content", "image_url" FROM "knowledge_base" 
       WHERE "id" = ${id}
     `
 
@@ -170,10 +170,9 @@ app.get("/api/admin/knowledge/:id", async (req, res) => {
   }
 })
 
-// Add endpoint to update a knowledge entry
 app.put("/api/admin/knowledge/:id", async (req, res) => {
   const { id } = req.params
-  const { title, content, question } = req.body
+  const { title, content, question, image_url } = req.body
 
   if (!title || !content || !question) {
     return res.status(400).json({ error: "Title, question, and content are required" })
@@ -182,7 +181,7 @@ app.put("/api/admin/knowledge/:id", async (req, res) => {
   try {
     await sql`
       UPDATE "knowledge_base" 
-      SET "title" = ${title}, "content" = ${content}, "question" = ${question}
+      SET "title" = ${title}, "content" = ${content}, "question" = ${question}, "image_url" = ${image_url}
       WHERE "id" = ${id}
     `
 
