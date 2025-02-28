@@ -591,10 +591,10 @@ app.get("/admin", authMiddleware, adminMiddleware, (req, res) => {
   res.sendFile(path.join(publicPath, "admin.html"))
 })
 
-// Apply auth middleware to admin page
-app.get("/index", authMiddleware, adminMiddleware, (req, res) => {
-  res.sendFile(path.join(publicPath, "index.html"))
-})
+// Apply auth middleware to index page
+app.get("/", authMiddleware, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 
 app.get("/", (req, res) => {
