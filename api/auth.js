@@ -75,6 +75,7 @@ export async function initializeAuthTables() {
   }
 }
 
+
 // Auth middleware
 export function authMiddleware(req, res, next) {
   // Get token from cookies or Authorization header
