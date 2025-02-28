@@ -332,36 +332,23 @@
     }
 
     .article-preview-popup {
-        position: absolute;
-        top: 0;
-        left: 105%;
-        width: 300px;
-        max-height: 300px;
-        overflow-y: auto;
-        background-color: white;
-        border: 1px solid #e0e0e0;
-        border-radius: var(--border-radius);
-        padding: 15px;
-        z-index: 20;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        display: block;
-        word-wrap: break-word;
+      position: absolute;
+      top: 0;
+      left: 105%;
+      width: 300px;
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: white;
+      border: 1px solid #e0e0e0;
+      border-radius: var(--border-radius);
+      padding: 15px;
+      z-index: 20;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
 
-    .article-preview-popup p {
-        white-space: normal;
-        overflow: visible;
-        text-overflow: clip;
-        margin: 0;
-    }
-
-    .article-preview-popup.show {
-        opacity: 1;
-        visibility: visible;
-    }
     .dark-mode .article-preview-popup {
       background-color: #2a2a2a;
       border-color: #444;
@@ -565,6 +552,32 @@
         padding: 20px 15px;
       }
     }
+
+    .back-to-top {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: var(--primary);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+}
+
+.dark-mode .back-to-top {
+  background-color: var(--primary-dark);
+}
   </style>
 </head>
 <body>
@@ -592,6 +605,10 @@
   <div id="loading" class="loading">
     <div class="spinner"></div>
   </div>
+
+  <div class="back-to-top">
+  <i class="fas fa-arrow-up"></i>
+</div>
 
   <script>
   // Theme toggle functionality
@@ -710,16 +727,16 @@
       button.classList.add('article-button', 'highlighted-article');
       
       // Highlight matching text in the content preview
-      const highlightedContent = highlightText(article.content.substring(0, 150), query);
+      const highlightedContent = highlightText(article.content, query);
       
       button.innerHTML = `
         <div class="article-title">${article.title || 'Untitled'}</div>
         <div class="article-question">${article.question || ''}</div>
-        <div class="article-preview">${highlightedContent}...</div>
+        <div class="article-preview">${highlightedContent.substring(0, 150)}...</div>
         <div class="article-preview-popup">
           <div class="article-title">${article.title || 'Untitled'}</div>
           <div class="article-question">${article.question || ''}</div>
-          <div>${highlightText(article.content.substring(0, 300), query)}...</div>
+          <div>${highlightedContent}</div>
         </div>
       `;
       
@@ -1037,6 +1054,21 @@ async function sendMessage(message) {
 
   // Run API test on page load
   window.addEventListener('load', testApiConnection);
+
+// Back to top functionality
+const backToTop = document.querySelector('.back-to-top');
+
+window.addEventListener('scroll', () => {
+  if (window.pageYOffset > 100) {
+    backToTop.classList.add('visible');
+  } else {
+    backToTop.classList.remove('visible');
+  }
+});
+
+backToTop.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 </script>
 </body>
 </html>
