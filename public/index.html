@@ -19,18 +19,26 @@
       --border-radius: 8px;
       --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       --transition: all 0.3s ease;
+      --terminal-bg: #1e1e2e;
+      --terminal-text: #a9b1d6;
+      --terminal-prompt: #7aa2f7;
+      --terminal-highlight: #bb9af7;
     }
 
     .dark-mode {
-      --primary: #4cc9f0;
-      --primary-dark: #4361ee;
-      --secondary: #7209b7;
-      --success: #4cc9f0;
-      --danger: #f72585;
-      --warning: #f8961e;
-      --light: #2b2d42;
-      --dark: #edf2f4;
-      --gray: #adb5bd;
+      --primary: #7aa2f7;
+      --primary-dark: #7dcfff;
+      --secondary: #bb9af7;
+      --success: #9ece6a;
+      --danger: #f7768e;
+      --warning: #e0af68;
+      --light: #a9b1d6;
+      --dark: #c0caf5;
+      --gray: #565f89;
+      --terminal-bg: #1a1b26;
+      --terminal-text: #a9b1d6;
+      --terminal-prompt: #7aa2f7;
+      --terminal-highlight: #bb9af7;
     }
 
     * {
@@ -40,19 +48,20 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5f7fa;
-      color: var(--dark);
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+      background-color: var(--terminal-bg);
+      color: var(--terminal-text);
       transition: var(--transition);
       min-height: 100vh;
-    }
-
-    .dark-mode body {
-      background-color: #121212;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
     .container {
-      max-width: 1200px;
+      width: 90%;
+      max-width: 800px;
       margin: 0 auto;
       padding: 20px;
     }
@@ -63,11 +72,11 @@
       align-items: center;
       margin-bottom: 30px;
       padding-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid rgba(169, 177, 214, 0.3);
     }
 
     h1 {
-      color: var(--dark);
+      color: var(--terminal-text);
       margin-bottom: 20px;
       font-weight: 600;
       text-align: center;
@@ -76,7 +85,7 @@
     .theme-toggle {
       background: none;
       border: none;
-      color: var(--dark);
+      color: var(--terminal-text);
       font-size: 1.5rem;
       cursor: pointer;
       transition: var(--transition);
@@ -84,164 +93,188 @@
 
     .theme-toggle:hover {
       transform: rotate(30deg);
+      color: var(--terminal-highlight);
     }
 
-    .chat-container {
+    .terminal-container {
       display: flex;
       flex-direction: column;
       height: 70vh;
       border-radius: var(--border-radius);
       overflow: hidden;
-      box-shadow: var(--box-shadow);
-      background-color: white;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      background-color: var(--terminal-bg);
       transition: var(--transition);
+      width: 100%;
     }
 
-    .dark-mode .chat-container {
-      background-color: #1e1e1e;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    .chat-header {
+    .terminal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 20px;
-      background-color: var(--primary);
-      color: white;
+      padding: 10px 15px;
+      background-color: rgba(0, 0, 0, 0.3);
+      color: var(--terminal-text);
     }
 
-    .chat-messages {
+    .terminal-header .controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .terminal-header .control {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .terminal-header .close {
+      background-color: #f7768e;
+    }
+
+    .terminal-header .minimize {
+      background-color: #e0af68;
+    }
+
+    .terminal-header .maximize {
+      background-color: #9ece6a;
+    }
+
+    .terminal-title {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .terminal-output {
       flex: 1;
       overflow-y: auto;
       padding: 20px;
-      background-color: white;
+      background-color: var(--terminal-bg);
       transition: var(--transition);
+      scrollbar-width: thin;
+      scrollbar-color: var(--gray) var(--terminal-bg);
     }
 
-    .dark-mode .chat-messages {
-      background-color: #1e1e1e;
+    .terminal-output::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .terminal-output::-webkit-scrollbar-track {
+      background: var(--terminal-bg);
+    }
+
+    .terminal-output::-webkit-scrollbar-thumb {
+      background-color: var(--gray);
+      border-radius: 20px;
+      border: 3px solid var(--terminal-bg);
     }
 
     .message {
       margin-bottom: 20px;
-      padding: 15px;
+      padding: 10px 15px;
       border-radius: var(--border-radius);
-      max-width: 80%;
       position: relative;
-      animation: fadeIn 0.5s;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-      line-height: 1.5;
+      animation: fadeIn 0.3s ease;
+      line-height: 1.6;
+      font-size: 0.95rem;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
     .user-message {
-      background-color: var(--primary);
-      color: white;
-      margin-left: auto;
-      border-bottom-right-radius: 0;
+      color: var(--terminal-prompt);
+      display: flex;
+      align-items: flex-start;
     }
 
-    .user-message:after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      right: -10px;
-      width: 0;
-      height: 0;
-      border: 10px solid transparent;
-      border-left-color: var(--primary);
-      border-right: 0;
-      border-bottom: 0;
+    .user-message::before {
+      content: ">";
+      margin-right: 10px;
+      color: var(--terminal-prompt);
+      font-weight: bold;
     }
 
     .bot-message {
-      background-color: #f1f1f1;
-      color: var(--dark);
-      border-bottom-left-radius: 0;
+      color: var(--terminal-text);
+      background-color: rgba(169, 177, 214, 0.05);
+      border-left: 3px solid var(--terminal-highlight);
     }
 
-    .dark-mode .bot-message {
-      background-color: #333;
-      color: white;
+    .search-container {
+      position: relative;
+      margin: 20px 0;
+      width: 100%;
     }
 
-    .bot-message:after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: -10px;
-      width: 0;
-      height: 0;
-      border: 10px solid transparent;
-      border-right-color: #f1f1f1;
-      border-left: 0;
-      border-bottom: 0;
-    }
-
-    .dark-mode .bot-message:after {
-      border-right-color: #333;
-    }
-
-    .chat-input {
-      display: flex;
-      padding: 15px;
-      background-color: #f8f9fa;
-      border-top: 1px solid #e0e0e0;
-      transition: var(--transition);
-    }
-
-    .dark-mode .chat-input {
-      background-color: #2a2a2a;
-      border-top: 1px solid #333;
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 12px 15px;
-      border: 1px solid #ddd;
+    .command-input {
+      width: 100%;
+      padding: 12px 15px 12px 30px;
+      background-color: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(169, 177, 214, 0.3);
       border-radius: var(--border-radius);
-      margin-right: 10px;
-      font-size: 16px;
+      color: var(--terminal-text);
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+      font-size: 1rem;
       transition: var(--transition);
     }
 
-    .dark-mode .chat-input input {
-      background-color: #333;
-      border-color: #444;
-      color: white;
-    }
-
-    .chat-input input:focus {
+    .command-input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+      border-color: var(--terminal-highlight);
+      box-shadow: 0 0 0 3px rgba(187, 154, 247, 0.2);
     }
 
-    .chat-input button {
-      background-color: var(--primary);
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: var(--border-radius);
+    .command-prompt {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--terminal-prompt);
+      font-weight: bold;
+      pointer-events: none;
+    }
+
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: var(--terminal-bg);
+      border: 1px solid rgba(169, 177, 214, 0.3);
+      border-top: none;
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+
+    .suggestions.active {
+      display: block;
+      animation: slideDown 0.2s ease;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .suggestion-item {
+      padding: 10px 15px;
       cursor: pointer;
       transition: var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      border-bottom: 1px solid rgba(169, 177, 214, 0.1);
     }
 
-    .chat-input button:hover {
-      background-color: var(--primary-dark);
-      transform: translateY(-2px);
+    .suggestion-item:hover {
+      background-color: rgba(169, 177, 214, 0.1);
     }
 
-    .chat-input button i {
-      margin-left: 8px;
+    .suggestion-item:last-child {
+      border-bottom: none;
     }
 
     .article-buttons {
@@ -253,8 +286,8 @@
     }
 
     .article-button {
-      background-color: white;
-      border: 1px solid #e0e0e0;
+      background-color: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(169, 177, 214, 0.3);
       padding: 15px;
       text-align: left;
       cursor: pointer;
@@ -262,29 +295,24 @@
       transition: var(--transition);
       position: relative;
       overflow: hidden;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    }
-
-    .dark-mode .article-button {
-      background-color: #333;
-      border-color: #444;
-      color: white;
     }
 
     .article-button:hover {
-      background-color: #f8f9fa;
+      background-color: rgba(169, 177, 214, 0.1);
+      border-color: var(--terminal-highlight);
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .dark-mode .article-button:hover {
-      background-color: #444;
+    .article-button:hover .article-preview-popup {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
     }
 
     .article-title {
       font-weight: 600;
       margin-bottom: 5px;
-      color: var(--primary);
+      color: var(--terminal-prompt);
     }
 
     .article-question {
@@ -294,7 +322,7 @@
     }
 
     .article-preview {
-      color: var(--dark);
+      color: var(--terminal-text);
       font-size: 0.9rem;
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -302,8 +330,40 @@
       overflow: hidden;
     }
 
-    .dark-mode .article-preview {
-      color: #ddd;
+    .article-preview-popup {
+      position: absolute;
+      top: 0;
+      left: 100%;
+      width: 300px;
+      background-color: var(--terminal-bg);
+      border: 1px solid rgba(169, 177, 214, 0.3);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      z-index: 20;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 768px) {
+      .article-preview-popup {
+        left: 0;
+        top: 100%;
+        width: 100%;
+      }
+    }
+
+    .article-content {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: var(--border-radius);
+      border-left: 3px solid var(--terminal-highlight);
+      animation: fadeIn 0.5s;
     }
 
     .typing-indicator {
@@ -313,10 +373,10 @@
     }
 
     .typing-indicator span {
-      height: 10px;
-      width: 10px;
+      height: 8px;
+      width: 8px;
       margin: 0 2px;
-      background-color: #bbb;
+      background-color: var(--terminal-text);
       border-radius: 50%;
       display: inline-block;
       opacity: 0.4;
@@ -346,7 +406,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(255, 255, 255, 0.7);
+      background-color: rgba(0, 0, 0, 0.7);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -354,10 +414,6 @@
       opacity: 0;
       visibility: hidden;
       transition: var(--transition);
-    }
-
-    .dark-mode .loading {
-      background-color: rgba(0, 0, 0, 0.7);
     }
 
     .loading.show {
@@ -368,8 +424,8 @@
     .spinner {
       width: 50px;
       height: 50px;
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid var(--primary);
+      border: 3px solid rgba(169, 177, 214, 0.3);
+      border-top: 3px solid var(--terminal-highlight);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -379,17 +435,22 @@
       100% { transform: rotate(360deg); }
     }
 
+    .blink {
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
     @media (max-width: 768px) {
       .container {
         padding: 15px;
+        width: 95%;
       }
       
-      .chat-container {
+      .terminal-container {
         height: 80vh;
-      }
-      
-      .message {
-        max-width: 90%;
       }
     }
   </style>
@@ -397,26 +458,30 @@
 <body>
   <div class="container">
     <header>
-      <h1><i class="fas fa-robot"></i> Knowledge Base Chat</h1>
+      <h1><i class="fas fa-terminal"></i> Knowledge Base Terminal</h1>
       <button id="themeToggle" class="theme-toggle">
         <i class="fas fa-moon"></i>
       </button>
     </header>
     
-    <div class="chat-container">
-      <div class="chat-header">
-        <div>
-          <i class="fas fa-comments"></i> Chat Assistant
+    <div class="terminal-container">
+      <div class="terminal-header">
+        <div class="controls">
+          <div class="control close"></div>
+          <div class="control minimize"></div>
+          <div class="control maximize"></div>
         </div>
+        <div class="terminal-title">knowledge-base@terminal ~ </div>
       </div>
-      <div class="chat-messages" id="chatMessages">
+      <div class="terminal-output" id="terminalOutput">
         <div class="message bot-message">
-          Hello! How can I help you today? Ask me anything about our knowledge base.
+          Welcome to the Knowledge Base Terminal. Type your query and press Enter to search.
         </div>
       </div>
-      <div class="chat-input">
-        <input type="text" id="userInput" placeholder="Type your question here...">
-        <button id="sendButton">Send <i class="fas fa-paper-plane"></i></button>
+      <div class="search-container">
+        <span class="command-prompt">></span>
+        <input type="text" id="commandInput" class="command-input" placeholder="Type your query here...">
+        <div class="suggestions" id="suggestions"></div>
       </div>
     </div>
   </div>
@@ -446,9 +511,37 @@
         : '<i class="fas fa-moon"></i>';
     });
 
-    const chatMessages = document.getElementById('chatMessages');
-    const userInput = document.getElementById('userInput');
-    const sendButton = document.getElementById('sendButton');
+    const terminalOutput = document.getElementById('terminalOutput');
+    const commandInput = document.getElementById('commandInput');
+    const suggestions = document.getElementById('suggestions');
+    
+    // Focus the command input on page load
+    window.addEventListener('load', () => {
+      commandInput.focus();
+      
+      // Add a blinking cursor effect
+      const cursor = document.createElement('span');
+      cursor.classList.add('blink');
+      cursor.textContent = '█';
+      cursor.style.marginLeft = '2px';
+      
+      // Simulate typing the welcome message
+      const welcomeMessage = document.querySelector('.bot-message');
+      welcomeMessage.innerHTML = '';
+      
+      const text = "Welcome to the Knowledge Base Terminal. Type your query and press Enter to search.";
+      let i = 0;
+      
+      function typeWriter() {
+        if (i < text.length) {
+          welcomeMessage.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(typeWriter, 20);
+        }
+      }
+      
+      typeWriter();
+    });
 
     // Loading indicator
     function showLoading() {
@@ -463,11 +556,16 @@
       const messageElement = document.createElement('div');
       messageElement.classList.add('message');
       messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
-      messageElement.innerHTML = message;
       
-      chatMessages.appendChild(messageElement);
+      if (isUser) {
+        messageElement.textContent = message;
+      } else {
+        messageElement.innerHTML = message;
+      }
       
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      terminalOutput.appendChild(messageElement);
+      
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
     }
 
     function showTypingIndicator() {
@@ -480,8 +578,8 @@
         <span></span>
       `;
       
-      chatMessages.appendChild(indicator);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      terminalOutput.appendChild(indicator);
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
     }
 
     function removeTypingIndicator() {
@@ -502,11 +600,28 @@
         button.innerHTML = `
           <div class="article-title">${article.title || 'Untitled'}</div>
           <div class="article-question">${article.question || ''}</div>
-          <div class="article-preview">${article.content.substring(0, 150)}...</div>
+          <div class="article-preview">${article.content.substring(0, 100)}...</div>
+          <div class="article-preview-popup">
+            <div class="article-title">${article.title || 'Untitled'}</div>
+            <div class="article-question">${article.question || ''}</div>
+            <div>${article.content.substring(0, 300)}...</div>
+          </div>
         `;
         
         button.addEventListener('click', () => {
-          addMessage(article.content);
+          // Remove any existing article content
+          const existingContent = document.querySelector('.article-content');
+          if (existingContent) {
+            existingContent.remove();
+          }
+          
+          // Create and append the article content
+          const contentElement = document.createElement('div');
+          contentElement.classList.add('article-content');
+          contentElement.innerHTML = article.content;
+          
+          terminalOutput.appendChild(contentElement);
+          terminalOutput.scrollTop = terminalOutput.scrollHeight;
         });
         
         buttonsContainer.appendChild(button);
@@ -514,6 +629,65 @@
       
       return buttonsContainer;
     }
+
+    // Real-time search suggestions
+    let suggestionsTimeout;
+    
+    commandInput.addEventListener('input', () => {
+      const query = commandInput.value.trim();
+      
+      clearTimeout(suggestionsTimeout);
+      
+      if (query.length < 2) {
+        suggestions.classList.remove('active');
+        return;
+      }
+      
+      suggestionsTimeout = setTimeout(async () => {
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query }),
+          });
+          
+          const data = await response.json();
+          
+          if (data.articles && data.articles.length > 0) {
+            suggestions.innerHTML = '';
+            
+            data.articles.forEach(article => {
+              const item = document.createElement('div');
+              item.classList.add('suggestion-item');
+              item.textContent = article.question || article.title;
+              
+              item.addEventListener('click', () => {
+                commandInput.value = article.question || article.title;
+                suggestions.classList.remove('active');
+                commandInput.focus();
+              });
+              
+              suggestions.appendChild(item);
+            });
+            
+            suggestions.classList.add('active');
+          } else {
+            suggestions.classList.remove('active');
+          }
+        } catch (error) {
+          console.error('Error fetching suggestions:', error);
+        }
+      }, 300);
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-container')) {
+        suggestions.classList.remove('active');
+      }
+    });
 
     async function sendMessage(message) {
       try {
@@ -535,34 +709,115 @@
         if (data.articles && data.articles.length > 0) {
           const buttonsContainer = createArticleButtons(data.articles);
           addMessage('I found these relevant articles. Click on one to view its content:');
-          chatMessages.appendChild(buttonsContainer);
+          terminalOutput.appendChild(buttonsContainer);
         } else {
-          addMessage("I'm sorry, I couldn't find any relevant information for your query. Please try asking in a different way or contact support for assistance.");
+          addMessage("Command not recognized. No relevant information found. Try a different query or type 'help' for assistance.");
         }
       } catch (error) {
         console.error('Error:', error);
         removeTypingIndicator();
-        addMessage('Sorry, an error occurred while processing your request. Please try again later.');
+        addMessage('Error: Connection failed. Please check your network and try again.');
       } finally {
         hideLoading();
       }
     }
 
-    sendButton.addEventListener('click', () => {
-      const message = userInput.value.trim();
-      
-      if (message) {
-        addMessage(message, true);
-        userInput.value = '';
-        sendMessage(message);
+    commandInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const message = commandInput.value.trim();
+        
+        if (message) {
+          addMessage(message, true);
+          commandInput.value = '';
+          suggestions.classList.remove('active');
+          sendMessage(message);
+        }
       }
     });
 
-    userInput.addEventListener('keypress', (e) => {
+    // Add some terminal-like commands
+    commandInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        
+        const firstSuggestion = suggestions.querySelector('.suggestion-item');
+        if (firstSuggestion) {
+          commandInput.value = firstSuggestion.textContent;
+        }
+      }
+      
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        
+        const userMessages = Array.from(document.querySelectorAll('.user-message'));
+        
+        if (userMessages.length > 0) {
+          if (e.key === 'ArrowUp') {
+            const lastMessage = userMessages[userMessages.length - 1];
+            commandInput.value = lastMessage.textContent;
+          }
+        }
+      }
+      
+      if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        
+        // Clear the terminal
+        terminalOutput.innerHTML = '';
+        addMessage('Terminal cleared. Type your query to search the knowledge base.');
+      }
+    });
+
+    // Help command
+    function showHelp() {
+      const helpMessage = `
+        <strong>Available Commands:</strong><br>
+        <br>
+        <code>search [query]</code> - Search the knowledge base<br>
+        <code>clear</code> - Clear the terminal<br>
+        <code>help</code> - Show this help message<br>
+        <br>
+        <strong>Keyboard Shortcuts:</strong><br>
+        <br>
+        <code>Tab</code> - Autocomplete suggestion<br>
+        <code>Up Arrow</code> - Recall previous command<br>
+        <code>Ctrl+L</code> - Clear terminal<br>
+      `;
+      
+      addMessage(helpMessage);
+    }
+
+    // Process commands
+    commandInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
-        sendButton.click();
+        const command = commandInput.value.trim().toLowerCase();
+        
+        if (command === 'clear') {
+          e.preventDefault();
+          terminalOutput.innerHTML = '';
+          addMessage('Terminal cleared. Type your query to search the knowledge base.');
+          commandInput.value = '';
+          return;
+        }
+        
+        if (command === 'help') {
+          e.preventDefault();
+          showHelp();
+          commandInput.value = '';
+          return;
+        }
+        
+        if (command.startsWith('search ')) {
+          e.preventDefault();
+          const query = command.substring(7);
+          addMessage(query, true);
+          commandInput.value = '';
+          sendMessage(query);
+          return;
+        }
       }
     });
   </script>
 </body>
 </html>
+
