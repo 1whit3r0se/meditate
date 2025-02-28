@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Knowledge Base Chat</title>
+  <title>Apollo DB</title>
+  <link rel="icon" type="image/png" href="apollo.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
@@ -597,7 +598,7 @@
 <body>
   <div class="container">
     <header>
-      <h1><i class="fas fa-terminal"></i> Knowledge Base</h1>
+      <h1><i class="fas fa-terminal"></i> Apollo DB</h1>
       <button id="themeToggle" class="theme-toggle">
         <i class="fas fa-moon"></i>
       </button>
@@ -611,7 +612,7 @@
     
     <div class="results-container" id="resultsContainer">
       <div class="message bot-message">
-        Welcome to the Knowledge Base. Type your query and press Enter to search.
+        Welcome to the SMAX Troubleshooting Knowledge Base. Type your query and press Enter to search.
       </div>
     </div>
   </div>
@@ -657,7 +658,7 @@
     const welcomeMessage = document.querySelector('.bot-message');
     welcomeMessage.innerHTML = '';
     
-    const text = "Welcome to the Knowledge Base. Type your query and press Enter to search.";
+    const text = "Welcome to the SMAX Troubleshooting Knowledge Base. Type your query and press Enter to search.";
     let i = 0;
     
     function typeWriter() {
@@ -1034,7 +1035,6 @@ async function sendMessage(message) {
     const helpMessage = `
       <strong>Available Commands:</strong><br>
       <br>
-      <code>&lt;search query&gt;</code> - Search the knowledge base with specific query<br>
       <code>&lt;clear&gt;</code> - Clear the terminal<br>
       <code>&lt;help&gt;</code> - Show this help message<br>
       <code>&lt;admin&gt;</code> - Open the admin panel in a new tab<br>
