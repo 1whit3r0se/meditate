@@ -7,6 +7,8 @@ import path from "path"
 import multer from "multer"
 import { v4 as uuidv4 } from "uuid"
 import { put, del } from "@vercel/blob"
+import cookieParser from "cookie-parser"
+import { initializeAuthTables, authMiddleware, adminMiddleware } from "./auth.js"
 
 dotenv.config()
 
@@ -19,6 +21,7 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage()
@@ -35,6 +38,9 @@ async function initializeDatabase() {
   if (databaseInitialized) return
 
   try {
+    // Initialize auth tables
+    await initializeAuthTables()
+
     // Check if knowledge_base table exists
     const tableExists = await sql`
       SELECT EXISTS (
@@ -149,6 +155,134 @@ app.use(async (req, res, next) => {
   }
 })
 
+// Authentication routes
+app.post("/api/auth/login", async (req, res) => {
+  const { email, password } = req.body
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" })
+  }
+
+  try {
+    const result = await sql`
+      SELECT * FROM "users" WHERE "email" = ${email}
+    `
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: "Invalid credentials" })
+    }
+
+    const user = result.rows[0]
+    const { hashPassword, verifyPassword, createToken } = await import("./auth.js")
+
+    const isValid = await verifyPassword(password, user.password_hash, user.password_salt)
+
+    if (!isValid) {
+      return res.status(401).json({ error: "Invalid credentials" })
+    }
+
+    const token = createToken(user)
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+
+    return res.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+    })
+  } catch (error) {
+    console.error("Login error:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+app.post("/api/auth/register", async (req, res) => {
+  const { email, password } = req.body
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" })
+  }
+
+  try {
+    // Check if user already exists
+    const existingUser = await sql`
+      SELECT * FROM "users" WHERE "email" = ${email}
+    `
+
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: "User already exists" })
+    }
+
+    const { hashPassword, createToken } = await import("./auth.js")
+    const { hash, salt } = await hashPassword(password)
+
+    const result = await sql`
+      INSERT INTO "users" ("email", "password_hash", "password_salt", "role")
+      VALUES (${email}, ${hash}, ${salt}, 'user')
+      RETURNING "id", "email", "role"
+    `
+
+    const user = result.rows[0]
+    const token = createToken(user)
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+
+    return res.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+    })
+  } catch (error) {
+    console.error("Registration error:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+app.post("/api/auth/logout", (req, res) => {
+  res.clearCookie("token")
+  return res.json({ success: true })
+})
+
+app.get("/api/auth/user", async (req, res) => {
+  const token = req.cookies?.token
+
+  if (!token) {
+    return res.json({ authenticated: false })
+  }
+
+  const { verifyToken } = await import("./auth.js")
+  const user = verifyToken(token)
+
+  if (!user) {
+    return res.json({ authenticated: false })
+  }
+
+  return res.json({
+    authenticated: true,
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+  })
+})
+
 app.post("/api/chat", async (req, res) => {
   const { query } = req.body
 
@@ -197,6 +331,9 @@ app.post("/api/chat", async (req, res) => {
   }
 })
 
+// Apply auth middleware to admin routes
+app.use("/api/admin", authMiddleware, adminMiddleware)
+
 app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
   const { title, content, question, image_url } = req.body
 
@@ -222,6 +359,7 @@ app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
       for (const file of req.files) {
         const blob = await put(uuidv4(), file.buffer, {
           access: "public",
+          contentType: file.mimetype,
         })
 
         await sql`
@@ -326,6 +464,7 @@ app.put("/api/admin/knowledge/:id", upload.array("files", 5), async (req, res) =
       for (const file of req.files) {
         const blob = await put(uuidv4(), file.buffer, {
           access: "public",
+          contentType: file.mimetype,
         })
 
         await sql`
@@ -400,7 +539,7 @@ app.delete("/api/admin/files/:id", async (req, res) => {
   }
 })
 
-// New endpoint to download a file
+// Fixed file download endpoint
 app.get("/api/files/:id", async (req, res) => {
   const { id } = req.params
 
@@ -415,8 +554,16 @@ app.get("/api/files/:id", async (req, res) => {
 
     const file = fileResult.rows[0]
 
-    // Redirect to the Vercel Blob URL
-    res.redirect(file.blob_url)
+    // Instead of redirecting, fetch the file and serve it with proper headers
+    const response = await fetch(file.blob_url)
+    const fileBuffer = await response.arrayBuffer()
+
+    // Set the correct content type and filename
+    res.setHeader("Content-Type", file.mime_type || "application/octet-stream")
+    res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(file.filename)}"`)
+
+    // Send the file
+    res.send(Buffer.from(fileBuffer))
   } catch (error) {
     console.error("Error downloading file:", error)
     return res.status(500).json({ error: "Internal server error" })
@@ -429,7 +576,18 @@ const publicPath = path.join(__dirname, "..", "public")
 
 app.use(express.static(publicPath))
 
-app.get("/admin", (req, res) => {
+// Login page
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(publicPath, "login.html"))
+})
+
+// Register page
+app.get("/register", (req, res) => {
+  res.sendFile(path.join(publicPath, "register.html"))
+})
+
+// Apply auth middleware to admin page
+app.get("/admin", authMiddleware, adminMiddleware, (req, res) => {
   res.sendFile(path.join(publicPath, "admin.html"))
 })
 
