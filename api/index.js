@@ -4,6 +4,9 @@ import dotenv from "dotenv"
 import cors from "cors"
 import { fileURLToPath } from "url"
 import path from "path"
+import multer from "multer"
+import fs from "fs"
+import { v4 as uuidv4 } from "uuid"
 
 dotenv.config()
 
@@ -17,14 +20,43 @@ app.use(express.json())
 app.use(cors())
 app.use(express.urlencoded({ extended: true }))
 
+// Set up file storage
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const uploadsDir = path.join(__dirname, "uploads")
+
+// Create uploads directory if it doesn't exist
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true })
+}
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir)
+  },
+  filename: (req, file, cb) => {
+    const uniqueFilename = `${uuidv4()}-${file.originalname}`
+    cb(null, uniqueFilename)
+  },
+})
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+})
+
 async function initializeDatabase() {
   try {
+    // Check if knowledge_base table exists
     const tableExists = await sql`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_name = 'knowledge_base'
       );
-    `;
+    `
 
     if (!tableExists.rows[0].exists) {
       await sql`
@@ -36,8 +68,8 @@ async function initializeDatabase() {
           "image_url" TEXT,
           "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-      `;
-      console.log("Created knowledge_base table");
+      `
+      console.log("Created knowledge_base table")
     } else {
       // Check if image_url column exists
       const imageUrlColumnExists = await sql`
@@ -45,14 +77,14 @@ async function initializeDatabase() {
           SELECT FROM information_schema.columns
           WHERE table_name = 'knowledge_base' AND column_name = 'image_url'
         );
-      `;
-      
+      `
+
       // Add image_url column if it doesn't exist
       if (!imageUrlColumnExists.rows[0].exists) {
         await sql`
           ALTER TABLE "knowledge_base" ADD COLUMN "image_url" TEXT;
-        `;
-        console.log("Added 'image_url' column to knowledge_base table");
+        `
+        console.log("Added 'image_url' column to knowledge_base table")
       }
     }
 
@@ -62,24 +94,47 @@ async function initializeDatabase() {
         SELECT FROM information_schema.columns
         WHERE table_name = 'knowledge_base' AND column_name = 'content'
       );
-    `;
+    `
 
     if (!contentColumnExists.rows[0].exists) {
       await sql`
         ALTER TABLE "knowledge_base" ADD COLUMN "content" TEXT NOT NULL DEFAULT '';
-      `;
-      console.log("Added 'content' column to knowledge_base table");
+      `
+      console.log("Added 'content' column to knowledge_base table")
+    }
+
+    // Check if file_attachments table exists
+    const fileTableExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'file_attachments'
+      );
+    `
+
+    if (!fileTableExists.rows[0].exists) {
+      await sql`
+        CREATE TABLE "file_attachments" (
+          "id" SERIAL PRIMARY KEY,
+          "knowledge_id" INTEGER NOT NULL REFERENCES "knowledge_base"("id") ON DELETE CASCADE,
+          "filename" TEXT NOT NULL,
+          "file_path" TEXT NOT NULL,
+          "file_size" INTEGER NOT NULL,
+          "mime_type" TEXT,
+          "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `
+      console.log("Created file_attachments table")
     }
 
     // Create or replace the full-text search index
     await sql`
       DROP INDEX IF EXISTS idx_fts;
       CREATE INDEX idx_fts ON "knowledge_base" USING GIN (to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content"));
-    `;
+    `
 
-    console.log("Database initialized successfully");
+    console.log("Database initialized successfully")
   } catch (error) {
-    console.error("Error initializing database:", error);
+    console.error("Error initializing database:", error)
   }
 }
 
@@ -97,16 +152,33 @@ app.post("/api/chat", async (req, res) => {
     const searchQuery = keywords.join(" | ")
 
     const result = await sql`
-      SELECT "id", "title", "question", "content", "image_url",
-             ts_rank(to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content"), to_tsquery('english', ${searchQuery})) AS rank
-      FROM "knowledge_base"
-      WHERE to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content") @@ to_tsquery('english', ${searchQuery})
+      SELECT kb."id", kb."title", kb."question", kb."content", kb."image_url",
+             ts_rank(to_tsvector('english', COALESCE(kb."title", '') || ' ' || COALESCE(kb."question", '') || ' ' || kb."content"), to_tsquery('english', ${searchQuery})) AS rank
+      FROM "knowledge_base" kb
+      WHERE to_tsvector('english', COALESCE(kb."title", '') || ' ' || COALESCE(kb."question", '') || ' ' || kb."content") @@ to_tsquery('english', ${searchQuery})
       ORDER BY rank DESC
       LIMIT 5
     `
 
-    if (result.rows.length > 0) {
-      return res.json({ articles: result.rows })
+    // For each knowledge base entry, get its file attachments
+    const articlesWithFiles = await Promise.all(
+      result.rows.map(async (article) => {
+        const files = await sql`
+        SELECT "id", "filename", "file_size", "mime_type" 
+        FROM "file_attachments" 
+        WHERE "knowledge_id" = ${article.id}
+        ORDER BY "created_at" DESC
+      `
+
+        return {
+          ...article,
+          files: files.rows,
+        }
+      }),
+    )
+
+    if (articlesWithFiles.length > 0) {
+      return res.json({ articles: articlesWithFiles })
     } else {
       return res.json({ articles: [] })
     }
@@ -116,7 +188,7 @@ app.post("/api/chat", async (req, res) => {
   }
 })
 
-app.post("/api/admin/knowledge", async (req, res) => {
+app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
   const { title, content, question, image_url } = req.body
 
   if (!title || !content || !question) {
@@ -124,13 +196,35 @@ app.post("/api/admin/knowledge", async (req, res) => {
   }
 
   try {
-    await sql`
+    // Begin transaction
+    await sql`BEGIN`
+
+    // Insert knowledge base entry
+    const result = await sql`
       INSERT INTO "knowledge_base" ("title", "content", "question", "image_url") 
       VALUES (${title}, ${content}, ${question}, ${image_url})
+      RETURNING "id"
     `
 
-    return res.status(201).json({ message: "Knowledge added successfully" })
+    const knowledgeId = result.rows[0].id
+
+    // Insert file attachments if any
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        await sql`
+          INSERT INTO "file_attachments" ("knowledge_id", "filename", "file_path", "file_size", "mime_type")
+          VALUES (${knowledgeId}, ${file.originalname}, ${file.filename}, ${file.size}, ${file.mimetype})
+        `
+      }
+    }
+
+    // Commit transaction
+    await sql`COMMIT`
+
+    return res.status(201).json({ message: "Knowledge added successfully", id: knowledgeId })
   } catch (error) {
+    // Rollback transaction on error
+    await sql`ROLLBACK`
     console.error("Error adding knowledge:", error)
     return res.status(500).json({ error: "Internal server error" })
   }
@@ -143,7 +237,21 @@ app.get("/api/admin/knowledge", async (req, res) => {
       ORDER BY "id" DESC
     `
 
-    return res.json({ knowledge: result.rows })
+    // For each knowledge base entry, get the count of file attachments
+    const knowledgeWithFileCounts = await Promise.all(
+      result.rows.map(async (item) => {
+        const fileCount = await sql`
+        SELECT COUNT(*) FROM "file_attachments" WHERE "knowledge_id" = ${item.id}
+      `
+
+        return {
+          ...item,
+          file_count: Number.parseInt(fileCount.rows[0].count),
+        }
+      }),
+    )
+
+    return res.json({ knowledge: knowledgeWithFileCounts })
   } catch (error) {
     console.error("Error fetching knowledge:", error)
     return res.status(500).json({ error: "Internal server error" })
@@ -163,14 +271,25 @@ app.get("/api/admin/knowledge/:id", async (req, res) => {
       return res.status(404).json({ error: "Knowledge entry not found" })
     }
 
-    return res.json({ knowledge: result.rows[0] })
+    // Get file attachments for this knowledge entry
+    const files = await sql`
+      SELECT "id", "filename", "file_path", "file_size", "mime_type" 
+      FROM "file_attachments" 
+      WHERE "knowledge_id" = ${id}
+      ORDER BY "created_at" DESC
+    `
+
+    return res.json({
+      knowledge: result.rows[0],
+      files: files.rows,
+    })
   } catch (error) {
     console.error("Error fetching knowledge:", error)
     return res.status(500).json({ error: "Internal server error" })
   }
 })
 
-app.put("/api/admin/knowledge/:id", async (req, res) => {
+app.put("/api/admin/knowledge/:id", upload.array("files", 5), async (req, res) => {
   const { id } = req.params
   const { title, content, question, image_url } = req.body
 
@@ -179,14 +298,33 @@ app.put("/api/admin/knowledge/:id", async (req, res) => {
   }
 
   try {
+    // Begin transaction
+    await sql`BEGIN`
+
+    // Update knowledge base entry
     await sql`
       UPDATE "knowledge_base" 
       SET "title" = ${title}, "content" = ${content}, "question" = ${question}, "image_url" = ${image_url}
       WHERE "id" = ${id}
     `
 
+    // Insert new file attachments if any
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        await sql`
+          INSERT INTO "file_attachments" ("knowledge_id", "filename", "file_path", "file_size", "mime_type")
+          VALUES (${id}, ${file.originalname}, ${file.filename}, ${file.size}, ${file.mimetype})
+        `
+      }
+    }
+
+    // Commit transaction
+    await sql`COMMIT`
+
     return res.json({ message: "Knowledge updated successfully" })
   } catch (error) {
+    // Rollback transaction on error
+    await sql`ROLLBACK`
     console.error("Error updating knowledge:", error)
     return res.status(500).json({ error: "Internal server error" })
   }
@@ -196,7 +334,21 @@ app.delete("/api/admin/knowledge/:id", async (req, res) => {
   const { id } = req.params
 
   try {
+    // Get file paths before deleting
+    const files = await sql`
+      SELECT "file_path" FROM "file_attachments" WHERE "knowledge_id" = ${id}
+    `
+
+    // Delete knowledge entry (cascade will delete file records)
     await sql`DELETE FROM "knowledge_base" WHERE "id" = ${id}`
+
+    // Delete physical files
+    for (const file of files.rows) {
+      const filePath = path.join(uploadsDir, file.file_path)
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+      }
+    }
 
     return res.json({ message: "Knowledge deleted successfully" })
   } catch (error) {
@@ -205,8 +357,73 @@ app.delete("/api/admin/knowledge/:id", async (req, res) => {
   }
 })
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+// New endpoint to delete a specific file attachment
+app.delete("/api/admin/files/:id", async (req, res) => {
+  const { id } = req.params
+
+  try {
+    // Get file path before deleting
+    const fileResult = await sql`
+      SELECT "file_path" FROM "file_attachments" WHERE "id" = ${id}
+    `
+
+    if (fileResult.rows.length === 0) {
+      return res.status(404).json({ error: "File not found" })
+    }
+
+    const filePath = fileResult.rows[0].file_path
+
+    // Delete file record
+    await sql`DELETE FROM "file_attachments" WHERE "id" = ${id}`
+
+    // Delete physical file
+    const fullPath = path.join(uploadsDir, filePath)
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath)
+    }
+
+    return res.json({ message: "File deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting file:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// New endpoint to download a file
+app.get("/api/files/:id", async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const fileResult = await sql`
+      SELECT "file_path", "filename", "mime_type" FROM "file_attachments" WHERE "id" = ${id}
+    `
+
+    if (fileResult.rows.length === 0) {
+      return res.status(404).json({ error: "File not found" })
+    }
+
+    const file = fileResult.rows[0]
+    const filePath = path.join(uploadsDir, file.file_path)
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "File not found on server" })
+    }
+
+    // Set appropriate headers
+    res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`)
+    if (file.mime_type) {
+      res.setHeader("Content-Type", file.mime_type)
+    }
+
+    // Stream the file
+    const fileStream = fs.createReadStream(filePath)
+    fileStream.pipe(res)
+  } catch (error) {
+    console.error("Error downloading file:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
 const publicPath = path.join(__dirname, "..", "public")
 
 app.use(express.static(publicPath))
@@ -227,3 +444,4 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export default app
+

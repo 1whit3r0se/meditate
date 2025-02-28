@@ -473,11 +473,6 @@
     }
 
     .typing-indicator span:nth-child(3) {
-      
-      animation: pulse 1s infinite 0.2s;
-    }
-
-    .typing-indicator span:nth-child(3) {
       animation: pulse 1s infinite 0.4s;
     }
 
@@ -562,37 +557,105 @@
     }
 
     .back-to-top {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: var(--primary);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1000;
-}
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: var(--primary);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+    }
 
-.back-to-top.visible {
-  opacity: 1;
-}
+    .back-to-top.visible {
+      opacity: 1;
+    }
 
-.dark-mode .back-to-top {
-  background-color: var(--primary-dark);
-}
+    .dark-mode .back-to-top {
+      background-color: var(--primary-dark);
+    }
 
-.bot-message img {
-  max-width: 100%;
-  height: auto;
-  margin: 10px 0;
-  border-radius: var(--border-radius);
-}
+    .bot-message img {
+      max-width: 100%;
+      height: auto;
+      margin: 10px 0;
+      border-radius: var(--border-radius);
+    }
+
+    /* File attachment styles */
+    .file-attachments {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .file-attachment {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background-color: #f5f5f5;
+      border-radius: var(--border-radius);
+      border: 1px solid #e0e0e0;
+      transition: var(--transition);
+      max-width: 100%;
+    }
+
+    .dark-mode .file-attachment {
+      background-color: #333;
+      border-color: #444;
+    }
+
+    .file-attachment:hover {
+      background-color: #eaeaea;
+      border-color: var(--primary);
+    }
+
+    .dark-mode .file-attachment:hover {
+      background-color: #444;
+    }
+
+    .file-icon {
+      margin-right: 8px;
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+
+    .file-size {
+      font-size: 0.8rem;
+      color: var(--gray);
+    }
+
+    .file-download {
+      margin-left: 8px;
+      color: var(--primary);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .file-download:hover {
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body>
@@ -612,7 +675,7 @@
     
     <div class="results-container" id="resultsContainer">
       <div class="message bot-message">
-        Welcome to the SMAX Troubleshooting Knowledge Base. Type your query and press Enter to search.
+        Welcome to the SMAX Troubleshooting Knowledge Base. Type your query and press Enter to search. Type <help> for available commands and keyboard shortcuts.
       </div>
     </div>
   </div>
@@ -622,8 +685,8 @@
   </div>
 
   <div class="back-to-top">
-  <i class="fas fa-arrow-up"></i>
-</div>
+    <i class="fas fa-arrow-up"></i>
+  </div>
 
   <script>
   // Theme toggle functionality
@@ -658,7 +721,7 @@
     const welcomeMessage = document.querySelector('.bot-message');
     welcomeMessage.innerHTML = '';
     
-    const text = "Welcome to the SMAX Troubleshooting Knowledge Base. Type your query and press Enter to search.";
+    const text = "Welcome to the SMAX Troubleshooting Knowledge Base. Type your query and press Enter to search. Type <help> for available commands and keyboard shortcuts.";
     let i = 0;
     
     function typeWriter() {
@@ -682,19 +745,19 @@
   }
 
   function addMessage(message, isUser = false) {
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('message');
-  messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
-  
-  if (isUser) {
-    messageElement.textContent = message;
-  } else {
-    messageElement.innerHTML = message;
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+    messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
+    
+    if (isUser) {
+      messageElement.textContent = message;
+    } else {
+      messageElement.innerHTML = message;
+    }
+    
+    // Insert at the top instead of appending to the bottom
+    resultsContainer.insertBefore(messageElement, resultsContainer.firstChild);
   }
-  
-  // Insert at the top instead of appending to the bottom
-  resultsContainer.insertBefore(messageElement, resultsContainer.firstChild);
-}
 
   function showTypingIndicator() {
     const indicator = document.createElement('div');
@@ -744,11 +807,31 @@
       // Highlight matching text in the content preview
       const highlightedContent = highlightText(article.content, query);
         
+      // Create HTML for file attachments if any
+      let fileAttachmentsHtml = '';
+      if (article.files && article.files.length > 0) {
+        fileAttachmentsHtml = `
+          <div class="file-attachments">
+            ${article.files.map(file => `
+              <div class="file-attachment" data-file-id="${file.id}">
+                <i class="file-icon ${getFileIcon(file.filename)}"></i>
+                <div class="file-info">
+                  <div class="file-name">${file.filename}</div>
+                  <div class="file-size">${formatFileSize(file.file_size)}</div>
+                </div>
+                <i class="file-download fas fa-download" title="Download file"></i>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+        
       button.innerHTML = `
         <div class="article-title">${article.title || 'Untitled'}</div>
         <div class="article-question">${article.question || ''}</div>
         ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" class="article-image">` : ''}
         <div class="article-preview">${highlightedContent.substring(0, 150)}...</div>
+        ${fileAttachmentsHtml}
         <div class="article-preview-popup">
           <div class="article-title">${article.title || 'Untitled'}</div>
           <div class="article-question">${article.question || ''}</div>
@@ -757,6 +840,7 @@
         </div>
       `;
         
+      // Add click event for the article button
       button.addEventListener('click', () => {
         // Remove any existing article content
         const existingContent = document.querySelector('.article-content');
@@ -770,17 +854,57 @@
           
         // Format the content with proper HTML structure and highlight matching text
         const formattedContent = formatArticleContent(article.content, query);
+          
+        // Create HTML for file attachments if any
+        let fileAttachmentsHtml = '';
+        if (article.files && article.files.length > 0) {
+          fileAttachmentsHtml = `
+            <div class="file-attachments">
+              <h3>Attachments:</h3>
+              ${article.files.map(file => `
+                <div class="file-attachment" data-file-id="${file.id}">
+                  <i class="file-icon ${getFileIcon(file.filename)}"></i>
+                  <div class="file-info">
+                    <div class="file-name">${file.filename}</div>
+                    <div class="file-size">${formatFileSize(file.file_size)}</div>
+                  </div>
+                  <i class="file-download fas fa-download" title="Download file"></i>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+          
         contentElement.innerHTML = `
           <h2>${article.title || 'Untitled'}</h2>
           <div class="article-question">${article.question || ''}</div>
           ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" class="article-image">` : ''}
           <div class="article-body">${formattedContent}</div>
+          ${fileAttachmentsHtml}
         `;
           
         resultsContainer.appendChild(contentElement);
           
+        // Add click event listeners for file downloads
+        contentElement.querySelectorAll('.file-download').forEach(downloadBtn => {
+          downloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const fileId = downloadBtn.closest('.file-attachment').dataset.fileId;
+            window.open(`/api/files/${fileId}`, '_blank');
+          });
+        });
+          
         // Scroll to the article content
         contentElement.scrollIntoView({ behavior: 'smooth' });
+      });
+        
+      // Add click event listeners for file downloads in the preview
+      button.querySelectorAll('.file-download').forEach(downloadBtn => {
+        downloadBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const fileId = downloadBtn.closest('.file-attachment').dataset.fileId;
+          window.open(`/api/files/${fileId}`, '_blank');
+        });
       });
         
       buttonsContainer.appendChild(button);
@@ -809,6 +933,42 @@
     formatted = highlightText(formatted, query);
       
     return formatted;
+  }
+
+  // Get file icon based on file extension
+  function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    
+    const iconMap = {
+      'pdf': 'fas fa-file-pdf',
+      'doc': 'fas fa-file-word',
+      'docx': 'fas fa-file-word',
+      'xls': 'fas fa-file-excel',
+      'xlsx': 'fas fa-file-excel',
+      'ppt': 'fas fa-file-powerpoint',
+      'pptx': 'fas fa-file-powerpoint',
+      'jpg': 'fas fa-file-image',
+      'jpeg': 'fas fa-file-image',
+      'png': 'fas fa-file-image',
+      'gif': 'fas fa-file-image',
+      'zip': 'fas fa-file-archive',
+      'rar': 'fas fa-file-archive',
+      'txt': 'fas fa-file-alt',
+      'csv': 'fas fa-file-csv'
+    };
+    
+    return iconMap[ext] || 'fas fa-file';
+  }
+  
+  // Format file size to human-readable format
+  function formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   // Real-time search suggestions
@@ -881,116 +1041,116 @@
   });
 
   // Track currently selected suggestion and command history position
-let selectedSuggestionIndex = -1;
-let commandHistoryIndex = -1;
-const commandHistory = [];
+  let selectedSuggestionIndex = -1;
+  let commandHistoryIndex = -1;
+  const commandHistory = [];
 
-commandInput.addEventListener('keydown', function(e) {
-  const suggestionItems = Array.from(suggestions.querySelectorAll('.suggestion-item'));
-  
-  if (e.key === 'Tab') {
-    e.preventDefault();
+  commandInput.addEventListener('keydown', function(e) {
+    const suggestionItems = Array.from(suggestions.querySelectorAll('.suggestion-item'));
     
-    if (suggestionItems.length > 0) {
-      // Move to next suggestion
-      selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestionItems.length;
+    if (e.key === 'Tab') {
+      e.preventDefault();
       
-      // Highlight the selected suggestion
-      suggestionItems.forEach((item, index) => {
-        if (index === selectedSuggestionIndex) {
-          item.style.backgroundColor = 'var(--primary)';
-          item.style.color = 'white';
-          commandInput.value = item.textContent;
-        } else {
-          item.style.backgroundColor = '';
-          item.style.color = '';
-        }
-      });
-    }
-  }
-  
-  if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    
-    const userMessages = Array.from(document.querySelectorAll('.user-message'));
-    
-    if (userMessages.length > 0) {
-      // Store command history if not already stored
-      if (commandHistory.length === 0) {
-        userMessages.forEach(msg => {
-          commandHistory.unshift(msg.textContent);
+      if (suggestionItems.length > 0) {
+        // Move to next suggestion
+        selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestionItems.length;
+        
+        // Highlight the selected suggestion
+        suggestionItems.forEach((item, index) => {
+          if (index === selectedSuggestionIndex) {
+            item.style.backgroundColor = 'var(--primary)';
+            item.style.color = 'white';
+            commandInput.value = item.textContent;
+          } else {
+            item.style.backgroundColor = '';
+            item.style.color = '';
+          }
         });
       }
+    }
+    
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
       
-      // Move up in command history (or cycle back to the beginning)
+      const userMessages = Array.from(document.querySelectorAll('.user-message'));
+      
+      if (userMessages.length > 0) {
+        // Store command history if not already stored
+        if (commandHistory.length === 0) {
+          userMessages.forEach(msg => {
+            commandHistory.unshift(msg.textContent);
+          });
+        }
+        
+        // Move up in command history (or cycle back to the beginning)
+        if (commandHistory.length > 0) {
+          commandHistoryIndex = (commandHistoryIndex + 1) % commandHistory.length;
+          commandInput.value = commandHistory[commandHistoryIndex];
+        }
+      }
+    }
+    
+    if (e.key === 'ArrowDown' && commandHistoryIndex > -1) {
+      e.preventDefault();
+      
+      // Move down in command history
       if (commandHistory.length > 0) {
-        commandHistoryIndex = (commandHistoryIndex + 1) % commandHistory.length;
+        commandHistoryIndex = (commandHistoryIndex - 1 + commandHistory.length) % commandHistory.length;
         commandInput.value = commandHistory[commandHistoryIndex];
       }
     }
-  }
-  
-  if (e.key === 'ArrowDown' && commandHistoryIndex > -1) {
-    e.preventDefault();
     
-    // Move down in command history
-    if (commandHistory.length > 0) {
-      commandHistoryIndex = (commandHistoryIndex - 1 + commandHistory.length) % commandHistory.length;
-      commandInput.value = commandHistory[commandHistoryIndex];
+    // Reset suggestion selection when typing
+    if (e.key !== 'Tab' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') {
+      selectedSuggestionIndex = -1;
+      suggestionItems.forEach(item => {
+        item.style.backgroundColor = '';
+        item.style.color = '';
+      });
     }
-  }
-  
-  // Reset suggestion selection when typing
-  if (e.key !== 'Tab' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') {
-    selectedSuggestionIndex = -1;
-    suggestionItems.forEach(item => {
-      item.style.backgroundColor = '';
-      item.style.color = '';
-    });
-  }
-});
+  });
 
-// Add this to the sendMessage function to update command history
-async function sendMessage(message) {
-  // Add to command history at the beginning
-  commandHistory.unshift(message);
-  commandHistoryIndex = -1;
-  
-  try {
-    showTypingIndicator();
-    showLoading();
+  // Add this to the sendMessage function to update command history
+  async function sendMessage(message) {
+    // Add to command history at the beginning
+    commandHistory.unshift(message);
+    commandHistoryIndex = -1;
     
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query: message }),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      showTypingIndicator();
+      showLoading();
+      
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: message }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      removeTypingIndicator();
+      
+      if (data.articles && data.articles.length > 0) {
+        const buttonsContainer = createArticleButtons(data.articles, message);
+        addMessage('I found these relevant articles. Click on one to view its content:');
+        resultsContainer.insertBefore(buttonsContainer, resultsContainer.firstChild);
+      } else {
+        addMessage("No relevant information found. Try a different query or type '<help>' for assistance.");
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      removeTypingIndicator();
+      addMessage('Error: Connection failed. Please check your network and try again.');
+    } finally {
+      hideLoading();
     }
-    
-    const data = await response.json();
-    
-    removeTypingIndicator();
-    
-    if (data.articles && data.articles.length > 0) {
-      const buttonsContainer = createArticleButtons(data.articles, message);
-      addMessage('I found these relevant articles. Click on one to view its content:');
-      resultsContainer.insertBefore(buttonsContainer, resultsContainer.firstChild);
-    } else {
-      addMessage("No relevant information found. Try a different query or type '<help>' for assistance.");
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    removeTypingIndicator();
-    addMessage('Error: Connection failed. Please check your network and try again.');
-  } finally {
-    hideLoading();
   }
-}
 
   commandInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -1026,9 +1186,6 @@ async function sendMessage(message) {
       }
     }
   });
-
-  // Add some terminal-like commands
-  
 
   // Help command
   function showHelp() {
@@ -1072,21 +1229,21 @@ async function sendMessage(message) {
   // Run API test on page load
   window.addEventListener('load', testApiConnection);
 
-// Back to top functionality
-const backToTop = document.querySelector('.back-to-top');
+  // Back to top functionality
+  const backToTop = document.querySelector('.back-to-top');
 
-window.addEventListener('scroll', () => {
-  if (window.pageYOffset > 100) {
-    backToTop.classList.add('visible');
-  } else {
-    backToTop.classList.remove('visible');
-  }
-});
+  window.addEventListener('scroll', () => {
+    if (window.pageYOffset > 100) {
+      backToTop.classList.add('visible');
+    } else {
+      backToTop.classList.remove('visible');
+    }
+  });
 
-backToTop.addEventListener('click', () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-});
-</script>
+  backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  </script>
 </body>
 </html>
 
