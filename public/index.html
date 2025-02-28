@@ -332,23 +332,36 @@
     }
 
     .article-preview-popup {
-      position: absolute;
-      top: 0;
-      left: 105%;
-      width: 300px;
-      max-height: 300px;
-      overflow-y: auto;
-      background-color: white;
-      border: 1px solid #e0e0e0;
-      border-radius: var(--border-radius);
-      padding: 15px;
-      z-index: 20;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        position: absolute;
+        top: 0;
+        left: 105%;
+        width: 300px;
+        max-height: 300px;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #e0e0e0;
+        border-radius: var(--border-radius);
+        padding: 15px;
+        z-index: 20;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        display: block;
+        word-wrap: break-word;
     }
 
+    .article-preview-popup p {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        margin: 0;
+    }
+
+    .article-preview-popup.show {
+        opacity: 1;
+        visibility: visible;
+    }
     .dark-mode .article-preview-popup {
       background-color: #2a2a2a;
       border-color: #444;
