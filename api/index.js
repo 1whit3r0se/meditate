@@ -5,8 +5,8 @@ import cors from "cors"
 import { fileURLToPath } from "url"
 import path from "path"
 import multer from "multer"
-import fs from "fs"
 import { v4 as uuidv4 } from "uuid"
+import { put, del } from "@vercel/blob"
 
 dotenv.config()
 
@@ -20,27 +20,8 @@ app.use(express.json())
 app.use(cors())
 app.use(express.urlencoded({ extended: true }))
 
-// Set up file storage
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const uploadsDir = path.join(__dirname, "uploads")
-
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true })
-}
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir)
-  },
-  filename: (req, file, cb) => {
-    const uniqueFilename = `${uuidv4()}-${file.originalname}`
-    cb(null, uniqueFilename)
-  },
-})
-
+// Configure multer for memory storage
+const storage = multer.memoryStorage()
 const upload = multer({
   storage: storage,
   limits: {
@@ -117,7 +98,7 @@ async function initializeDatabase() {
           "id" SERIAL PRIMARY KEY,
           "knowledge_id" INTEGER NOT NULL REFERENCES "knowledge_base"("id") ON DELETE CASCADE,
           "filename" TEXT NOT NULL,
-          "file_path" TEXT NOT NULL,
+          "blob_url" TEXT NOT NULL,
           "file_size" INTEGER NOT NULL,
           "mime_type" TEXT,
           "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -164,7 +145,7 @@ app.post("/api/chat", async (req, res) => {
     const articlesWithFiles = await Promise.all(
       result.rows.map(async (article) => {
         const files = await sql`
-        SELECT "id", "filename", "file_size", "mime_type" 
+        SELECT "id", "filename", "blob_url", "file_size", "mime_type" 
         FROM "file_attachments" 
         WHERE "knowledge_id" = ${article.id}
         ORDER BY "created_at" DESC
@@ -211,9 +192,13 @@ app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
     // Insert file attachments if any
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
+        const blob = await put(uuidv4(), file.buffer, {
+          access: "public",
+        })
+
         await sql`
-          INSERT INTO "file_attachments" ("knowledge_id", "filename", "file_path", "file_size", "mime_type")
-          VALUES (${knowledgeId}, ${file.originalname}, ${file.filename}, ${file.size}, ${file.mimetype})
+          INSERT INTO "file_attachments" ("knowledge_id", "filename", "blob_url", "file_size", "mime_type")
+          VALUES (${knowledgeId}, ${file.originalname}, ${blob.url}, ${file.size}, ${file.mimetype})
         `
       }
     }
@@ -273,7 +258,7 @@ app.get("/api/admin/knowledge/:id", async (req, res) => {
 
     // Get file attachments for this knowledge entry
     const files = await sql`
-      SELECT "id", "filename", "file_path", "file_size", "mime_type" 
+      SELECT "id", "filename", "blob_url", "file_size", "mime_type" 
       FROM "file_attachments" 
       WHERE "knowledge_id" = ${id}
       ORDER BY "created_at" DESC
@@ -311,9 +296,13 @@ app.put("/api/admin/knowledge/:id", upload.array("files", 5), async (req, res) =
     // Insert new file attachments if any
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
+        const blob = await put(uuidv4(), file.buffer, {
+          access: "public",
+        })
+
         await sql`
-          INSERT INTO "file_attachments" ("knowledge_id", "filename", "file_path", "file_size", "mime_type")
-          VALUES (${id}, ${file.originalname}, ${file.filename}, ${file.size}, ${file.mimetype})
+          INSERT INTO "file_attachments" ("knowledge_id", "filename", "blob_url", "file_size", "mime_type")
+          VALUES (${id}, ${file.originalname}, ${blob.url}, ${file.size}, ${file.mimetype})
         `
       }
     }
@@ -334,20 +323,17 @@ app.delete("/api/admin/knowledge/:id", async (req, res) => {
   const { id } = req.params
 
   try {
-    // Get file paths before deleting
+    // Get file URLs before deleting
     const files = await sql`
-      SELECT "file_path" FROM "file_attachments" WHERE "knowledge_id" = ${id}
+      SELECT "blob_url" FROM "file_attachments" WHERE "knowledge_id" = ${id}
     `
 
     // Delete knowledge entry (cascade will delete file records)
     await sql`DELETE FROM "knowledge_base" WHERE "id" = ${id}`
 
-    // Delete physical files
+    // Delete files from Vercel Blob Storage
     for (const file of files.rows) {
-      const filePath = path.join(uploadsDir, file.file_path)
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath)
-      }
+      await del(file.blob_url)
     }
 
     return res.json({ message: "Knowledge deleted successfully" })
@@ -362,25 +348,22 @@ app.delete("/api/admin/files/:id", async (req, res) => {
   const { id } = req.params
 
   try {
-    // Get file path before deleting
+    // Get file URL before deleting
     const fileResult = await sql`
-      SELECT "file_path" FROM "file_attachments" WHERE "id" = ${id}
+      SELECT "blob_url" FROM "file_attachments" WHERE "id" = ${id}
     `
 
     if (fileResult.rows.length === 0) {
       return res.status(404).json({ error: "File not found" })
     }
 
-    const filePath = fileResult.rows[0].file_path
+    const blobUrl = fileResult.rows[0].blob_url
 
     // Delete file record
     await sql`DELETE FROM "file_attachments" WHERE "id" = ${id}`
 
-    // Delete physical file
-    const fullPath = path.join(uploadsDir, filePath)
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath)
-    }
+    // Delete file from Vercel Blob Storage
+    await del(blobUrl)
 
     return res.json({ message: "File deleted successfully" })
   } catch (error) {
@@ -395,7 +378,7 @@ app.get("/api/files/:id", async (req, res) => {
 
   try {
     const fileResult = await sql`
-      SELECT "file_path", "filename", "mime_type" FROM "file_attachments" WHERE "id" = ${id}
+      SELECT "blob_url", "filename", "mime_type" FROM "file_attachments" WHERE "id" = ${id}
     `
 
     if (fileResult.rows.length === 0) {
@@ -403,27 +386,17 @@ app.get("/api/files/:id", async (req, res) => {
     }
 
     const file = fileResult.rows[0]
-    const filePath = path.join(uploadsDir, file.file_path)
 
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: "File not found on server" })
-    }
-
-    // Set appropriate headers
-    res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`)
-    if (file.mime_type) {
-      res.setHeader("Content-Type", file.mime_type)
-    }
-
-    // Stream the file
-    const fileStream = fs.createReadStream(filePath)
-    fileStream.pipe(res)
+    // Redirect to the Vercel Blob URL
+    res.redirect(file.blob_url)
   } catch (error) {
     console.error("Error downloading file:", error)
     return res.status(500).json({ error: "Internal server error" })
   }
 })
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const publicPath = path.join(__dirname, "..", "public")
 
 app.use(express.static(publicPath))
