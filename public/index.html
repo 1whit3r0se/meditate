@@ -211,6 +211,8 @@ h1 {
 .results-container {
   max-width: 600px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 .message {
@@ -331,6 +333,7 @@ h1 {
   top: 0;
   left: 105%;
   width: 300px;
+  max-height: 300px;
   background-color: white;
   border: 1px solid #e0e0e0;
   border-radius: var(--border-radius);
@@ -341,7 +344,6 @@ h1 {
   transform: translateY(-10px);
   transition: all 0.3s ease;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  max-height: 300px;
   overflow-y: auto;
 }
 
@@ -624,9 +626,7 @@ h1 {
       messageElement.innerHTML = message;
     }
     
-    resultsContainer.appendChild(messageElement);
-    
-    resultsContainer.scrollTop = resultsContainer.scrollHeight;
+    resultsContainer.insertBefore(messageElement, resultsContainer.firstChild);
   }
 
   function showTypingIndicator() {
@@ -893,31 +893,44 @@ h1 {
   // Process commands
   commandInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-      const command = commandInput.value.trim().toLowerCase();
-      
-      if (command === 'clear') {
-        e.preventDefault();
-        resultsContainer.innerHTML = '';
-        addMessage('Terminal cleared. Type your query to search the knowledge base.');
+      const command = commandInput.value.trim();
+        
+        if (command === '<clear>') {
+          e.preventDefault();
+          resultsContainer.innerHTML = '';
+          addMessage('Terminal cleared. Type your query to search the knowledge base.');
+          commandInput.value = '';
+          return;
+        }
+        
+        if (command === '<help>') {
+          e.preventDefault();
+          showHelp();
+          commandInput.value = '';
+          return;
+        }
+        
+        if (command === '<admin>') {
+          e.preventDefault();
+          window.open('/admin', '_blank');
+          addMessage('Opening admin panel in a new tab.');
+          commandInput.value = '';
+          return;
+        }
+        
+        if (command.startsWith('<search ') && command.endsWith('>')) {
+          e.preventDefault();
+          const query = command.substring(8, command.length - 1);
+          addMessage(query, true);
+          commandInput.value = '';
+          sendMessage(query);
+          return;
+        }
+        
+        // If no special command is recognized, treat it as a regular search query
+        addMessage(command, true);
         commandInput.value = '';
-        return;
-      }
-      
-      if (command === 'help') {
-        e.preventDefault();
-        showHelp();
-        commandInput.value = '';
-        return;
-      }
-      
-      if (command.startsWith('search ')) {
-        e.preventDefault();
-        const query = command.substring(7);
-        addMessage(query, true);
-        commandInput.value = '';
-        sendMessage(query);
-        return;
-      }
+        sendMessage(command);
     }
   });
 
