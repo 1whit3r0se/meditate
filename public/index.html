@@ -860,7 +860,7 @@
         if (article.files && article.files.length > 0) {
           fileAttachmentsHtml = `
             <div class="file-attachments">
-              <h3>Attachments:</h3>
+              <h3>Attachments:</h3><br>
               ${article.files.map(file => `
                 <div class="file-attachment" data-file-id="${file.id}">
                   <i class="file-icon ${getFileIcon(file.filename)}"></i>
