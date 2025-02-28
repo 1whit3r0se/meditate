@@ -52,25 +52,25 @@ async function initializeDatabase() {
           "content" TEXT NOT NULL,
           "image_url" TEXT,
           "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+        )
       `
       console.log("Created knowledge_base table")
-    } else {
-      // Check if image_url column exists
-      const imageUrlColumnExists = await sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns
-          WHERE table_name = 'knowledge_base' AND column_name = 'image_url'
-        );
-      `
+    }
 
-      // Add image_url column if it doesn't exist
-      if (!imageUrlColumnExists.rows[0].exists) {
-        await sql`
-          ALTER TABLE "knowledge_base" ADD COLUMN "image_url" TEXT;
-        `
-        console.log("Added 'image_url' column to knowledge_base table")
-      }
+    // Check if image_url column exists
+    const imageUrlColumnExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_name = 'knowledge_base' AND column_name = 'image_url'
+      );
+    `
+
+    // Add image_url column if it doesn't exist
+    if (!imageUrlColumnExists.rows[0].exists) {
+      await sql`
+        ALTER TABLE "knowledge_base" ADD COLUMN "image_url" TEXT;
+      `
+      console.log("Added 'image_url' column to knowledge_base table")
     }
 
     // Ensure the 'content' column exists
@@ -106,16 +106,26 @@ async function initializeDatabase() {
           "file_size" INTEGER NOT NULL,
           "mime_type" TEXT,
           "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+        )
       `
       console.log("Created file_attachments table")
     }
 
-    // Create or replace the full-text search index
-    await sql`
-      DROP INDEX IF EXISTS idx_fts;
-      CREATE INDEX idx_fts ON "knowledge_base" USING GIN (to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content"));
+    // Check if the full-text search index exists
+    const indexExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM pg_indexes
+        WHERE indexname = 'idx_fts'
+      );
     `
+
+    if (!indexExists.rows[0].exists) {
+      // Create the full-text search index
+      await sql`
+        CREATE INDEX idx_fts ON "knowledge_base" USING GIN (to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content"));
+      `
+      console.log("Created full-text search index")
+    }
 
     console.log("Database initialized successfully")
     databaseInitialized = true
