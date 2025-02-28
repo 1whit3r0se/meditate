@@ -1,6 +1,3 @@
-// This file contains the shared user profile menu component
-// It will be included in both admin.html and index.html
-
 function createUserProfileMenu() {
     // Create the menu container
     const menuContainer = document.createElement("div")
@@ -112,64 +109,6 @@ function createUserProfileMenu() {
           color: var(--gray);
           text-align: center;
         }
-        
-        .avatar-selection {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 8px;
-          padding: 10px 15px;
-        }
-        
-        .avatar-option {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 2px solid transparent;
-          transition: var(--transition);
-        }
-        
-        .avatar-option:hover, .avatar-option.selected {
-          border-color: var(--primary);
-        }
-        
-        .avatar-option img {
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          object-fit: cover;
-        }
-        
-        .custom-avatar-upload {
-          display: none;
-        }
-        
-        .custom-avatar-label {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background-color: #f5f5f5;
-          cursor: pointer;
-          transition: var(--transition);
-        }
-        
-        .dark-mode .custom-avatar-label {
-          background-color: #333;
-        }
-        
-        .custom-avatar-label:hover {
-          background-color: #e0e0e0;
-        }
-        
-        .dark-mode .custom-avatar-label:hover {
-          background-color: #444;
-        }
       </style>
       
       <button class="user-profile-button" id="userProfileButton">
@@ -179,41 +118,6 @@ function createUserProfileMenu() {
       </button>
       
       <div class="dropdown-menu" id="userDropdown">
-        <div class="dropdown-item" id="showAvatarSelection">
-          <i class="fas fa-user-circle"></i>
-          <span>Change Avatar</span>
-        </div>
-        
-        <div class="avatar-selection" id="avatarSelection" style="display: none;">
-          <div class="avatar-option" data-avatar="zeus">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=zeus" alt="Zeus">
-          </div>
-          <div class="avatar-option" data-avatar="poseidon">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=poseidon" alt="Poseidon">
-          </div>
-          <div class="avatar-option" data-avatar="hades">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=hades" alt="Hades">
-          </div>
-          <div class="avatar-option" data-avatar="apollo">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=apollo" alt="Apollo">
-          </div>
-          <div class="avatar-option" data-avatar="athena">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=athena" alt="Athena">
-          </div>
-          <div class="avatar-option" data-avatar="hermes">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=hermes" alt="Hermes">
-          </div>
-          <div class="avatar-option" data-avatar="artemis">
-            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=artemis" alt="Artemis">
-          </div>
-          <label class="custom-avatar-label" for="customAvatarUpload">
-            <i class="fas fa-plus"></i>
-            <input type="file" id="customAvatarUpload" class="custom-avatar-upload" accept="image/*">
-          </label>
-        </div>
-        
-        <div class="dropdown-divider"></div>
-        
         <div class="session-info" id="sessionInfo">
           Session expires in: <span id="sessionTimeRemaining">--:--:--</span>
         </div>
@@ -233,10 +137,6 @@ function createUserProfileMenu() {
     const userAvatar = menuContainer.querySelector("#userAvatar")
     const userEmail = menuContainer.querySelector("#userEmail")
     const logoutButton = menuContainer.querySelector("#logoutButton")
-    const showAvatarSelection = menuContainer.querySelector("#showAvatarSelection")
-    const avatarSelection = menuContainer.querySelector("#avatarSelection")
-    const avatarOptions = menuContainer.querySelectorAll(".avatar-option")
-    const customAvatarUpload = menuContainer.querySelector("#customAvatarUpload")
     const sessionTimeRemaining = menuContainer.querySelector("#sessionTimeRemaining")
   
     // Toggle dropdown
@@ -248,60 +148,6 @@ function createUserProfileMenu() {
     document.addEventListener("click", (e) => {
       if (!menuContainer.contains(e.target)) {
         userDropdown.classList.remove("active")
-      }
-    })
-  
-    // Toggle avatar selection
-    showAvatarSelection.addEventListener("click", () => {
-      avatarSelection.style.display = avatarSelection.style.display === "none" ? "grid" : "none"
-    })
-  
-    // Handle avatar selection
-    avatarOptions.forEach((option) => {
-      option.addEventListener("click", () => {
-        const avatarName = option.dataset.avatar
-        if (avatarName) {
-          // Remove selected class from all options
-          avatarOptions.forEach((opt) => opt.classList.remove("selected"))
-          // Add selected class to clicked option
-          option.classList.add("selected")
-  
-          // Update avatar in UI
-          userAvatar.innerHTML = ""
-          const avatarImg = document.createElement("img")
-          avatarImg.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${avatarName}`
-          avatarImg.alt = avatarName
-          avatarImg.style.width = "100%"
-          avatarImg.style.height = "100%"
-          avatarImg.style.borderRadius = "50%"
-          userAvatar.appendChild(avatarImg)
-  
-          // Save avatar preference
-          localStorage.setItem("userAvatar", avatarName)
-        }
-      })
-    })
-  
-    // Handle custom avatar upload
-    customAvatarUpload.addEventListener("change", (e) => {
-      const file = e.target.files[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (event) => {
-          // Update avatar in UI
-          userAvatar.innerHTML = ""
-          const avatarImg = document.createElement("img")
-          avatarImg.src = event.target.result
-          avatarImg.alt = "Custom Avatar"
-          avatarImg.style.width = "100%"
-          avatarImg.style.height = "100%"
-          avatarImg.style.borderRadius = "50%"
-          userAvatar.appendChild(avatarImg)
-  
-          // Save avatar preference
-          localStorage.setItem("userAvatarCustom", event.target.result)
-        }
-        reader.readAsDataURL(file)
       }
     })
   
@@ -332,38 +178,8 @@ function createUserProfileMenu() {
           // Set user email
           userEmail.textContent = data.user.email
   
-          // Set initial avatar
-          const savedAvatar = localStorage.getItem("userAvatar")
-          const savedCustomAvatar = localStorage.getItem("userAvatarCustom")
-  
-          if (savedCustomAvatar) {
-            userAvatar.innerHTML = ""
-            const avatarImg = document.createElement("img")
-            avatarImg.src = savedCustomAvatar
-            avatarImg.alt = "Custom Avatar"
-            avatarImg.style.width = "100%"
-            avatarImg.style.height = "100%"
-            avatarImg.style.borderRadius = "50%"
-            userAvatar.appendChild(avatarImg)
-          } else if (savedAvatar) {
-            userAvatar.innerHTML = ""
-            const avatarImg = document.createElement("img")
-            avatarImg.src = `https://api.dicebear.com/7.x/bottts/svg?seed=${savedAvatar}`
-            avatarImg.alt = savedAvatar
-            avatarImg.style.width = "100%"
-            avatarImg.style.height = "100%"
-            avatarImg.style.borderRadius = "50%"
-            userAvatar.appendChild(avatarImg)
-  
-            // Mark the selected avatar
-            const selectedOption = document.querySelector(`.avatar-option[data-avatar="${savedAvatar}"]`)
-            if (selectedOption) {
-              selectedOption.classList.add("selected")
-            }
-          } else {
-            // Set initial based on email
-            userAvatar.textContent = data.user.email.charAt(0).toUpperCase()
-          }
+          // Set avatar
+          userAvatar.textContent = data.user.email.charAt(0).toUpperCase()
         }
       } catch (error) {
         console.error("Error loading user data:", error)
@@ -395,7 +211,9 @@ function createUserProfileMenu() {
             const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60))
             const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000)
   
-            sessionTimeRemaining.textContent = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+            sessionTimeRemaining.textContent = `${hours.toString().padStart(2, "0")}:${minutes
+              .toString()
+              .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
   
             // Schedule next update
             setTimeout(updateTimer, 1000)
@@ -426,5 +244,8 @@ function createUserProfileMenu() {
   
     return menuContainer
   }
+  
+  // Export the function so it can be used in other files
+  window.createUserProfileMenu = createUserProfileMenu
   
   

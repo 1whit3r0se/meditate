@@ -1,23 +1,22 @@
-// This script will be added to index.html to update the header with the user profile menu
-
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", () => {
     // Create the user profile menu
     // Assuming createUserProfileMenu is defined elsewhere or imported
-    // For example:
-    // import { createUserProfileMenu } from './user-profile-menu';
-    // Or:
-    function createUserProfileMenu() {
-      // Replace this with the actual implementation of createUserProfileMenu
-      const menu = document.createElement('div');
-      menu.textContent = 'User Profile Menu (Placeholder)';
-      return menu;
-    }
-    const userProfileMenu = createUserProfileMenu();
-    
+    // For example: import { createUserProfileMenu } from './user-profile-menu';
+    // If it's defined in the same file, uncomment the following:
+    // function createUserProfileMenu() {
+    //   // Implementation of createUserProfileMenu
+    //   const menu = document.createElement('div');
+    //   menu.textContent = 'User Profile Menu'; // Placeholder
+    //   return menu;
+    // }
+  
+    const userProfileMenu = createUserProfileMenu()
+  
     // Find the header element
-    const header = document.querySelector('header');
-    
+    const header = document.querySelector("header")
+  
     // Insert the user profile menu before the theme toggle button
-    header.insertBefore(userProfileMenu, header.querySelector('.theme-toggle'));
-  });
+    header.insertBefore(userProfileMenu, header.querySelector(".theme-toggle"))
+  })
+  
   
