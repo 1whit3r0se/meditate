@@ -283,6 +283,36 @@ app.get("/api/auth/user", async (req, res) => {
   })
 })
 
+// Add the session info route after the auth/user route
+app.get("/api/auth/session", async (req, res) => {
+  const token = req.cookies?.token
+
+  if (!token) {
+    return res.json({ authenticated: false })
+  }
+
+  const { verifyToken } = await import("./auth.js")
+  const user = verifyToken(token)
+
+  if (!user) {
+    return res.json({ authenticated: false })
+  }
+
+  // Get token expiration time
+  const { getTokenExpiration } = await import("./auth.js")
+  const expiration = getTokenExpiration(token)
+
+  return res.json({
+    authenticated: true,
+    expiration: expiration,
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+  })
+})
+
 app.post("/api/chat", async (req, res) => {
   const { query } = req.body
 
@@ -608,5 +638,4 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export default app
-
 
