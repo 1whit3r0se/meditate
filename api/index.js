@@ -8,7 +8,7 @@ import multer from "multer"
 import { v4 as uuidv4 } from "uuid"
 import { put, del } from "@vercel/blob"
 import cookieParser from "cookie-parser"
-import { initializeAuthTables, authMiddleware, adminMiddleware } from "./auth.js"
+import { initializeAuthTables, authMiddleware, adminMiddleware, getTokenExpiration } from "./auth.js"
 
 dotenv.config()
 
@@ -299,7 +299,6 @@ app.get("/api/auth/session", async (req, res) => {
   }
 
   // Get token expiration time
-  const { getTokenExpiration } = await import("./auth.js")
   const expiration = getTokenExpiration(token)
 
   return res.json({
@@ -582,7 +581,6 @@ app.post("/api/admin/create-user", authMiddleware, adminMiddleware, async (req, 
     return res.status(500).json({ error: "Internal server error" })
   }
 })
-
 
 // New endpoint to delete a specific file attachment
 app.delete("/api/admin/files/:id", async (req, res) => {

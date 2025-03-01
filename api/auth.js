@@ -35,6 +35,19 @@ export function verifyToken(token) {
   }
 }
 
+// Get token expiration time
+export function getTokenExpiration(token) {
+  try {
+    const decoded = jwt.decode(token)
+    if (decoded && decoded.exp) {
+      return new Date(decoded.exp * 1000)
+    }
+    return null
+  } catch (error) {
+    return null
+  }
+}
+
 // Initialize auth tables
 export async function initializeAuthTables() {
   try {
@@ -103,4 +116,3 @@ export function adminMiddleware(req, res, next) {
 
   next()
 }
-

@@ -19,10 +19,18 @@ function createUserProfileMenu() {
         padding: 5px 10px;
         border-radius: var(--border-radius);
         transition: var(--transition);
+        color: var(--dark);
+      }
+      
+      .dark-mode .user-profile-button {
         color: var(--light);
       }
       
       .user-profile-button:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+      
+      .dark-mode .user-profile-button:hover {
         background-color: rgba(255, 255, 255, 0.1);
       }
       
@@ -49,14 +57,19 @@ function createUserProfileMenu() {
         position: absolute;
         top: 100%;
         right: 0;
-        background-color: #4b5563;
+        background-color: white;
         border-radius: var(--border-radius);
         box-shadow: var(--box-shadow);
         min-width: 200px;
         z-index: 1000;
         display: none;
         animation: fadeIn 0.2s ease;
-        border: 1px solid #6b7280;
+        border: 1px solid #e0e0e0;
+      }
+      
+      .dark-mode .dropdown-menu {
+        background-color: #2a2a2a;
+        border-color: #444;
       }
       
       .dropdown-menu.active {
@@ -70,18 +83,24 @@ function createUserProfileMenu() {
         display: flex;
         align-items: center;
         gap: 8px;
-        color: var(--light);
-        text-decoration: none;
       }
       
       .dropdown-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+      
+      .dark-mode .dropdown-item:hover {
         background-color: rgba(255, 255, 255, 0.1);
       }
       
       .dropdown-divider {
         height: 1px;
-        background-color: #6b7280;
+        background-color: #e0e0e0;
         margin: 5px 0;
+      }
+      
+      .dark-mode .dropdown-divider {
+        background-color: #444;
       }
       
       .session-info {
@@ -168,61 +187,67 @@ function createUserProfileMenu() {
   }
 
   // Update session time remaining
-  function updateSessionTime() {
-    // Get token expiration from JWT
-    const token = getCookie("token");
-    if (token) {
-      try {
-        // Decode JWT to get expiration time
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        const expirationTime = payload.exp * 1000; // Convert to milliseconds
-
-        // Update timer every second
-        const updateTimer = () => {
-          const now = Date.now();
-          const timeRemaining = expirationTime - now;
-
-          if (timeRemaining <= 0) {
-            sessionTimeRemaining.textContent = "Expired";
-            return;
-          }
-
-          // Format time remaining
-          const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
-          const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-
-          sessionTimeRemaining.textContent = `${hours.toString().padStart(2, "0")}:${minutes
-            .toString()
-            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-
-          // Schedule next update
-          setTimeout(updateTimer, 1000);
-        };
-
-        // Start timer
-        updateTimer();
-      } catch (error) {
-        console.error("Error decoding token:", error);
-        sessionTimeRemaining.textContent = "Unknown";
+  async function updateSessionTime() {
+    try {
+      // Fetch session info from the API
+      const response = await fetch("/api/auth/session")
+      const data = await response.json()
+      
+      if (!data.authenticated) {
+        sessionTimeRemaining.textContent = "Not authenticated"
+        return
       }
-    } else {
-      sessionTimeRemaining.textContent = "Not available";
+      
+      if (!data.expiration) {
+        sessionTimeRemaining.textContent = "No expiration"
+        return
+      }
+      
+      // Convert expiration timestamp to milliseconds
+      const expirationTime = new Date(data.expiration).getTime()
+      
+      // Update timer every second
+      const updateTimer = () => {
+        const now = Date.now()
+        const timeRemaining = expirationTime - now
+        
+        if (timeRemaining <= 0) {
+          sessionTimeRemaining.textContent = "Expired"
+          return
+        }
+        
+        // Format time remaining
+        const hours = Math.floor(timeRemaining / (1000 * 60 * 60))
+        const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60))
+        const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000)
+        
+        sessionTimeRemaining.textContent = `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+        
+        // Schedule next update
+        setTimeout(updateTimer, 1000)
+      }
+      
+      // Start timer
+      updateTimer()
+    } catch (error) {
+      console.error("Error fetching session info:", error)
+      sessionTimeRemaining.textContent = "Error"
     }
   }
 
-  // Helper function to get cookie value
+  // Helper function to get cookie value (kept for compatibility)
   function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-    return null;
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop().split(";").shift()
+    return null
   }
 
   // Initialize
-  loadUserData().then(() => {
-    updateSessionTime();
-  });
+  loadUserData()
+  updateSessionTime()
 
   return menuContainer
 }
