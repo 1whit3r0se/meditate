@@ -591,10 +591,11 @@
 
     /* File attachment styles */
     .file-attachments {
-      margin-top: 15px;
+      margin-top: 5px;
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 5px;
+      flex-direction: column;
     }
 
     .file-attachment {
@@ -1182,7 +1183,7 @@
       // Insert the entire section at the top
       resultsContainer.insertBefore(resultsSection, resultsContainer.firstChild);
     } else {
-      addMessage("No relevant information found. Try a different query or type '&gt;help' for assistance.");
+      addMessage("No relevant articles found. Try a different query or type '&gt;help' for assistance.");
     }
   } catch (error) {
     console.error('Error:', error);
