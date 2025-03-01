@@ -733,6 +733,32 @@
     ::-webkit-scrollbar-thumb:hover {
       background: var(--primary);
     }
+
+    /* User Profile Menu Overrides */
+    .user-profile-container {
+      margin-left: 10px;
+    }
+
+    .dark-mode .user-profile-button {
+      color: var(--text-primary);
+    }
+
+    .dark-mode .dropdown-menu {
+      background-color: var(--bg-card);
+      border-color: var(--border-color);
+    }
+
+    .dark-mode .dropdown-divider {
+      background-color: var(--border-color);
+    }
+
+    .dark-mode .dropdown-item:hover {
+      background-color: var(--table-row-hover);
+    }
+
+    .dark-mode .session-info {
+      color: var(--text-secondary);
+    }
   </style>
 </head>
 <body>
@@ -752,6 +778,7 @@
         <button id="themeToggle" class="theme-toggle">
           <i class="fas fa-moon"></i>
         </button>
+        <div id="userProfileContainer"></div>
       </div>
     </header>
     
@@ -910,6 +937,15 @@
       themeToggle.innerHTML = isDarkMode 
         ? '<i class="fas fa-sun"></i>' 
         : '<i class="fas fa-moon"></i>';
+    });
+
+    // Initialize user profile menu
+    document.addEventListener('DOMContentLoaded', function() {
+      const userProfileContainer = document.getElementById('userProfileContainer');
+      if (userProfileContainer && window.createUserProfileMenu) {
+        const menu = createUserProfileMenu();
+        userProfileContainer.appendChild(menu);
+      }
     });
 
     // Initialize Quill editors
