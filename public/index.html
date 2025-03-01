@@ -1133,56 +1133,65 @@
 
   // Add this to the sendMessage function to update command history
   async function sendMessage(message) {
-    // Add to command history at the beginning
-    commandHistory.unshift(message);
-    commandHistoryIndex = -1;
-    
-    // Clear the terminal for subsequent searches
-    if (document.querySelector('.user-message')) {
-      resultsContainer.innerHTML = '';
-    }
-    
-    // Add the user message
-    addMessage(message, true);
-    
-    try {
-      showTypingIndicator();
-      showLoading();
-      
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ query: message }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      removeTypingIndicator();
-      
-      if (data.articles && data.articles.length > 0) {
-        // First add the message about found articles
-        addMessage('I found these relevant articles. Click on one to view its content:');
-        
-        // Then add the article buttons
-        const buttonsContainer = createArticleButtons(data.articles, message);
-        resultsContainer.insertBefore(buttonsContainer, resultsContainer.firstChild);
-      } else {
-        addMessage("No relevant information found. Try a different query or type '&gt;help' for assistance.");
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      removeTypingIndicator();
-      addMessage('Error: Connection failed. Please check your network and try again.');
-    } finally {
-      hideLoading();
-    }
+  // Add to command history at the beginning
+  commandHistory.unshift(message);
+  commandHistoryIndex = -1;
+  
+  // Clear the terminal for subsequent searches
+  if (document.querySelector('.user-message')) {
+    resultsContainer.innerHTML = '';
   }
+  
+  // Add the user message
+  addMessage(message, true);
+  
+  try {
+    showTypingIndicator();
+    showLoading();
+    
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query: message }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    removeTypingIndicator();
+    
+    if (data.articles && data.articles.length > 0) {
+      // Create a container for the entire results section
+      const resultsSection = document.createElement('div');
+      
+      // Add the message first
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', 'bot-message');
+      messageElement.innerHTML = 'I found these relevant articles. Click on one to view its content:';
+      resultsSection.appendChild(messageElement);
+      
+      // Then add the article buttons
+      const buttonsContainer = createArticleButtons(data.articles, message);
+      resultsSection.appendChild(buttonsContainer);
+      
+      // Insert the entire section at the top
+      resultsContainer.insertBefore(resultsSection, resultsContainer.firstChild);
+    } else {
+      addMessage("No relevant information found. Try a different query or type '&gt;help' for assistance.");
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    removeTypingIndicator();
+    addMessage('Error: Connection failed. Please check your network and try again.');
+  } finally {
+    hideLoading();
+  }
+}
 
   commandInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
