@@ -11,6 +11,7 @@
     :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
+      --primary-light: #5e7bff;
       --secondary: #3f37c9;
       --success: #4cc9f0;
       --danger: #f72585;
@@ -18,6 +19,8 @@
       --light: #f8f9fa;
       --dark: #212529;
       --gray: #6c757d;
+      --gray-dark: #343a40;
+      --gray-light: #adb5bd;
       --border-radius: 8px;
       --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       --transition: all 0.3s ease;
@@ -25,11 +28,25 @@
       --terminal-text: #a9b1d6;
       --terminal-prompt: #7aa2f7;
       --terminal-highlight: #bb9af7;
+      
+      /* Light theme specific */
+      --bg-main: #f5f7fa;
+      --bg-card: #ffffff;
+      --bg-input: #ffffff;
+      --border-color: #e0e0e0;
+      --text-primary: #212529;
+      --text-secondary: #6c757d;
+      --table-header-bg: #f8f9fa;
+      --table-row-hover: rgba(67, 97, 238, 0.05);
+      --table-border: #e0e0e0;
+      --input-border: #ddd;
+      --input-focus-shadow: rgba(67, 97, 238, 0.2);
     }
 
     .dark-mode {
       --primary: #7aa2f7;
-      --primary-dark: #7dcfff;
+      --primary-dark: #5d8df6;
+      --primary-light: #97b9ff;
       --secondary: #bb9af7;
       --success: #9ece6a;
       --danger: #f7768e;
@@ -37,10 +54,25 @@
       --light: #a9b1d6;
       --dark: #c0caf5;
       --gray: #565f89;
+      --gray-dark: #414868;
+      --gray-light: #787c99;
       --terminal-bg: #1a1b26;
       --terminal-text: #a9b1d6;
       --terminal-prompt: #7aa2f7;
       --terminal-highlight: #bb9af7;
+      
+      /* Dark theme specific */
+      --bg-main: #1a1b26;
+      --bg-card: #24283b;
+      --bg-input: #2a2e42;
+      --border-color: #414868;
+      --text-primary: #c0caf5;
+      --text-secondary: #a9b1d6;
+      --table-header-bg: #2a2e42;
+      --table-row-hover: rgba(122, 162, 247, 0.1);
+      --table-border: #414868;
+      --input-border: #414868;
+      --input-focus-shadow: rgba(122, 162, 247, 0.3);
     }
 
     * {
@@ -51,14 +83,11 @@
 
     body {
       font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
-      background-color: #f5f7fa;
-      color: var(--dark);
+      background-color: var(--bg-main);
+      color: var(--text-primary);
       transition: var(--transition);
       min-height: 100vh;
-    }
-
-    .dark-mode body {
-      background-color: #121212;
+      line-height: 1.6;
     }
 
     .container {
@@ -73,53 +102,88 @@
       align-items: center;
       margin-bottom: 30px;
       padding-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--border-color);
     }
 
-    h1, h2 {
-      color: var(--dark);
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      color: var(--primary);
+      margin-right: 10px;
+    }
+
+    h1, h2, h3 {
+      color: var(--text-primary);
       margin-bottom: 20px;
       font-weight: 600;
     }
 
-    .dark-mode h1, .dark-mode h2 {
-      color: var(--light);
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
 
     .theme-toggle {
       background: none;
       border: none;
-      color: var(--dark);
+      color: var(--text-primary);
       font-size: 1.5rem;
       cursor: pointer;
       transition: var(--transition);
-    }
-
-    .dark-mode .theme-toggle {
-      color: var(--light);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .theme-toggle:hover {
+      background-color: rgba(122, 162, 247, 0.1);
       transform: rotate(30deg);
     }
 
     .card {
-      background-color: white;
+      background-color: var(--bg-card);
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
       padding: 25px;
       margin-bottom: 30px;
       transition: var(--transition);
-    }
-
-    .dark-mode .card {
-      background-color: #1e1e1e;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
     }
 
     .card:hover {
       box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
       transform: translateY(-5px);
+    }
+
+    .dark-mode .card:hover {
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-header i {
+      font-size: 1.5rem;
+      margin-right: 15px;
+      color: var(--primary);
+    }
+
+    .card-header h2 {
+      margin-bottom: 0;
     }
 
     .form-group {
@@ -130,55 +194,60 @@
       display: block;
       margin-bottom: 8px;
       font-weight: 500;
-      color: var(--dark);
+      color: var(--text-primary);
     }
 
-    .dark-mode label {
-      color: var(--light);
-    }
-
-    input, .ql-container, .file-input-container {
+    input, .ql-container, .file-input-container, .search-input {
       width: 100%;
       padding: 12px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--input-border);
       border-radius: var(--border-radius);
       font-size: 16px;
       transition: var(--transition);
+      background-color: var(--bg-input);
+      color: var(--text-primary);
     }
 
-    .dark-mode input, .dark-mode .ql-container, .dark-mode .ql-toolbar, .dark-mode .file-input-container {
-      background-color: #333;
-      border-color: #444;
-      color: white;
-    }
-
-    .dark-mode .ql-toolbar .ql-stroke {
-      stroke: white;
-    }
-
-    .dark-mode .ql-toolbar .ql-fill {
-      fill: white;
-    }
-
-    .dark-mode .ql-toolbar .ql-picker {
-      color: white;
-    }
-
-    input:focus, .ql-container:focus {
+    input:focus, .ql-container:focus, .search-input:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+      box-shadow: 0 0 0 3px var(--input-focus-shadow);
     }
 
     .ql-toolbar {
       border-top-left-radius: var(--border-radius);
       border-top-right-radius: var(--border-radius);
+      border-color: var(--input-border);
+      background-color: var(--bg-input);
+    }
+
+    .dark-mode .ql-toolbar .ql-stroke {
+      stroke: var(--light);
+    }
+
+    .dark-mode .ql-toolbar .ql-fill {
+      fill: var(--light);
+    }
+
+    .dark-mode .ql-toolbar .ql-picker {
+      color: var(--light);
+    }
+
+    .dark-mode .ql-toolbar .ql-picker-options {
+      background-color: var(--bg-input);
     }
 
     .ql-container {
       border-bottom-left-radius: var(--border-radius);
       border-bottom-right-radius: var(--border-radius);
       height: 250px;
+      border-color: var(--input-border);
+      background-color: var(--bg-input);
+      color: var(--text-primary);
+    }
+
+    .dark-mode .ql-editor {
+      color: var(--text-primary);
     }
 
     .btn {
@@ -218,6 +287,7 @@
     .btn-danger:hover {
       background-color: #d91a6d;
       border-color: #d91a6d;
+      transform: translateY(-2px);
     }
 
     .btn-secondary {
@@ -229,37 +299,45 @@
     .btn-secondary:hover {
       background-color: #3630b3;
       border-color: #3630b3;
+      transform: translateY(-2px);
+    }
+
+    .btn-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-icon i {
+      font-size: 1rem;
     }
 
     .table-container {
       overflow-x: auto;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--border-color);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 20px;
+      margin-bottom: 0;
     }
 
     th, td {
       padding: 15px;
       text-align: left;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .dark-mode th, .dark-mode td {
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid var(--table-border);
     }
 
     th {
-      background-color: #f8f9fa;
+      background-color: var(--table-header-bg);
       font-weight: 600;
-      color: var(--dark);
-    }
-
-    .dark-mode th {
-      background-color: #2a2a2a;
-      color: var(--light);
+      color: var(--text-primary);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     tr {
@@ -267,11 +345,11 @@
     }
 
     tr:hover {
-      background-color: rgba(67, 97, 238, 0.05);
+      background-color: var(--table-row-hover);
     }
 
-    .dark-mode tr:hover {
-      background-color: rgba(76, 201, 240, 0.05);
+    tr:last-child td {
+      border-bottom: none;
     }
 
     .action-btn {
@@ -279,6 +357,9 @@
       border-radius: var(--border-radius);
       font-size: 14px;
       margin-bottom: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
 
     .content-preview {
@@ -287,14 +368,15 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: var(--text-secondary);
     }
 
     .toast {
       position: fixed;
       top: 20px;
       right: 20px;
-      background-color: white;
-      color: var(--dark);
+      background-color: var(--bg-card);
+      color: var(--text-primary);
       padding: 15px 25px;
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
@@ -303,11 +385,7 @@
       z-index: 1000;
       transform: translateX(150%);
       transition: transform 0.3s ease;
-    }
-
-    .dark-mode .toast {
-      background-color: #333;
-      color: white;
+      border: 1px solid var(--border-color);
     }
 
     .toast.show {
@@ -341,7 +419,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(255, 255, 255, 0.7);
+      background-color: rgba(26, 27, 38, 0.7);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -349,10 +427,7 @@
       opacity: 0;
       visibility: hidden;
       transition: var(--transition);
-    }
-
-    .dark-mode .loading {
-      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(3px);
     }
 
     .loading.show {
@@ -363,7 +438,7 @@
     .spinner {
       width: 50px;
       height: 50px;
-      border: 5px solid #f3f3f3;
+      border: 5px solid rgba(122, 162, 247, 0.2);
       border-top: 5px solid var(--primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
@@ -389,6 +464,7 @@
 
     .edit-mode.active {
       display: block;
+      animation: fadeIn 0.3s ease;
     }
 
     .btn-group {
@@ -399,14 +475,19 @@
 
     .back-to-list {
       margin-bottom: 15px;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       cursor: pointer;
       color: var(--primary);
       font-weight: 500;
+      transition: var(--transition);
+      padding: 8px 12px;
+      border-radius: var(--border-radius);
     }
 
     .back-to-list:hover {
-      text-decoration: underline;
+      background-color: rgba(122, 162, 247, 0.1);
     }
 
     /* File input styling */
@@ -414,20 +495,17 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: 15px;
-      border: 2px dashed #ddd;
-      background-color: #f9f9f9;
+      padding: 20px;
+      border: 2px dashed var(--border-color);
+      background-color: var(--bg-input);
       text-align: center;
       cursor: pointer;
-    }
-
-    .dark-mode .file-input-container {
-      background-color: #2a2a2a;
-      border-color: #444;
+      transition: var(--transition);
     }
 
     .file-input-container:hover {
       border-color: var(--primary);
+      background-color: rgba(122, 162, 247, 0.05);
     }
 
     .file-input {
@@ -458,14 +536,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
-      background-color: #f5f5f5;
+      padding: 12px 15px;
+      background-color: var(--bg-input);
       border-radius: var(--border-radius);
       animation: fadeIn 0.3s ease;
+      border: 1px solid var(--border-color);
+      transition: var(--transition);
     }
 
-    .dark-mode .file-item {
-      background-color: #333;
+    .file-item:hover {
+      border-color: var(--primary-light);
+      transform: translateY(-2px);
     }
 
     .file-info {
@@ -481,33 +562,42 @@
 
     .file-name {
       font-weight: 500;
+      color: var(--text-primary);
     }
 
     .file-size {
-      color: var(--gray);
+      color: var(--text-secondary);
       font-size: 0.9rem;
     }
 
     .file-actions {
       display: flex;
-      gap: 5px;
+      gap: 8px;
     }
 
     .file-action-btn {
       background: none;
       border: none;
-      color: var(--gray);
+      color: var(--text-secondary);
       cursor: pointer;
       transition: var(--transition);
       font-size: 1.1rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .file-action-btn:hover {
       color: var(--primary);
+      background-color: rgba(122, 162, 247, 0.1);
     }
 
     .file-action-btn.delete:hover {
       color: var(--danger);
+      background-color: rgba(247, 118, 142, 0.1);
     }
 
     .file-preview {
@@ -517,12 +607,48 @@
     .file-preview-title {
       font-weight: 500;
       margin-bottom: 10px;
+      color: var(--text-primary);
     }
 
     .attached-files {
       margin-top: 15px;
     }
 
+    .search-container {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      padding-left: 40px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+
+    .empty-state p {
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+    }
+
+    /* Responsive styles */
     @media (max-width: 768px) {
       .container {
         padding: 15px;
@@ -538,6 +664,10 @@
       
       .btn {
         padding: 10px 15px;
+      }
+
+      .header-right {
+        flex-wrap: wrap;
       }
     }
 
@@ -555,13 +685,13 @@
       
       tr {
         margin-bottom: 15px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--border-color);
         border-radius: var(--border-radius);
       }
       
       td {
         border: none;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid var(--border-color);
         position: relative;
         padding-left: 50%;
       }
@@ -574,6 +704,7 @@
         padding-right: 10px;
         white-space: nowrap;
         font-weight: bold;
+        color: var(--text-primary);
       }
       
       td:nth-of-type(1):before { content: "ID"; }
@@ -583,17 +714,39 @@
       td:nth-of-type(5):before { content: "Files"; }
       td:nth-of-type(6):before { content: "Actions"; }
     }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--gray);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1><i class="fas fa-brain"></i> Apollo DB Admin Page</h1>
-      <div>
-        <a href="/create-user" class="btn btn-primary" style="margin-right: 10px;">
+      <div class="header-left">
+        <i class="fas fa-brain logo"></i>
+        <h1>Apollo DB Admin</h1>
+      </div>
+      <div class="header-right">
+        <a href="/create-user" class="btn btn-primary btn-icon">
           <i class="fas fa-user-plus"></i> Create User
         </a>
-        <a href="/" class="btn btn-secondary" style="margin-right: 10px;">
+        <a href="/" class="btn btn-secondary btn-icon">
           <i class="fas fa-home"></i> Home
         </a>
         <button id="themeToggle" class="theme-toggle">
@@ -604,7 +757,10 @@
     
     <div id="listView">
       <div class="card">
-        <h2><i class="fas fa-plus-circle"></i> Add New Knowledge</h2>
+        <div class="card-header">
+          <i class="fas fa-plus-circle"></i>
+          <h2>Add New Knowledge</h2>
+        </div>
         <form id="knowledgeForm" enctype="multipart/form-data">
           <div class="form-group">
             <label for="title">Title:</label>
@@ -630,15 +786,19 @@
             </div>
             <div class="file-list" id="fileList"></div>
           </div>
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" class="btn btn-primary btn-icon">
             <i class="fas fa-save"></i> Add Knowledge
           </button>
         </form>
       </div>
 
       <div class="card">
-        <h2><i class="fas fa-list"></i> Existing Knowledge</h2>
-        <div class="search-container" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <i class="fas fa-list"></i>
+          <h2>Existing Knowledge</h2>
+        </div>
+        <div class="search-container">
+          <i class="fas fa-search search-icon"></i>
           <input type="text" id="knowledgeSearch" class="search-input" placeholder="Search knowledge articles...">
         </div>
         <div class="table-container">
@@ -662,10 +822,15 @@
     </div>
 
     <div id="editView" class="edit-mode">
-      <a href="#" class="back-to-list" id="backToList"><i class="fas fa-arrow-left"></i> Back to List</a>
+      <a href="#" class="back-to-list" id="backToList">
+        <i class="fas fa-arrow-left"></i> Back to List
+      </a>
       
       <div class="card">
-        <h2><i class="fas fa-edit"></i> Edit Knowledge</h2>
+        <div class="card-header">
+          <i class="fas fa-edit"></i>
+          <h2>Edit Knowledge</h2>
+        </div>
         <form id="editForm" enctype="multipart/form-data">
           <input type="hidden" id="editId">
           <div class="form-group">
@@ -699,10 +864,10 @@
             <div class="file-list" id="editFileList"></div>
           </div>
           <div class="btn-group">
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary btn-icon">
               <i class="fas fa-save"></i> Save Changes
             </button>
-            <button type="button" id="discardChanges" class="btn btn-secondary">
+            <button type="button" id="discardChanges" class="btn btn-secondary btn-icon">
               <i class="fas fa-times"></i> Discard Changes
             </button>
           </div>
@@ -726,10 +891,15 @@
     const themeToggle = document.getElementById('themeToggle');
     const htmlElement = document.documentElement;
     
-    // Check for saved theme preference
-    if (localStorage.getItem('darkMode') === 'true') {
+    // Check for saved theme preference or default to dark mode
+    if (localStorage.getItem('darkMode') === 'false') {
+      htmlElement.classList.remove('dark-mode');
+      themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    } else {
+      // Default to dark mode
       htmlElement.classList.add('dark-mode');
       themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      localStorage.setItem('darkMode', 'true');
     }
     
     themeToggle.addEventListener('click', () => {
@@ -800,20 +970,33 @@
     
     // Handle file selection
     fileInput.addEventListener('change', handleFileSelect);
-    editFileInput.addEventListener('change', (e) => handleFileSelect(e, editFileList));
+    editFileInput.addEventListener('change', function(e) {
+      handleFileSelect(e, editFileList);
+    });
     
     // Handle drag and drop
     fileInputContainer.addEventListener('dragover', handleDragOver);
     fileInputContainer.addEventListener('drop', handleDrop);
+    fileInputContainer.addEventListener('dragleave', handleDragLeave);
     
     editFileInputContainer.addEventListener('dragover', handleDragOver);
-    editFileInputContainer.addEventListener('drop', (e) => handleDrop(e, editFileInput, editFileList));
+    editFileInputContainer.addEventListener('drop', function(e) {
+      handleDrop(e, editFileInput, editFileList);
+    });
+    editFileInputContainer.addEventListener('dragleave', handleDragLeave);
     
     function handleDragOver(e) {
       e.preventDefault();
       e.stopPropagation();
       this.style.borderColor = 'var(--primary)';
-      this.style.backgroundColor = 'rgba(67, 97, 238, 0.05)';
+      this.style.backgroundColor = 'rgba(122, 162, 247, 0.1)';
+    }
+    
+    function handleDragLeave(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.style.borderColor = '';
+      this.style.backgroundColor = '';
     }
     
     function handleDrop(e, inputElement = fileInput, listElement = fileList) {
@@ -875,9 +1058,19 @@
         removeBtn.className = 'file-action-btn delete';
         removeBtn.innerHTML = '<i class="fas fa-times"></i>';
         removeBtn.addEventListener('click', function() {
-          fileItem.remove();
-          // Clear the file input
-          e.target.value = '';
+          fileItem.style.height = fileItem.offsetHeight + 'px';
+          setTimeout(() => {
+            fileItem.style.height = '0';
+            fileItem.style.opacity = '0';
+            fileItem.style.padding = '0';
+            fileItem.style.margin = '0';
+            fileItem.style.overflow = 'hidden';
+          }, 10);
+          setTimeout(() => {
+            fileItem.remove();
+            // Clear the file input
+            e.target.value = '';
+          }, 300);
         });
         
         fileActions.appendChild(removeBtn);
@@ -1031,7 +1224,17 @@
           
           // Event listeners are now added directly to each button when created
         } else {
-          tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No knowledge entries found</td></tr>';
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  <i class="fas fa-database"></i>
+                  <p>No knowledge entries found</p>
+                  <p>Add your first knowledge entry using the form above</p>
+                </div>
+              </td>
+            </tr>
+          `;
         }
       } catch (error) {
         console.error('Error:', error);
@@ -1145,9 +1348,14 @@
           });
           
           if (response.ok) {
-            fileElement.style.transition = 'opacity 0.5s, transform 0.5s';
-            fileElement.style.opacity = '0';
-            fileElement.style.transform = 'translateX(20px)';
+            fileElement.style.height = fileElement.offsetHeight + 'px';
+            setTimeout(() => {
+              fileElement.style.height = '0';
+              fileElement.style.opacity = '0';
+              fileElement.style.padding = '0';
+              fileElement.style.margin = '0';
+              fileElement.style.overflow = 'hidden';
+            }, 10);
             
             setTimeout(() => {
               fileElement.remove();
@@ -1157,7 +1365,7 @@
               if (attachedFilesContainer.children.length === 0) {
                 attachedFilesContainer.innerHTML = '<p>No files attached</p>';
               }
-            }, 500);
+            }, 300);
             
             showToast('File deleted successfully!');
           } else {
@@ -1332,12 +1540,16 @@
     document.addEventListener('DOMContentLoaded', loadKnowledge);
 
     // Search functionality
-    
     document.getElementById('knowledgeSearch').addEventListener('input', function() {
       const searchTerm = this.value.toLowerCase().trim();
       const rows = document.querySelectorAll('#knowledgeTable tbody tr');
       
       rows.forEach(row => {
+        // Skip the empty state row
+        if (row.querySelector('.empty-state')) {
+          return;
+        }
+        
         const title = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
         const question = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
         const content = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
@@ -1355,3 +1567,4 @@
   <script src="admin-header-update.js"></script>
 </body>
 </html>
+
