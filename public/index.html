@@ -1131,13 +1131,19 @@
     }
   });
 
-  
-
   // Add this to the sendMessage function to update command history
   async function sendMessage(message) {
     // Add to command history at the beginning
     commandHistory.unshift(message);
     commandHistoryIndex = -1;
+    
+    // Clear the terminal for subsequent searches
+    if (document.querySelector('.user-message')) {
+      resultsContainer.innerHTML = '';
+    }
+    
+    // Add the user message
+    addMessage(message, true);
     
     try {
       showTypingIndicator();
@@ -1160,8 +1166,11 @@
       removeTypingIndicator();
       
       if (data.articles && data.articles.length > 0) {
-        const buttonsContainer = createArticleButtons(data.articles, message);
+        // First add the message about found articles
         addMessage('I found these relevant articles. Click on one to view its content:');
+        
+        // Then add the article buttons
+        const buttonsContainer = createArticleButtons(data.articles, message);
         resultsContainer.insertBefore(buttonsContainer, resultsContainer.firstChild);
       } else {
         addMessage("No relevant information found. Try a different query or type '&gt;help' for assistance.");
@@ -1209,7 +1218,6 @@
         }
         
         // Regular message processing
-        addMessage(message, true);
         commandInput.value = '';
         suggestions.classList.remove('active');
         sendMessage(message);

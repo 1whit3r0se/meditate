@@ -13,7 +13,23 @@ import { initializeAuthTables, authMiddleware, adminMiddleware, getTokenExpirati
 dotenv.config()
 
 function extractKeywords(text) {
-  return text.toLowerCase().match(/\b(\w+)\b/g) || []
+  // Extract keywords and preserve phrases in quotes
+  const phrases = [];
+  const quotedRegex = /"([^"]+)"/g;
+  let match;
+  
+  // Extract phrases in quotes
+  while ((match = quotedRegex.exec(text)) !== null) {
+    phrases.push(match[1]);
+  }
+  
+  // Remove quoted phrases from text for individual word extraction
+  let remainingText = text.replace(quotedRegex, '');
+  
+  // Extract individual words (3+ characters)
+  const words = remainingText.toLowerCase().match(/\b(\w{3,})\b/g) || [];
+  
+  return [...phrases, ...words];
 }
 
 const app = express()
@@ -320,14 +336,45 @@ app.post("/api/chat", async (req, res) => {
   }
 
   try {
-    const keywords = extractKeywords(query)
-    const searchQuery = keywords.join(" | ")
+    const keywords = extractKeywords(query);
+    
+    // Improved search query construction
+    let searchQuery;
+    
+    if (keywords.length === 1) {
+      // Single keyword search
+      searchQuery = keywords[0];
+    } else {
+      // For multi-word queries, prioritize exact phrases and require at least 2 keywords to match
+      const exactPhrases = keywords.filter(k => k.includes(' ')).map(p => `"${p}"`);
+      const singleWords = keywords.filter(k => !k.includes(' '));
+      
+      if (exactPhrases.length > 0) {
+        // If we have exact phrases, prioritize them
+        searchQuery = [...exactPhrases, ...singleWords].join(' & ');
+      } else {
+        // Otherwise, require at least 2 keywords to match (if we have 3+ keywords)
+        searchQuery = singleWords.length >= 3 
+          ? `(${singleWords.join(' & ')}) | (${singleWords.join(' | ')})`
+          : singleWords.join(' & ');
+      }
+    }
 
+    // Improved ranking with higher weight for title and question matches
     const result = await sql`
       SELECT kb."id", kb."title", kb."question", kb."content", kb."image_url",
-             ts_rank(to_tsvector('english', COALESCE(kb."title", '') || ' ' || COALESCE(kb."question", '') || ' ' || kb."content"), to_tsquery('english', ${searchQuery})) AS rank
+             ts_rank(
+               setweight(to_tsvector('english', COALESCE(kb."title", '')), 'A') ||
+               setweight(to_tsvector('english', COALESCE(kb."question", '')), 'B') ||
+               setweight(to_tsvector('english', kb."content"), 'C'),
+               to_tsquery('english', ${searchQuery})
+             ) AS rank
       FROM "knowledge_base" kb
-      WHERE to_tsvector('english', COALESCE(kb."title", '') || ' ' || COALESCE(kb."question", '') || ' ' || kb."content") @@ to_tsquery('english', ${searchQuery})
+      WHERE 
+        setweight(to_tsvector('english', COALESCE(kb."title", '')), 'A') ||
+        setweight(to_tsvector('english', COALESCE(kb."question", '')), 'B') ||
+        setweight(to_tsvector('english', kb."content"), 'C')
+        @@ to_tsquery('english', ${searchQuery})
       ORDER BY rank DESC
       LIMIT 5
     `
@@ -680,4 +727,3 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export default app
-
