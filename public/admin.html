@@ -1029,6 +1029,8 @@
     // Initialize Quill editor
     let quill;
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('Initializing Quill editor...');
+      
       quill = new Quill('#editor', {
         theme: 'snow',
         modules: {
@@ -1042,6 +1044,8 @@
           ]
         }
       });
+
+      console.log('Quill editor initialized');
 
       // Load initial data
       loadKnowledge();
@@ -1144,16 +1148,32 @@
     document.getElementById('knowledgeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      console.log('Form submission triggered');
+      
       // Sync Quill editor content to hidden textarea
-      document.getElementById('content').value = quill.root.innerHTML;
+      const quillContent = quill.root.innerHTML;
+      document.getElementById('content').value = quillContent;
+      
+      console.log('Quill content:', quillContent.substring(0, 100) + '...');
       
       const formData = new FormData();
       const id = document.getElementById('knowledgeId').value;
       
-      formData.append('title', document.getElementById('title').value);
-      formData.append('question', document.getElementById('question').value);
-      formData.append('image_url', document.getElementById('image_url').value);
-      formData.append('content', quill.root.innerHTML);
+      const title = document.getElementById('title').value;
+      const question = document.getElementById('question').value;
+      const imageUrl = document.getElementById('image_url').value;
+      
+      console.log('Form data:', { title, question, imageUrl, hasContent: !!quillContent });
+      
+      if (!title || !question || !quillContent || quillContent.trim() === '<p><br></p>') {
+        alert('Please fill in all required fields (Title, Question, and Content)');
+        return;
+      }
+      
+      formData.append('title', title);
+      formData.append('question', question);
+      formData.append('image_url', imageUrl);
+      formData.append('content', quillContent);
       
       const files = document.getElementById('files').files;
       for (let i = 0; i < files.length; i++) {
@@ -1162,6 +1182,8 @@
       
       try {
         showLoading();
+        console.log('Sending request...');
+        
         const url = id ? `/api/admin/knowledge/${id}` : '/api/admin/knowledge';
         const method = id ? 'PUT' : 'POST';
         
@@ -1170,26 +1192,35 @@
           body: formData
         });
         
+        console.log('Response status:', response.status);
+        
         if (response.ok) {
+          const result = await response.json();
+          console.log('Success:', result);
           showToast(id ? 'Knowledge updated successfully' : 'Knowledge added successfully');
           resetKnowledgeForm();
           loadKnowledge();
         } else {
-          throw new Error('Failed to save knowledge');
+          const errorData = await response.json();
+          console.error('Server error:', errorData);
+          throw new Error(errorData.error || 'Failed to save knowledge');
         }
       } catch (error) {
         console.error('Error saving knowledge:', error);
-        showToast('Error saving knowledge', true);
+        showToast('Error saving knowledge: ' + error.message, true);
       } finally {
         hideLoading();
       }
     });
 
     function resetKnowledgeForm() {
+      console.log('Resetting knowledge form');
       document.getElementById('knowledgeForm').reset();
       document.getElementById('knowledgeId').value = '';
-      quill.setContents([]); // Use setContents instead of setting innerHTML
-      document.getElementById('content').value = ''; // Clear the hidden textarea too
+      if (quill) {
+        quill.setContents([]);
+      }
+      document.getElementById('content').value = '';
       document.getElementById('knowledge-form-title').textContent = 'Add New Knowledge';
       document.getElementById('submit-text').textContent = 'Save Knowledge';
       document.getElementById('cancelEdit').style.display = 'none';
