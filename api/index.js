@@ -514,23 +514,47 @@ app.post("/api/chat", async (req, res) => {
 app.use("/api/admin", authMiddleware, adminMiddleware)
 
 app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
+  console.log("=== KNOWLEDGE POST REQUEST ===")
+  console.log("Headers:", req.headers)
+  console.log("Body keys:", Object.keys(req.body))
+  console.log("Files:", req.files ? req.files.length : 0)
+
   const { title, content, question, image_url } = req.body
 
-  console.log("Received knowledge data:", { title, question, content: content?.substring(0, 100) + "...", image_url })
+  console.log("Received knowledge data:", {
+    title: title ? `"${title.substring(0, 50)}..."` : null,
+    question: question ? `"${question.substring(0, 50)}..."` : null,
+    content: content ? `${content.length} chars` : null,
+    image_url: image_url || null,
+  })
 
-  if (!title || !content || !question) {
-    console.log("Missing required fields:", { title: !!title, content: !!content, question: !!question })
-    return res.status(400).json({ error: "Title, question, and content are required" })
+  // Better validation with specific error messages
+  if (!title || title.trim() === "") {
+    console.log("Missing title")
+    return res.status(400).json({ error: "Title is required and cannot be empty" })
+  }
+
+  if (!question || question.trim() === "") {
+    console.log("Missing question")
+    return res.status(400).json({ error: "Question is required and cannot be empty" })
+  }
+
+  if (!content || content.trim() === "" || content.trim() === "<p><br></p>") {
+    console.log("Missing or empty content:", content)
+    return res.status(400).json({ error: "Content is required and cannot be empty" })
   }
 
   try {
+    console.log("Starting database transaction...")
+
     // Begin transaction
     await sql`BEGIN`
 
     // Insert knowledge base entry
+    console.log("Inserting knowledge base entry...")
     const result = await sql`
       INSERT INTO "knowledge_base" ("title", "content", "question", "image_url") 
-      VALUES (${title}, ${content}, ${question}, ${image_url || null})
+      VALUES (${title.trim()}, ${content}, ${question.trim()}, ${image_url || null})
       RETURNING "id"
     `
 
@@ -541,27 +565,44 @@ app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
     if (req.files && req.files.length > 0) {
       console.log("Processing", req.files.length, "files")
       for (const file of req.files) {
+        console.log("Uploading file:", file.originalname, "Size:", file.size)
+
         const blob = await put(uuidv4(), file.buffer, {
           access: "public",
           contentType: file.mimetype,
         })
 
+        console.log("File uploaded to blob:", blob.url)
+
         await sql`
           INSERT INTO "file_attachments" ("knowledge_id", "filename", "blob_url", "file_size", "mime_type")
           VALUES (${knowledgeId}, ${file.originalname}, ${blob.url}, ${file.size}, ${file.mimetype})
         `
+
+        console.log("File attachment record created")
       }
     }
 
     // Commit transaction
     await sql`COMMIT`
+    console.log("Transaction committed successfully")
 
-    return res.status(201).json({ message: "Knowledge added successfully", id: knowledgeId })
+    return res.status(201).json({
+      message: "Knowledge added successfully",
+      id: knowledgeId,
+      success: true,
+    })
   } catch (error) {
     // Rollback transaction on error
+    console.log("Error occurred, rolling back transaction...")
     await sql`ROLLBACK`
     console.error("Error adding knowledge:", error)
-    return res.status(500).json({ error: "Internal server error", details: error.message })
+    console.error("Error stack:", error.stack)
+    return res.status(500).json({
+      error: "Internal server error",
+      details: error.message,
+      success: false,
+    })
   }
 })
 
@@ -628,32 +669,59 @@ app.put("/api/admin/knowledge/:id", upload.array("files", 5), async (req, res) =
   const { id } = req.params
   const { title, content, question, image_url } = req.body
 
+  console.log("=== KNOWLEDGE PUT REQUEST ===")
+  console.log("ID:", id)
   console.log("Updating knowledge", id, "with data:", {
-    title,
-    question,
-    content: content?.substring(0, 100) + "...",
-    image_url,
+    title: title ? `"${title.substring(0, 50)}..."` : null,
+    question: question ? `"${question.substring(0, 50)}..."` : null,
+    content: content ? `${content.length} chars` : null,
+    image_url: image_url || null,
   })
 
-  if (!title || !content || !question) {
-    console.log("Missing required fields:", { title: !!title, content: !!content, question: !!question })
-    return res.status(400).json({ error: "Title, question, and content are required" })
+  // Better validation
+  if (!title || title.trim() === "") {
+    console.log("Missing title")
+    return res.status(400).json({ error: "Title is required and cannot be empty" })
+  }
+
+  if (!question || question.trim() === "") {
+    console.log("Missing question")
+    return res.status(400).json({ error: "Question is required and cannot be empty" })
+  }
+
+  if (!content || content.trim() === "" || content.trim() === "<p><br></p>") {
+    console.log("Missing or empty content:", content)
+    return res.status(400).json({ error: "Content is required and cannot be empty" })
   }
 
   try {
+    console.log("Starting update transaction...")
+
     // Begin transaction
     await sql`BEGIN`
 
     // Update knowledge base entry
-    await sql`
+    console.log("Updating knowledge base entry...")
+    const updateResult = await sql`
       UPDATE "knowledge_base" 
-      SET "title" = ${title}, "content" = ${content}, "question" = ${question}, "image_url" = ${image_url || null}
+      SET "title" = ${title.trim()}, "content" = ${content}, "question" = ${question.trim()}, "image_url" = ${image_url || null}
       WHERE "id" = ${id}
+      RETURNING "id"
     `
+
+    if (updateResult.rows.length === 0) {
+      await sql`ROLLBACK`
+      return res.status(404).json({ error: "Knowledge entry not found" })
+    }
+
+    console.log("Knowledge entry updated successfully")
 
     // Insert new file attachments if any
     if (req.files && req.files.length > 0) {
+      console.log("Processing", req.files.length, "new files")
       for (const file of req.files) {
+        console.log("Uploading new file:", file.originalname)
+
         const blob = await put(uuidv4(), file.buffer, {
           access: "public",
           contentType: file.mimetype,
@@ -663,18 +731,30 @@ app.put("/api/admin/knowledge/:id", upload.array("files", 5), async (req, res) =
           INSERT INTO "file_attachments" ("knowledge_id", "filename", "blob_url", "file_size", "mime_type")
           VALUES (${id}, ${file.originalname}, ${blob.url}, ${file.size}, ${file.mimetype})
         `
+
+        console.log("New file attachment created")
       }
     }
 
     // Commit transaction
     await sql`COMMIT`
+    console.log("Update transaction committed successfully")
 
-    return res.json({ message: "Knowledge updated successfully" })
+    return res.json({
+      message: "Knowledge updated successfully",
+      success: true,
+    })
   } catch (error) {
     // Rollback transaction on error
+    console.log("Error occurred during update, rolling back...")
     await sql`ROLLBACK`
     console.error("Error updating knowledge:", error)
-    return res.status(500).json({ error: "Internal server error", details: error.message })
+    console.error("Error stack:", error.stack)
+    return res.status(500).json({
+      error: "Internal server error",
+      details: error.message,
+      success: false,
+    })
   }
 })
 
