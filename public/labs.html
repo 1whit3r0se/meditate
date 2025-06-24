@@ -260,6 +260,7 @@
     }
 
     .lab-card:hover {
+      transform: translateY(-5px);
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
       border-color: var(--primary);
     }
@@ -369,6 +370,7 @@
 
     .portal-card:hover {
       background: rgba(59, 130, 246, 0.1);
+      transform: translateY(-2px);
     }
 
     .portal-name {
@@ -405,6 +407,7 @@
 
     .portal-btn:hover {
       background: var(--primary-dark);
+      transform: translateY(-1px);
     }
 
     .portal-btn.secondary {
@@ -444,6 +447,7 @@
 
     .node-card:hover {
       background: rgba(16, 185, 129, 0.1);
+      transform: translateY(-2px);
     }
 
     .node-type {
@@ -603,7 +607,7 @@
     <div class="main-content">
       <div class="content-header">
         <h1><i class="fas fa-flask"></i> Lab Environments</h1>
-        <p>If a lab is not accessible, please contact the owner specified in the details of the lab</p>
+        <p>If any of the labs is down, please contact the Owner mentioned for the enviornment</p>
       </div>
       
       <div class="content-body">
@@ -733,7 +737,7 @@
                 ${lab.name}
               </div>
               <div class="lab-info">
-                Lab Environment • Click to access
+                Lab Environment • Click to view
               </div>
             `;
             
@@ -800,27 +804,48 @@
                 Portals
               </div>
               <div class="portals-grid">
-                ${data.portals.map(portal => `
-                  <div class="portal-card">
-                    <div class="portal-name">${portal.name}</div>
-                    <div class="portal-url">${portal.url}</div>
-                    <div class="portal-actions">
-                      <button class="portal-btn" onclick="window.open('${portal.url}', '_blank')">
-                        <i class="fas fa-external-link-alt"></i>
-                        Open
-                      </button>
-                    </div>
-                    ${portal.username || portal.password ? `
-                      <div class="credentials">
-                        ${portal.username ? `<div><strong>Username:</strong> ${portal.username}</div>` : ''}
-                        ${portal.password ? `<div><strong>Password:</strong> ${portal.password}</div>` : ''}
-                      </div>
-                    ` : ''}
-                  </div>
-                `).join('')}
-              </div>
+                ${data.portals
+        .sort((a, b) => {
+          // Define the desired order
+          const order = ['Service Portal', 'Back Office', '5443 Portal'];
+          const indexA = order.indexOf(a.name);
+          const indexB = order.indexOf(b.name);
+          
+          // If both are in the order array, sort by their position
+          if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+          }
+          // If only one is in the order array, prioritize it
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
+          // If neither is in the order array, sort alphabetically
+          return a.name.localeCompare(b.name);
+        })
+        .map(portal => `
+          <div class="portal-card">
+            <div class="portal-name">${portal.name}</div>
+            <div class="portal-url">${portal.url}</div>
+            <div class="portal-actions">
+              <button class="portal-btn" onclick="window.open('${portal.url}', '_blank')">
+                <i class="fas fa-external-link-alt"></i>
+                Open
+              </button>
+              <button class="portal-btn secondary" onclick="copyToClipboard('${portal.url}')">
+                <i class="fas fa-copy"></i>
+                Copy URL
+              </button>
             </div>
-          ` : ''}
+            ${portal.username || portal.password ? `
+              <div class="credentials">
+                ${portal.username ? `<div><strong>Username:</strong> ${portal.username}</div>` : ''}
+                ${portal.password ? `<div><strong>Password:</strong> ${portal.password}</div>` : ''}
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+    </div>
+  </div>
+` : ''}
 
           ${sortedNodeTypes.length > 0 ? `
             <div class="lab-section">

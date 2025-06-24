@@ -516,7 +516,10 @@ app.use("/api/admin", authMiddleware, adminMiddleware)
 app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
   const { title, content, question, image_url } = req.body
 
+  console.log("Received knowledge data:", { title, question, content: content?.substring(0, 100) + "...", image_url })
+
   if (!title || !content || !question) {
+    console.log("Missing required fields:", { title: !!title, content: !!content, question: !!question })
     return res.status(400).json({ error: "Title, question, and content are required" })
   }
 
@@ -527,14 +530,16 @@ app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
     // Insert knowledge base entry
     const result = await sql`
       INSERT INTO "knowledge_base" ("title", "content", "question", "image_url") 
-      VALUES (${title}, ${content}, ${question}, ${image_url})
+      VALUES (${title}, ${content}, ${question}, ${image_url || null})
       RETURNING "id"
     `
 
     const knowledgeId = result.rows[0].id
+    console.log("Created knowledge entry with ID:", knowledgeId)
 
     // Insert file attachments if any
     if (req.files && req.files.length > 0) {
+      console.log("Processing", req.files.length, "files")
       for (const file of req.files) {
         const blob = await put(uuidv4(), file.buffer, {
           access: "public",
@@ -556,7 +561,7 @@ app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
     // Rollback transaction on error
     await sql`ROLLBACK`
     console.error("Error adding knowledge:", error)
-    return res.status(500).json({ error: "Internal server error" })
+    return res.status(500).json({ error: "Internal server error", details: error.message })
   }
 })
 
@@ -623,7 +628,15 @@ app.put("/api/admin/knowledge/:id", upload.array("files", 5), async (req, res) =
   const { id } = req.params
   const { title, content, question, image_url } = req.body
 
+  console.log("Updating knowledge", id, "with data:", {
+    title,
+    question,
+    content: content?.substring(0, 100) + "...",
+    image_url,
+  })
+
   if (!title || !content || !question) {
+    console.log("Missing required fields:", { title: !!title, content: !!content, question: !!question })
     return res.status(400).json({ error: "Title, question, and content are required" })
   }
 
@@ -634,7 +647,7 @@ app.put("/api/admin/knowledge/:id", upload.array("files", 5), async (req, res) =
     // Update knowledge base entry
     await sql`
       UPDATE "knowledge_base" 
-      SET "title" = ${title}, "content" = ${content}, "question" = ${question}, "image_url" = ${image_url}
+      SET "title" = ${title}, "content" = ${content}, "question" = ${question}, "image_url" = ${image_url || null}
       WHERE "id" = ${id}
     `
 
@@ -661,7 +674,7 @@ app.put("/api/admin/knowledge/:id", upload.array("files", 5), async (req, res) =
     // Rollback transaction on error
     await sql`ROLLBACK`
     console.error("Error updating knowledge:", error)
-    return res.status(500).json({ error: "Internal server error" })
+    return res.status(500).json({ error: "Internal server error", details: error.message })
   }
 })
 
