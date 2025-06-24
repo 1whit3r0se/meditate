@@ -92,6 +92,7 @@ async function initializeDatabase() {
         CREATE TABLE "labs" (
           "id" SERIAL PRIMARY KEY,
           "name" TEXT NOT NULL,
+          "owner" TEXT,
           "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `
@@ -116,6 +117,21 @@ async function initializeDatabase() {
       await sql`
         UPDATE "labs" SET "display_order" = "id" WHERE "display_order" = 0;
       `
+    }
+
+    // Check if owner column exists in labs table
+    const ownerColumnExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_name = 'labs' AND column_name = 'owner'
+      );
+    `
+
+    if (!ownerColumnExists.rows[0].exists) {
+      await sql`
+        ALTER TABLE "labs" ADD COLUMN "owner" TEXT;
+      `
+      console.log("Added 'owner' column to labs table")
     }
 
     // Check if lab_portals table exists
@@ -677,7 +693,7 @@ app.delete("/api/admin/knowledge/:id", async (req, res) => {
 app.get("/api/admin/labs", async (req, res) => {
   try {
     const result = await sql`
-      SELECT "id", "name", "display_order", "created_at" FROM "labs" 
+      SELECT "id", "name", "owner", "display_order", "created_at" FROM "labs" 
       ORDER BY "display_order" ASC, "name" ASC
     `
 
@@ -693,7 +709,7 @@ app.get("/api/admin/labs/:id", async (req, res) => {
 
   try {
     const labResult = await sql`
-      SELECT "id", "name", "created_at" FROM "labs" 
+      SELECT "id", "name", "owner", "created_at" FROM "labs" 
       WHERE "id" = ${id}
     `
 
@@ -725,7 +741,7 @@ app.get("/api/admin/labs/:id", async (req, res) => {
 })
 
 app.post("/api/admin/labs", async (req, res) => {
-  const { name, portals, nodes } = req.body
+  const { name, owner, portals, nodes } = req.body
 
   if (!name) {
     return res.status(400).json({ error: "Lab name is required" })
@@ -736,8 +752,8 @@ app.post("/api/admin/labs", async (req, res) => {
 
     // Insert lab
     const labResult = await sql`
-      INSERT INTO "labs" ("name") 
-      VALUES (${name})
+      INSERT INTO "labs" ("name", "owner") 
+      VALUES (${name}, ${owner || ""})
       RETURNING "id"
     `
 
@@ -775,7 +791,7 @@ app.post("/api/admin/labs", async (req, res) => {
 
 app.put("/api/admin/labs/:id", async (req, res) => {
   const { id } = req.params
-  const { name, portals, nodes } = req.body
+  const { name, owner, portals, nodes } = req.body
 
   if (!name) {
     return res.status(400).json({ error: "Lab name is required" })
@@ -787,7 +803,7 @@ app.put("/api/admin/labs/:id", async (req, res) => {
     // Update lab
     await sql`
       UPDATE "labs" 
-      SET "name" = ${name}
+      SET "name" = ${name}, "owner" = ${owner || ""}
       WHERE "id" = ${id}
     `
 
