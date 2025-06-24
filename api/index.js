@@ -14,22 +14,22 @@ dotenv.config()
 
 function extractKeywords(text) {
   // Extract keywords and preserve phrases in quotes
-  const phrases = [];
-  const quotedRegex = /"([^"]+)"/g;
-  let match;
-  
+  const phrases = []
+  const quotedRegex = /"([^"]+)"/g
+  let match
+
   // Extract phrases in quotes
   while ((match = quotedRegex.exec(text)) !== null) {
-    phrases.push(match[1]);
+    phrases.push(match[1])
   }
-  
+
   // Remove quoted phrases from text for individual word extraction
-  let remainingText = text.replace(quotedRegex, '');
-  
+  const remainingText = text.replace(quotedRegex, "")
+
   // Extract individual words (3+ characters)
-  const words = remainingText.toLowerCase().match(/\b(\w{3,})\b/g) || [];
-  
-  return [...phrases, ...words];
+  const words = remainingText.toLowerCase().match(/\b(\w{3,})\b/g) || []
+
+  return [...phrases, ...words]
 }
 
 const app = express()
@@ -77,6 +77,72 @@ async function initializeDatabase() {
         )
       `
       console.log("Created knowledge_base table")
+    }
+
+    // Check if labs table exists
+    const labsTableExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'labs'
+      );
+    `
+
+    if (!labsTableExists.rows[0].exists) {
+      await sql`
+        CREATE TABLE "labs" (
+          "id" SERIAL PRIMARY KEY,
+          "name" TEXT NOT NULL,
+          "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `
+      console.log("Created labs table")
+    }
+
+    // Check if lab_portals table exists
+    const portalsTableExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'lab_portals'
+      );
+    `
+
+    if (!portalsTableExists.rows[0].exists) {
+      await sql`
+        CREATE TABLE "lab_portals" (
+          "id" SERIAL PRIMARY KEY,
+          "lab_id" INTEGER NOT NULL REFERENCES "labs"("id") ON DELETE CASCADE,
+          "name" TEXT NOT NULL,
+          "url" TEXT NOT NULL,
+          "username" TEXT,
+          "password" TEXT,
+          "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `
+      console.log("Created lab_portals table")
+    }
+
+    // Check if lab_nodes table exists
+    const nodesTableExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'lab_nodes'
+      );
+    `
+
+    if (!nodesTableExists.rows[0].exists) {
+      await sql`
+        CREATE TABLE "lab_nodes" (
+          "id" SERIAL PRIMARY KEY,
+          "lab_id" INTEGER NOT NULL REFERENCES "labs"("id") ON DELETE CASCADE,
+          "type" TEXT NOT NULL,
+          "name" TEXT NOT NULL,
+          "ip_address" TEXT,
+          "username" TEXT,
+          "password" TEXT,
+          "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `
+      console.log("Created lab_nodes table")
     }
 
     // Check if image_url column exists
@@ -336,27 +402,28 @@ app.post("/api/chat", async (req, res) => {
   }
 
   try {
-    const keywords = extractKeywords(query);
-    
+    const keywords = extractKeywords(query)
+
     // Improved search query construction
-    let searchQuery;
-    
+    let searchQuery
+
     if (keywords.length === 1) {
       // Single keyword search
-      searchQuery = keywords[0];
+      searchQuery = keywords[0]
     } else {
       // For multi-word queries, prioritize exact phrases and require at least 2 keywords to match
-      const exactPhrases = keywords.filter(k => k.includes(' ')).map(p => `"${p}"`);
-      const singleWords = keywords.filter(k => !k.includes(' '));
-      
+      const exactPhrases = keywords.filter((k) => k.includes(" ")).map((p) => `"${p}"`)
+      const singleWords = keywords.filter((k) => !k.includes(" "))
+
       if (exactPhrases.length > 0) {
         // If we have exact phrases, prioritize them
-        searchQuery = [...exactPhrases, ...singleWords].join(' & ');
+        searchQuery = [...exactPhrases, ...singleWords].join(" & ")
       } else {
         // Otherwise, require at least 2 keywords to match (if we have 3+ keywords)
-        searchQuery = singleWords.length >= 3 
-          ? `(${singleWords.join(' & ')}) | (${singleWords.join(' | ')})`
-          : singleWords.join(' & ');
+        searchQuery =
+          singleWords.length >= 3
+            ? `(${singleWords.join(" & ")}) | (${singleWords.join(" | ")})`
+            : singleWords.join(" & ")
       }
     }
 
@@ -586,6 +653,170 @@ app.delete("/api/admin/knowledge/:id", async (req, res) => {
   }
 })
 
+// Labs API routes
+app.get("/api/admin/labs", async (req, res) => {
+  try {
+    const result = await sql`
+      SELECT "id", "name", "created_at" FROM "labs" 
+      ORDER BY "name" ASC
+    `
+
+    return res.json({ labs: result.rows })
+  } catch (error) {
+    console.error("Error fetching labs:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+app.get("/api/admin/labs/:id", async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const labResult = await sql`
+      SELECT "id", "name", "created_at" FROM "labs" 
+      WHERE "id" = ${id}
+    `
+
+    if (labResult.rows.length === 0) {
+      return res.status(404).json({ error: "Lab not found" })
+    }
+
+    const portalsResult = await sql`
+      SELECT "id", "name", "url", "username", "password" FROM "lab_portals" 
+      WHERE "lab_id" = ${id}
+      ORDER BY "name" ASC
+    `
+
+    const nodesResult = await sql`
+      SELECT "id", "type", "name", "ip_address", "username", "password" FROM "lab_nodes" 
+      WHERE "lab_id" = ${id}
+      ORDER BY "type", "name" ASC
+    `
+
+    return res.json({
+      lab: labResult.rows[0],
+      portals: portalsResult.rows,
+      nodes: nodesResult.rows,
+    })
+  } catch (error) {
+    console.error("Error fetching lab:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+app.post("/api/admin/labs", async (req, res) => {
+  const { name, portals, nodes } = req.body
+
+  if (!name) {
+    return res.status(400).json({ error: "Lab name is required" })
+  }
+
+  try {
+    await sql`BEGIN`
+
+    // Insert lab
+    const labResult = await sql`
+      INSERT INTO "labs" ("name") 
+      VALUES (${name})
+      RETURNING "id"
+    `
+
+    const labId = labResult.rows[0].id
+
+    // Insert portals
+    if (portals && portals.length > 0) {
+      for (const portal of portals) {
+        await sql`
+          INSERT INTO "lab_portals" ("lab_id", "name", "url", "username", "password")
+          VALUES (${labId}, ${portal.name}, ${portal.url}, ${portal.username || ""}, ${portal.password || ""})
+        `
+      }
+    }
+
+    // Insert nodes
+    if (nodes && nodes.length > 0) {
+      for (const node of nodes) {
+        await sql`
+          INSERT INTO "lab_nodes" ("lab_id", "type", "name", "ip_address", "username", "password")
+          VALUES (${labId}, ${node.type}, ${node.name}, ${node.ip_address || ""}, ${node.username || ""}, ${node.password || ""})
+        `
+      }
+    }
+
+    await sql`COMMIT`
+
+    return res.status(201).json({ message: "Lab created successfully", id: labId })
+  } catch (error) {
+    await sql`ROLLBACK`
+    console.error("Error creating lab:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+app.put("/api/admin/labs/:id", async (req, res) => {
+  const { id } = req.params
+  const { name, portals, nodes } = req.body
+
+  if (!name) {
+    return res.status(400).json({ error: "Lab name is required" })
+  }
+
+  try {
+    await sql`BEGIN`
+
+    // Update lab
+    await sql`
+      UPDATE "labs" 
+      SET "name" = ${name}
+      WHERE "id" = ${id}
+    `
+
+    // Delete existing portals and nodes
+    await sql`DELETE FROM "lab_portals" WHERE "lab_id" = ${id}`
+    await sql`DELETE FROM "lab_nodes" WHERE "lab_id" = ${id}`
+
+    // Insert new portals
+    if (portals && portals.length > 0) {
+      for (const portal of portals) {
+        await sql`
+          INSERT INTO "lab_portals" ("lab_id", "name", "url", "username", "password")
+          VALUES (${id}, ${portal.name}, ${portal.url}, ${portal.username || ""}, ${portal.password || ""})
+        `
+      }
+    }
+
+    // Insert new nodes
+    if (nodes && nodes.length > 0) {
+      for (const node of nodes) {
+        await sql`
+          INSERT INTO "lab_nodes" ("lab_id", "type", "name", "ip_address", "username", "password")
+          VALUES (${id}, ${node.type}, ${node.name}, ${node.ip_address || ""}, ${node.username || ""}, ${node.password || ""})
+        `
+      }
+    }
+
+    await sql`COMMIT`
+
+    return res.json({ message: "Lab updated successfully" })
+  } catch (error) {
+    await sql`ROLLBACK`
+    console.error("Error updating lab:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+app.delete("/api/admin/labs/:id", async (req, res) => {
+  const { id } = req.params
+
+  try {
+    await sql`DELETE FROM "labs" WHERE "id" = ${id}`
+    return res.json({ message: "Lab deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting lab:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
 // Add this new route after your other admin routes
 app.post("/api/admin/create-user", authMiddleware, adminMiddleware, async (req, res) => {
   const { email, password, role } = req.body
@@ -708,6 +939,11 @@ app.get("/register", (req, res) => {
 // Apply auth middleware to admin page
 app.get("/admin", authMiddleware, adminMiddleware, (req, res) => {
   res.sendFile(path.join(publicPath, "admin.html"))
+})
+
+// Apply auth middleware to labs page
+app.get("/labs", authMiddleware, (req, res) => {
+  res.sendFile(path.join(publicPath, "labs.html"))
 })
 
 // Apply auth middleware to index page
