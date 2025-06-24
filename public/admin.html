@@ -1092,7 +1092,14 @@
         document.getElementById('title').value = data.knowledge.title || '';
         document.getElementById('question').value = data.knowledge.question || '';
         document.getElementById('image_url').value = data.knowledge.image_url || '';
-        quill.root.innerHTML = data.knowledge.content || '';
+        // In editKnowledge function, replace this line:
+        // quill.root.innerHTML = data.knowledge.content || '';
+        // With this:
+        if (data.knowledge.content) {
+          quill.clipboard.dangerouslyPasteHTML(data.knowledge.content);
+        } else {
+          quill.setContents([]);
+        }
         
         document.getElementById('knowledge-form-title').textContent = 'Edit Knowledge';
         document.getElementById('submit-text').textContent = 'Update Knowledge';
@@ -1137,6 +1144,9 @@
     document.getElementById('knowledgeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      // Sync Quill editor content to hidden textarea
+      document.getElementById('content').value = quill.root.innerHTML;
+      
       const formData = new FormData();
       const id = document.getElementById('knowledgeId').value;
       
@@ -1178,7 +1188,8 @@
     function resetKnowledgeForm() {
       document.getElementById('knowledgeForm').reset();
       document.getElementById('knowledgeId').value = '';
-      quill.root.innerHTML = '';
+      quill.setContents([]); // Use setContents instead of setting innerHTML
+      document.getElementById('content').value = ''; // Clear the hidden textarea too
       document.getElementById('knowledge-form-title').textContent = 'Add New Knowledge';
       document.getElementById('submit-text').textContent = 'Save Knowledge';
       document.getElementById('cancelEdit').style.display = 'none';
