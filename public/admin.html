@@ -618,4 +618,787 @@
         </div>
 
         <div class="nav-controls">
-          <button id="themeToggle
+          <button id="themeToggle" class="theme-toggle">
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Tabs -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="knowledge">
+        <i class="fas fa-book"></i>
+        Knowledge Base
+      </button>
+      <button class="admin-tab" data-tab="labs">
+        <i class="fas fa-flask"></i>
+        Labs Management
+      </button>
+    </div>
+
+    <!-- Knowledge Base Tab -->
+    <div id="knowledge-tab" class="tab-content active">
+      <!-- Add/Edit Knowledge Form -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-plus-circle"></i>
+          <h2 id="knowledge-form-title">Add New Knowledge</h2>
+        </div>
+        <div class="card-body">
+          <form id="knowledgeForm" enctype="multipart/form-data">
+            <input type="hidden" id="knowledgeId" name="id">
+            
+            <div class="form-group">
+              <label for="title">Title *</label>
+              <input type="text" id="title" name="title" required>
+            </div>
+
+            <div class="form-group">
+              <label for="question">Question *</label>
+              <input type="text" id="question" name="question" required>
+            </div>
+
+            <div class="form-group">
+              <label for="image_url">Image URL (optional)</label>
+              <input type="url" id="image_url" name="image_url" placeholder="https://example.com/image.jpg">
+            </div>
+
+            <div class="form-group">
+              <label for="content">Content *</label>
+              <div id="editor" style="height: 300px;"></div>
+              <textarea id="content" name="content" style="display: none;" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="files">File Attachments</label>
+              <input type="file" id="files" name="files" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.zip,.rar,.txt,.csv">
+              <small style="color: var(--gray); margin-top: 0.5rem; display: block;">
+                Supported formats: PDF, Word, Excel, PowerPoint, Images, Archives, Text files (Max 5 files, 10MB each)
+              </small>
+            </div>
+
+            <div class="form-group" style="display: flex; gap: 1rem;">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                <span id="submit-text">Save Knowledge</span>
+              </button>
+              <button type="button" id="cancelEdit" class="btn btn-secondary" style="display: none;">
+                <i class="fas fa-times"></i>
+                Cancel Edit
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Knowledge List -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-list"></i>
+          <h2>Knowledge Base Entries</h2>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table id="knowledgeTable">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Question</th>
+                  <th>Files</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Knowledge entries will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Labs Tab -->
+    <div id="labs-tab" class="tab-content">
+      <!-- Add/Edit Lab Form -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-plus-circle"></i>
+          <h2 id="lab-form-title">Add New Lab</h2>
+        </div>
+        <div class="card-body">
+          <form id="labForm">
+            <input type="hidden" id="labId" name="id">
+            
+            <div class="form-group">
+              <label for="labName">Lab Name *</label>
+              <input type="text" id="labName" name="name" required placeholder="e.g., Lab 24.4">
+            </div>
+
+            <!-- Portals Section -->
+            <div class="form-group">
+              <div class="section-header">
+                <h3 style="color: var(--primary); margin: 0;">Portals</h3>
+                <button type="button" class="add-btn" id="addPortal">
+                  <i class="fas fa-plus"></i>
+                  Add Portal
+                </button>
+              </div>
+              <div id="portalsContainer">
+                <!-- Portal forms will be added here -->
+              </div>
+            </div>
+
+            <!-- Nodes Section -->
+            <div class="form-group">
+              <div class="section-header">
+                <h3 style="color: var(--primary); margin: 0;">Infrastructure Nodes</h3>
+                <button type="button" class="add-btn" id="addNode">
+                  <i class="fas fa-plus"></i>
+                  Add Node
+                </button>
+              </div>
+              <div id="nodesContainer">
+                <!-- Node forms will be added here -->
+              </div>
+            </div>
+
+            <div class="form-group" style="display: flex; gap: 1rem;">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                <span id="lab-submit-text">Save Lab</span>
+              </button>
+              <button type="button" id="cancelLabEdit" class="btn btn-secondary" style="display: none;">
+                <i class="fas fa-times"></i>
+                Cancel Edit
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Labs List -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-list"></i>
+          <h2>Lab Environments</h2>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table id="labsTable">
+              <thead>
+                <tr>
+                  <th>Lab Name</th>
+                  <th>Portals</th>
+                  <th>Nodes</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Lab entries will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <i class="toast-icon fas fa-check-circle"></i>
+    <span class="toast-message"></span>
+  </div>
+
+  <!-- Quill Editor -->
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+  
+  <script>
+    // Check if user is authenticated and is admin
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/auth/user');
+        const data = await response.json();
+        
+        if (!data.authenticated) {
+          window.location.href = '/login';
+        } else if (data.user.role !== 'admin') {
+          alert('Access denied. Admin privileges required.');
+          window.location.href = '/';
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        window.location.href = '/login';
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', checkAuth);
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const htmlElement = document.documentElement;
+    
+    if (localStorage.getItem('darkMode') === 'true') {
+      htmlElement.classList.add('dark-mode');
+      themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      htmlElement.classList.toggle('dark-mode');
+      const isDarkMode = htmlElement.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDarkMode);
+      
+      themeToggle.innerHTML = isDarkMode 
+        ? '<i class="fas fa-sun"></i>' 
+        : '<i class="fas fa-moon"></i>';
+    });
+
+    // Tab functionality
+    const adminTabs = document.querySelectorAll('.admin-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    adminTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetTab = tab.dataset.tab;
+        
+        // Update active tab
+        adminTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Update active content
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === `${targetTab}-tab`) {
+            content.classList.add('active');
+          }
+        });
+
+        // Load data for the active tab
+        if (targetTab === 'knowledge') {
+          loadKnowledge();
+        } else if (targetTab === 'labs') {
+          loadLabs();
+        }
+      });
+    });
+
+    // Loading and Toast functions
+    function showLoading() {
+      document.getElementById('loading').classList.add('show');
+    }
+    
+    function hideLoading() {
+      document.getElementById('loading').classList.remove('show');
+    }
+
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      const icon = toast.querySelector('.toast-icon');
+      const messageEl = toast.querySelector('.toast-message');
+      
+      messageEl.textContent = message;
+      
+      if (isError) {
+        toast.classList.add('error');
+        icon.className = 'toast-icon fas fa-exclamation-circle';
+      } else {
+        toast.classList.remove('error');
+        icon.className = 'toast-icon fas fa-check-circle';
+      }
+      
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4000);
+    }
+
+    // Initialize Quill editor
+    let quill;
+    document.addEventListener('DOMContentLoaded', () => {
+      quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+          toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'color': [] }, { 'background': [] }],
+            ['link', 'code-block'],
+            ['clean']
+          ]
+        }
+      });
+
+      // Load initial data
+      loadKnowledge();
+    });
+
+    // Knowledge Base Management
+    async function loadKnowledge() {
+      try {
+        showLoading();
+        const response = await fetch('/api/admin/knowledge');
+        const data = await response.json();
+        
+        const tbody = document.querySelector('#knowledgeTable tbody');
+        tbody.innerHTML = '';
+        
+        data.knowledge.forEach(item => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.title || 'Untitled'}</td>
+            <td>${item.question}</td>
+            <td>${item.file_count || 0} files</td>
+            <td>
+              <button class="btn btn-secondary" onclick="editKnowledge(${item.id})" style="margin-right: 0.5rem;">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button class="btn btn-danger" onclick="deleteKnowledge(${item.id})">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Error loading knowledge:', error);
+        showToast('Error loading knowledge base entries', true);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function editKnowledge(id) {
+      try {
+        showLoading();
+        const response = await fetch(`/api/admin/knowledge/${id}`);
+        const data = await response.json();
+        
+        document.getElementById('knowledgeId').value = id;
+        document.getElementById('title').value = data.knowledge.title || '';
+        document.getElementById('question').value = data.knowledge.question || '';
+        document.getElementById('image_url').value = data.knowledge.image_url || '';
+        quill.root.innerHTML = data.knowledge.content || '';
+        
+        document.getElementById('knowledge-form-title').textContent = 'Edit Knowledge';
+        document.getElementById('submit-text').textContent = 'Update Knowledge';
+        document.getElementById('cancelEdit').style.display = 'inline-flex';
+        
+        // Scroll to form
+        document.getElementById('knowledgeForm').scrollIntoView({ behavior: 'smooth' });
+      } catch (error) {
+        console.error('Error loading knowledge for edit:', error);
+        showToast('Error loading knowledge for editing', true);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function deleteKnowledge(id) {
+      if (!confirm('Are you sure you want to delete this knowledge entry? This action cannot be undone.')) {
+        return;
+      }
+      
+      try {
+        showLoading();
+        const response = await fetch(`/api/admin/knowledge/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          showToast('Knowledge entry deleted successfully');
+          loadKnowledge();
+        } else {
+          throw new Error('Failed to delete knowledge entry');
+        }
+      } catch (error) {
+        console.error('Error deleting knowledge:', error);
+        showToast('Error deleting knowledge entry', true);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Knowledge form submission
+    document.getElementById('knowledgeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData();
+      const id = document.getElementById('knowledgeId').value;
+      
+      formData.append('title', document.getElementById('title').value);
+      formData.append('question', document.getElementById('question').value);
+      formData.append('image_url', document.getElementById('image_url').value);
+      formData.append('content', quill.root.innerHTML);
+      
+      const files = document.getElementById('files').files;
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+      
+      try {
+        showLoading();
+        const url = id ? `/api/admin/knowledge/${id}` : '/api/admin/knowledge';
+        const method = id ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+          method: method,
+          body: formData
+        });
+        
+        if (response.ok) {
+          showToast(id ? 'Knowledge updated successfully' : 'Knowledge added successfully');
+          resetKnowledgeForm();
+          loadKnowledge();
+        } else {
+          throw new Error('Failed to save knowledge');
+        }
+      } catch (error) {
+        console.error('Error saving knowledge:', error);
+        showToast('Error saving knowledge', true);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    function resetKnowledgeForm() {
+      document.getElementById('knowledgeForm').reset();
+      document.getElementById('knowledgeId').value = '';
+      quill.root.innerHTML = '';
+      document.getElementById('knowledge-form-title').textContent = 'Add New Knowledge';
+      document.getElementById('submit-text').textContent = 'Save Knowledge';
+      document.getElementById('cancelEdit').style.display = 'none';
+    }
+
+    document.getElementById('cancelEdit').addEventListener('click', resetKnowledgeForm);
+
+    // Labs Management
+    let portalCounter = 0;
+    let nodeCounter = 0;
+
+    function addPortalForm() {
+      const container = document.getElementById('portalsContainer');
+      const portalDiv = document.createElement('div');
+      portalDiv.classList.add('dynamic-section');
+      portalDiv.innerHTML = `
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fas fa-globe"></i>
+            Portal ${portalCounter + 1}
+          </div>
+          <button type="button" class="remove-btn" onclick="removeSection(this)">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Portal Name *</label>
+            <select name="portals[${portalCounter}][name]" required>
+              <option value="">Select Portal Type</option>
+              <option value="Service Portal">Service Portal</option>
+              <option value="Back Office">Back Office</option>
+              <option value="5443 Portal">5443 Portal</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>URL *</label>
+            <input type="url" name="portals[${portalCounter}][url]" required placeholder="https://example.com">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="portals[${portalCounter}][username]" placeholder="admin">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="text" name="portals[${portalCounter}][password]" placeholder="password123">
+          </div>
+        </div>
+      `;
+      container.appendChild(portalDiv);
+      portalCounter++;
+    }
+
+    function addNodeForm() {
+      const container = document.getElementById('nodesContainer');
+      const nodeDiv = document.createElement('div');
+      nodeDiv.classList.add('dynamic-section');
+      nodeDiv.innerHTML = `
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fas fa-server"></i>
+            Node ${nodeCounter + 1}
+          </div>
+          <button type="button" class="remove-btn" onclick="removeSection(this)">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Node Type *</label>
+            <select name="nodes[${nodeCounter}][type]" required>
+              <option value="">Select Node Type</option>
+              <option value="master">Master Node</option>
+              <option value="worker">Worker Node</option>
+              <option value="db">DB Node</option>
+              <option value="nfs">NFS Node</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Node Name *</label>
+            <input type="text" name="nodes[${nodeCounter}][name]" required placeholder="master-01">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IP Address</label>
+            <input type="text" name="nodes[${nodeCounter}][ip_address]" placeholder="192.168.1.100">
+          </div>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="nodes[${nodeCounter}][username]" placeholder="root">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="text" name="nodes[${nodeCounter}][password]" placeholder="password123">
+        </div>
+      `;
+      container.appendChild(nodeDiv);
+      nodeCounter++;
+    }
+
+    function removeSection(button) {
+      button.closest('.dynamic-section').remove();
+    }
+
+    // Make functions globally available
+    window.removeSection = removeSection;
+
+    document.getElementById('addPortal').addEventListener('click', addPortalForm);
+    document.getElementById('addNode').addEventListener('click', addNodeForm);
+
+    async function loadLabs() {
+      try {
+        showLoading();
+        const response = await fetch('/api/admin/labs');
+        const data = await response.json();
+        
+        const tbody = document.querySelector('#labsTable tbody');
+        tbody.innerHTML = '';
+        
+        if (data.labs && data.labs.length > 0) {
+          for (const lab of data.labs) {
+            // Get detailed info for each lab
+            const detailResponse = await fetch(`/api/admin/labs/${lab.id}`);
+            const detailData = await detailResponse.json();
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${lab.name}</td>
+              <td>${detailData.portals ? detailData.portals.length : 0} portals</td>
+              <td>${detailData.nodes ? detailData.nodes.length : 0} nodes</td>
+              <td>${new Date(lab.created_at).toLocaleDateString()}</td>
+              <td>
+                <button class="btn btn-secondary" onclick="editLab(${lab.id})" style="margin-right: 0.5rem;">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-danger" onclick="deleteLab(${lab.id})">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading labs:', error);
+        showToast('Error loading labs', true);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function editLab(id) {
+      try {
+        showLoading();
+        const response = await fetch(`/api/admin/labs/${id}`);
+        const data = await response.json();
+        
+        document.getElementById('labId').value = id;
+        document.getElementById('labName').value = data.lab.name;
+        
+        // Clear existing forms
+        document.getElementById('portalsContainer').innerHTML = '';
+        document.getElementById('nodesContainer').innerHTML = '';
+        portalCounter = 0;
+        nodeCounter = 0;
+        
+        // Add portal forms
+        data.portals.forEach(portal => {
+          addPortalForm();
+          const lastPortal = document.getElementById('portalsContainer').lastElementChild;
+          lastPortal.querySelector(`select[name="portals[${portalCounter-1}][name]"]`).value = portal.name;
+          lastPortal.querySelector(`input[name="portals[${portalCounter-1}][url]"]`).value = portal.url;
+          lastPortal.querySelector(`input[name="portals[${portalCounter-1}][username]"]`).value = portal.username || '';
+          lastPortal.querySelector(`input[name="portals[${portalCounter-1}][password]"]`).value = portal.password || '';
+        });
+        
+        // Add node forms
+        data.nodes.forEach(node => {
+          addNodeForm();
+          const lastNode = document.getElementById('nodesContainer').lastElementChild;
+          lastNode.querySelector(`select[name="nodes[${nodeCounter-1}][type]"]`).value = node.type;
+          lastNode.querySelector(`input[name="nodes[${nodeCounter-1}][name]"]`).value = node.name;
+          lastNode.querySelector(`input[name="nodes[${nodeCounter-1}][ip_address]"]`).value = node.ip_address || '';
+          lastNode.querySelector(`input[name="nodes[${nodeCounter-1}][username]"]`).value = node.username || '';
+          lastNode.querySelector(`input[name="nodes[${nodeCounter-1}][password]"]`).value = node.password || '';
+        });
+        
+        document.getElementById('lab-form-title').textContent = 'Edit Lab';
+        document.getElementById('lab-submit-text').textContent = 'Update Lab';
+        document.getElementById('cancelLabEdit').style.display = 'inline-flex';
+        
+        // Scroll to form
+        document.getElementById('labForm').scrollIntoView({ behavior: 'smooth' });
+      } catch (error) {
+        console.error('Error loading lab for edit:', error);
+        showToast('Error loading lab for editing', true);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    async function deleteLab(id) {
+      if (!confirm('Are you sure you want to delete this lab? This action cannot be undone.')) {
+        return;
+      }
+      
+      try {
+        showLoading();
+        const response = await fetch(`/api/admin/labs/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          showToast('Lab deleted successfully');
+          loadLabs();
+        } else {
+          throw new Error('Failed to delete lab');
+        }
+      } catch (error) {
+        console.error('Error deleting lab:', error);
+        showToast('Error deleting lab', true);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Make functions globally available
+    window.editKnowledge = editKnowledge;
+    window.deleteKnowledge = deleteKnowledge;
+    window.editLab = editLab;
+    window.deleteLab = deleteLab;
+
+    // Lab form submission
+    document.getElementById('labForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      const id = document.getElementById('labId').value;
+      
+      // Parse form data
+      const labData = {
+        name: formData.get('name'),
+        portals: [],
+        nodes: []
+      };
+      
+      // Parse portals
+      for (let [key, value] of formData.entries()) {
+        if (key.startsWith('portals[')) {
+          const match = key.match(/portals\[(\d+)\]\[(\w+)\]/);
+          if (match) {
+            const index = parseInt(match[1]);
+            const field = match[2];
+            
+            if (!labData.portals[index]) {
+              labData.portals[index] = {};
+            }
+            labData.portals[index][field] = value;
+          }
+        }
+      }
+      
+      // Parse nodes
+      for (let [key, value] of formData.entries()) {
+        if (key.startsWith('nodes[')) {
+          const match = key.match(/nodes\[(\d+)\]\[(\w+)\]/);
+          if (match) {
+            const index = parseInt(match[1]);
+            const field = match[2];
+            
+            if (!labData.nodes[index]) {
+              labData.nodes[index] = {};
+            }
+            labData.nodes[index][field] = value;
+          }
+        }
+      }
+      
+      // Filter out empty entries
+      labData.portals = labData.portals.filter(portal => portal && portal.name && portal.url);
+      labData.nodes = labData.nodes.filter(node => node && node.type && node.name);
+      
+      try {
+        showLoading();
+        const url = id ? `/api/admin/labs/${id}` : '/api/admin/labs';
+        const method = id ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(labData)
+        });
+        
+        if (response.ok) {
+          showToast(id ? 'Lab updated successfully' : 'Lab added successfully');
+          resetLabForm();
+          loadLabs();
+        } else {
+          throw new Error('Failed to save lab');
+        }
+      } catch (error) {
+        console.error('Error saving lab:', error);
+        showToast('Error saving lab', true);
+      } finally {
+        hideLoading();
+      }
+    });
+
+    function resetLabForm() {
+      document.getElementById('labForm').reset();
+      document.getElementById('labId').value = '';
+      document.getElementById('portalsContainer').innerHTML = '';
+      document.getElementById('nodesContainer').innerHTML = '';
+      portalCounter = 0;
+      nodeCounter = 0;
+      document.getElementById('lab-form-title').textContent = 'Add New Lab';
+      document.getElementById('lab-submit-text').textContent = 'Save Lab';
+      document.getElementById('cancelLabEdit').style.display = 'none';
+    }
+
+    document.getElementById('cancelLabEdit').addEventListener('click', resetLabForm);
+  </script>
+</body>
+</html>

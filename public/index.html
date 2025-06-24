@@ -355,77 +355,6 @@
       border-color: rgba(144, 205, 244, 0.2);
     }
 
-    /* Article Buttons */
-    .article-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-
-    .article-button {
-      background: rgba(255, 255, 255, 0.95);
-      border: 1px solid rgba(102, 126, 234, 0.2);
-      padding: 1.5rem;
-      text-align: left;
-      cursor: pointer;
-      border-radius: var(--border-radius);
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .dark-mode .article-button {
-      background: rgba(45, 55, 72, 0.95);
-      border-color: rgba(144, 205, 244, 0.3);
-    }
-
-    .article-button:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-      border-color: var(--primary);
-    }
-
-    .article-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: var(--gradient-primary);
-      transform: scaleY(0);
-      transition: var(--transition);
-    }
-
-    .article-button:hover::before {
-      transform: scaleY(1);
-    }
-
-    .article-title {
-      font-weight: 600;
-      margin-bottom: 0.75rem;
-      color: var(--primary);
-      font-size: 1.1rem;
-    }
-
-    .article-question {
-      font-style: italic;
-      margin-bottom: 1rem;
-      color: var(--gray);
-      font-size: 0.95rem;
-    }
-
-    .article-preview {
-      color: var(--dark);
-      font-size: 0.9rem;
-      line-height: 1.6;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
     /* File Attachments */
     .file-attachments {
       margin-top: 1rem;
@@ -479,13 +408,16 @@
     /* Article Content */
     .article-content {
       margin: 2rem 0;
-      padding: 2rem;
+      padding: 3rem;
       background: rgba(255, 255, 255, 0.95);
       border-radius: var(--border-radius);
       border-left: 4px solid var(--primary);
       animation: fadeIn 0.5s ease;
       box-shadow: var(--box-shadow);
       line-height: 1.8;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .dark-mode .article-content {
@@ -495,19 +427,30 @@
     .article-content h1, 
     .article-content h2, 
     .article-content h3 {
-      margin-top: 1.5em;
-      margin-bottom: 0.75em;
+      margin-top: 2em;
+      margin-bottom: 1em;
       color: var(--primary);
     }
 
+    .article-content h1:first-child,
+    .article-content h2:first-child,
+    .article-content h3:first-child {
+      margin-top: 0;
+    }
+
     .article-content p {
-      margin-bottom: 1em;
+      margin-bottom: 1.5em;
+      font-size: 1.1rem;
     }
 
     .article-content ul, 
     .article-content ol {
-      margin-bottom: 1em;
-      padding-left: 1.5em;
+      margin-bottom: 1.5em;
+      padding-left: 2em;
+    }
+
+    .article-content li {
+      margin-bottom: 0.5em;
     }
 
     .article-content a {
@@ -519,6 +462,165 @@
 
     .article-content a:hover {
       border-bottom-color: var(--primary);
+    }
+
+    /* Article Images */
+    .article-content img,
+    .article-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin: 2rem 0;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: var(--transition);
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .article-content img:hover,
+    .article-image:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Image Modal */
+    .image-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+    }
+
+    .image-modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .image-modal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: var(--border-radius);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      cursor: default;
+      transform: scale(0.8);
+      transition: var(--transition);
+    }
+
+    .image-modal.show img {
+      transform: scale(1);
+    }
+
+    .image-modal-close {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 2rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-modal-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    /* Article Buttons - Better spacing */
+    .article-button {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      padding: 2rem;
+      text-align: left;
+      cursor: pointer;
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .dark-mode .article-button {
+      background: rgba(45, 55, 72, 0.95);
+      border-color: rgba(144, 205, 244, 0.3);
+    }
+
+    .article-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      border-color: var(--primary);
+    }
+
+    .article-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--gradient-primary);
+      transform: scaleY(0);
+      transition: var(--transition);
+    }
+
+    .article-button:hover::before {
+      transform: scaleY(1);
+    }
+
+    .article-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--primary);
+      font-size: 1.25rem;
+    }
+
+    .article-question {
+      font-style: italic;
+      margin-bottom: 1.5rem;
+      color: var(--gray);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .article-preview {
+      color: var(--dark);
+      font-size: 1rem;
+      line-height: 1.7;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Article button images */
+    .article-button .article-image {
+      max-width: 100%;
+      max-height: 200px;
+      width: auto;
+      height: auto;
+      object-fit: cover;
+      border-radius: 8px;
+      margin: 1rem 0;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
     /* Loading and Toast */
@@ -687,6 +789,14 @@
 
   <div class="back-to-top" id="backToTop">
     <i class="fas fa-arrow-up"></i>
+  </div>
+
+  <!-- Add this before the closing </body> tag -->
+  <div id="imageModal" class="image-modal">
+    <button class="image-modal-close" id="closeImageModal">
+      <i class="fas fa-times"></i>
+    </button>
+    <img id="modalImage" src="/placeholder.svg" alt="">
   </div>
 
   <script>
@@ -1168,6 +1278,71 @@
     backToTop.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    // Image modal functionality
+    function setupImageModal() {
+      const modal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      const closeBtn = document.getElementById('closeImageModal');
+
+      function openModal(imageSrc, imageAlt) {
+        modalImage.src = imageSrc;
+        modalImage.alt = imageAlt || '';
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+          modalImage.src = '';
+        }, 300);
+      }
+
+      // Close modal when clicking close button
+      closeBtn.addEventListener('click', closeModal);
+
+      // Close modal when clicking outside image
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      // Close modal with Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+          closeModal();
+        }
+      });
+
+      // Add click handlers to all images
+      function addImageClickHandlers() {
+        document.querySelectorAll('.article-content img, .article-image').forEach(img => {
+          img.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openModal(img.src, img.alt);
+          });
+        });
+      }
+
+      // Initial setup
+      addImageClickHandlers();
+
+      // Re-setup when new content is added
+      const observer = new MutationObserver(() => {
+        addImageClickHandlers();
+      });
+
+      observer.observe(document.getElementById('resultsContainer'), {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    // Initialize image modal when DOM is loaded
+    document.addEventListener('DOMContentLoaded', setupImageModal);
   </script>
 </body>
 </html>
