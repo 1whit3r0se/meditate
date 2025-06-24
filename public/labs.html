@@ -787,9 +787,15 @@
         });
 
         labDetailsContent.innerHTML = `
-          <h2 style="color: var(--primary); margin-bottom: 2rem; font-size: 2rem;">
+          <h2 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 2rem;">
             <i class="fas fa-server"></i> ${data.lab.name}
           </h2>
+          ${data.lab.owner ? `
+            <div style="color: var(--gray); font-size: 1.1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fas fa-user"></i>
+              <strong>Owner:</strong> ${data.lab.owner}
+            </div>
+          ` : ''}
 
           ${data.portals.length > 0 ? `
             <div class="lab-section">

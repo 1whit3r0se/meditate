@@ -812,6 +812,11 @@
               <input type="text" id="labName" name="name" required placeholder="e.g., Lab 24.4">
             </div>
 
+            <div class="form-group">
+              <label for="labOwner">Owner</label>
+              <input type="text" id="labOwner" name="owner" placeholder="e.g., John Doe, Team Alpha, etc.">
+            </div>
+
             <!-- Portals Section -->
             <div class="form-group">
               <div class="section-header">
@@ -890,6 +895,7 @@
                 <tr>
                   <th id="dragColumn" style="display: none; width: 50px;">Order</th>
                   <th>Lab Name</th>
+                  <th>Owner</th>
                   <th>Portals</th>
                   <th>Nodes</th>
                   <th>Created</th>
@@ -1306,6 +1312,7 @@
             row.innerHTML = `
               <td class="drag-handle-cell" style="display: none;"></td>
               <td>${lab.name}</td>
+              <td>${lab.owner || '<em style="color: var(--gray);">Not specified</em>'}</td>
               <td>${detailData.portals ? detailData.portals.length : 0} portals</td>
               <td>${detailData.nodes ? detailData.nodes.length : 0} nodes</td>
               <td>${new Date(lab.created_at).toLocaleDateString()}</td>
@@ -1345,6 +1352,7 @@
         
         document.getElementById('labId').value = id;
         document.getElementById('labName').value = data.lab.name;
+        document.getElementById('labOwner').value = data.lab.owner || '';
         
         // Clear existing forms
         document.getElementById('portalsContainer').innerHTML = '';
@@ -1396,6 +1404,7 @@
         // Create duplicate lab data
         const duplicateData = {
           name: `Copy of ${data.lab.name}`,
+          owner: data.lab.owner,
           portals: data.portals,
           nodes: data.nodes
         };
@@ -1464,6 +1473,7 @@
       // Parse form data
       const labData = {
         name: formData.get('name'),
+        owner: formData.get('owner'),
         portals: [],
         nodes: []
       };
@@ -1535,6 +1545,7 @@
     function resetLabForm() {
       document.getElementById('labForm').reset();
       document.getElementById('labId').value = '';
+      document.getElementById('labOwner').value = '';
       document.getElementById('portalsContainer').innerHTML = '';
       document.getElementById('nodesContainer').innerHTML = '';
       portalCounter = 0;

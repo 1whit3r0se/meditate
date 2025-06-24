@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apollo DB</title>
+  <title>Apollo</title>
   <link rel="icon" type="image/png" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/apollo-5ls5iKKPFmglazvYUE7bAbEzQO1eqP.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -41,6 +41,27 @@
       padding: 0;
       box-sizing: border-box;
     }
+
+    .admin-btn {
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .admin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -737,7 +758,7 @@
       <div class="nav-header">
         <a href="/" class="nav-brand">
           <i class="fas fa-brain"></i>
-          Apollo DB
+          Apollo
         </a>
         
         <div class="nav-tabs">
@@ -752,6 +773,10 @@
         </div>
 
         <div class="nav-controls">
+          <a href="/admin" class="admin-btn" id="adminBtn">
+            <i class="fas fa-cog"></i>
+            Admin
+          </a>
           <button id="themeToggle" class="theme-toggle">
             <i class="fas fa-moon"></i>
           </button>
