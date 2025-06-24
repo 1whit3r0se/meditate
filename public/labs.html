@@ -727,6 +727,7 @@
         if (data.labs && data.labs.length > 0) {
           emptyState.style.display = 'none';
           
+          // Labs are now ordered by display_order from the API
           data.labs.forEach(lab => {
             const labCard = document.createElement('div');
             labCard.classList.add('lab-card');

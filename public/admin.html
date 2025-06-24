@@ -594,6 +594,73 @@
     .dark-mode .ql-toolbar .ql-fill {
       fill: var(--dark);
     }
+
+    /* Drag and Drop Styles */
+    .arrange-mode {
+      background: rgba(102, 126, 234, 0.05);
+      border: 2px dashed rgba(102, 126, 234, 0.3);
+      border-radius: var(--border-radius);
+      padding: 1rem;
+    }
+
+    .arrange-mode .table-container {
+      border: none;
+    }
+
+    .arrange-mode table {
+      background: transparent;
+    }
+
+    .draggable-row {
+      cursor: move;
+      transition: var(--transition);
+      background: rgba(255, 255, 255, 0.9);
+      margin-bottom: 0.5rem;
+      border-radius: 8px;
+    }
+
+    .dark-mode .draggable-row {
+      background: rgba(45, 55, 72, 0.9);
+    }
+
+    .draggable-row:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .draggable-row.dragging {
+      opacity: 0.5;
+      transform: rotate(5deg);
+    }
+
+    .drag-handle {
+      cursor: grab;
+      color: var(--gray);
+      padding: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .arrange-controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: var(--border-radius);
+      align-items: center;
+    }
+
+    .arrange-info {
+      flex: 1;
+      color: var(--primary);
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -784,18 +851,42 @@
           <h2>Lab Environments</h2>
         </div>
         <div class="card-body">
-          <div class="table-container">
+          <div class="arrange-controls" id="arrangeControls" style="display: none;">
+            <div class="arrange-info">
+              <i class="fas fa-info-circle"></i>
+              Drag and drop labs to reorder them. Changes will be saved automatically.
+            </div>
+            <button class="btn btn-success" id="saveArrangement">
+              <i class="fas fa-save"></i>
+              Save Order
+            </button>
+            <button class="btn btn-secondary" id="cancelArrangement">
+              <i class="fas fa-times"></i>
+              Cancel
+            </button>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div></div>
+            <button class="btn btn-primary" id="arrangeLabsBtn">
+              <i class="fas fa-arrows-alt"></i>
+              Arrange Labs
+            </button>
+          </div>
+          
+          <div class="table-container" id="labsTableContainer">
             <table id="labsTable">
               <thead>
                 <tr>
+                  <th id="dragColumn" style="display: none; width: 50px;">Order</th>
                   <th>Lab Name</th>
                   <th>Portals</th>
                   <th>Nodes</th>
                   <th>Created</th>
-                  <th>Actions</th>
+                  <th id="actionsColumn">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="labsTableBody">
                 <!-- Lab entries will be loaded here -->
               </tbody>
             </table>
@@ -1399,6 +1490,217 @@
     }
 
     document.getElementById('cancelLabEdit').addEventListener('click', resetLabForm);
+
+    // Lab arrangement functionality
+    let isArrangeMode = false;
+    let originalLabOrder = [];
+
+    document.getElementById('arrangeLabsBtn').addEventListener('click', () => {
+      toggleArrangeMode(true);
+    });
+
+    document.getElementById('cancelArrangement').addEventListener('click', () => {
+      toggleArrangeMode(false);
+      loadLabs(); // Reload original order
+    });
+
+    document.getElementById('saveArrangement').addEventListener('click', () => {
+      saveLabOrder();
+    });
+
+    function toggleArrangeMode(enable) {
+      isArrangeMode = enable;
+      const container = document.getElementById('labsTableContainer');
+      const arrangeControls = document.getElementById('arrangeControls');
+      const arrangeBtn = document.getElementById('arrangeLabsBtn');
+      const dragColumn = document.getElementById('dragColumn');
+      const actionsColumn = document.getElementById('actionsColumn');
+      
+      if (enable) {
+        container.classList.add('arrange-mode');
+        arrangeControls.style.display = 'flex';
+        arrangeBtn.style.display = 'none';
+        dragColumn.style.display = 'table-cell';
+        actionsColumn.style.display = 'none';
+        
+        // Store original order
+        const rows = Array.from(document.querySelectorAll('#labsTableBody tr'));
+        originalLabOrder = rows.map(row => row.dataset.labId);
+        
+        // Make rows draggable
+        makeRowsDraggable();
+      } else {
+        container.classList.remove('arrange-mode');
+        arrangeControls.style.display = 'none';
+        arrangeBtn.style.display = 'inline-flex';
+        dragColumn.style.display = 'none';
+        actionsColumn.style.display = 'table-cell';
+        
+        // Remove draggable functionality
+        removeRowsDraggable();
+      }
+    }
+
+    function makeRowsDraggable() {
+      const tbody = document.getElementById('labsTableBody');
+      const rows = tbody.querySelectorAll('tr');
+      
+      rows.forEach((row, index) => {
+        row.classList.add('draggable-row');
+        row.draggable = true;
+        row.dataset.originalIndex = index;
+        
+        // Add drag handle
+        const dragCell = row.querySelector('.drag-handle-cell');
+        if (dragCell) {
+          dragCell.innerHTML = `
+            <div class="drag-handle">
+              <i class="fas fa-grip-vertical"></i>
+            </div>
+          `;
+        }
+        
+        row.addEventListener('dragstart', handleDragStart);
+        row.addEventListener('dragover', handleDragOver);
+        row.addEventListener('drop', handleDrop);
+        row.addEventListener('dragend', handleDragEnd);
+      });
+    }
+
+    function removeRowsDraggable() {
+      const rows = document.querySelectorAll('#labsTableBody tr');
+      
+      rows.forEach(row => {
+        row.classList.remove('draggable-row');
+        row.draggable = false;
+        row.removeEventListener('dragstart', handleDragStart);
+        row.removeEventListener('dragover', handleDragOver);
+        row.removeEventListener('drop', handleDrop);
+        row.removeEventListener('dragend', handleDragEnd);
+      });
+    }
+
+    let draggedRow = null;
+
+    function handleDragStart(e) {
+      draggedRow = this;
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', this.outerHTML);
+    }
+
+    function handleDragOver(e) {
+      if (e.preventDefault) {
+        e.preventDefault();
+      }
+      e.dataTransfer.dropEffect = 'move';
+      return false;
+    }
+
+    function handleDrop(e) {
+      if (e.stopPropagation) {
+        e.stopPropagation();
+      }
+      
+      if (draggedRow !== this) {
+        const tbody = document.getElementById('labsTableBody');
+        const allRows = Array.from(tbody.querySelectorAll('tr'));
+        const draggedIndex = allRows.indexOf(draggedRow);
+        const targetIndex = allRows.indexOf(this);
+        
+        if (draggedIndex < targetIndex) {
+          this.parentNode.insertBefore(draggedRow, this.nextSibling);
+        } else {
+          this.parentNode.insertBefore(draggedRow, this);
+        }
+      }
+      
+      return false;
+    }
+
+    function handleDragEnd(e) {
+      this.classList.remove('dragging');
+      draggedRow = null;
+    }
+
+    async function saveLabOrder() {
+      try {
+        showLoading();
+        
+        const rows = Array.from(document.querySelectorAll('#labsTableBody tr'));
+        const labIds = rows.map(row => parseInt(row.dataset.labId));
+        
+        const response = await fetch('/api/admin/labs/reorder', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ labIds })
+        });
+        
+        if (response.ok) {
+          showToast('Lab order saved successfully');
+          toggleArrangeMode(false);
+          loadLabs(); // Reload to show new order
+        } else {
+          throw new Error('Failed to save lab order');
+        }
+      } catch (error) {
+        console.error('Error saving lab order:', error);
+        showToast('Error saving lab order', true);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Update the loadLabs function to include drag handles in arrange mode
+    async function loadLabs() {
+      try {
+        showLoading();
+        const response = await fetch('/api/admin/labs');
+        const data = await response.json();
+        
+        const tbody = document.querySelector('#labsTable tbody');
+        tbody.innerHTML = '';
+        
+        if (data.labs && data.labs.length > 0) {
+          for (const lab of data.labs) {
+            // Get detailed info for each lab
+            const detailResponse = await fetch(`/api/admin/labs/${lab.id}`);
+            const detailData = await detailResponse.json();
+            
+            const row = document.createElement('tr');
+            row.dataset.labId = lab.id;
+            row.innerHTML = `
+              <td class="drag-handle-cell" style="display: none;"></td>
+              <td>${lab.name}</td>
+              <td>${detailData.portals ? detailData.portals.length : 0} portals</td>
+              <td>${detailData.nodes ? detailData.nodes.length : 0} nodes</td>
+              <td>${new Date(lab.created_at).toLocaleDateString()}</td>
+              <td class="actions-cell">
+                <button class="btn btn-secondary" onclick="editLab(${lab.id})" style="margin-right: 0.5rem;">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-danger" onclick="deleteLab(${lab.id})">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          }
+          
+          // If in arrange mode, make rows draggable
+          if (isArrangeMode) {
+            makeRowsDraggable();
+          }
+        }
+      } catch (error) {
+        console.error('Error loading labs:', error);
+        showToast('Error loading labs', true);
+      } finally {
+        hideLoading();
+      }
+    }
   </script>
 </body>
 </html>

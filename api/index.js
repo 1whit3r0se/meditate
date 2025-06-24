@@ -98,6 +98,26 @@ async function initializeDatabase() {
       console.log("Created labs table")
     }
 
+    // Check if order column exists in labs table
+    const orderColumnExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_name = 'labs' AND column_name = 'display_order'
+      );
+    `
+
+    if (!orderColumnExists.rows[0].exists) {
+      await sql`
+        ALTER TABLE "labs" ADD COLUMN "display_order" INTEGER DEFAULT 0;
+      `
+      console.log("Added 'display_order' column to labs table")
+
+      // Set initial order for existing labs
+      await sql`
+        UPDATE "labs" SET "display_order" = "id" WHERE "display_order" = 0;
+      `
+    }
+
     // Check if lab_portals table exists
     const portalsTableExists = await sql`
       SELECT EXISTS (
@@ -657,8 +677,8 @@ app.delete("/api/admin/knowledge/:id", async (req, res) => {
 app.get("/api/admin/labs", async (req, res) => {
   try {
     const result = await sql`
-      SELECT "id", "name", "created_at" FROM "labs" 
-      ORDER BY "name" ASC
+      SELECT "id", "name", "display_order", "created_at" FROM "labs" 
+      ORDER BY "display_order" ASC, "name" ASC
     `
 
     return res.json({ labs: result.rows })
@@ -813,6 +833,35 @@ app.delete("/api/admin/labs/:id", async (req, res) => {
     return res.json({ message: "Lab deleted successfully" })
   } catch (error) {
     console.error("Error deleting lab:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+app.put("/api/admin/labs/reorder", async (req, res) => {
+  const { labIds } = req.body
+
+  if (!labIds || !Array.isArray(labIds)) {
+    return res.status(400).json({ error: "Lab IDs array is required" })
+  }
+
+  try {
+    await sql`BEGIN`
+
+    // Update display_order for each lab
+    for (let i = 0; i < labIds.length; i++) {
+      await sql`
+        UPDATE "labs" 
+        SET "display_order" = ${i + 1}
+        WHERE "id" = ${labIds[i]}
+      `
+    }
+
+    await sql`COMMIT`
+
+    return res.json({ message: "Lab order updated successfully" })
+  } catch (error) {
+    await sql`ROLLBACK`
+    console.error("Error updating lab order:", error)
     return res.status(500).json({ error: "Internal server error" })
   }
 })
