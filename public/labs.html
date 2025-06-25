@@ -546,6 +546,15 @@
       margin-bottom: 0.5rem;
     }
 
+    .node-os {
+      color: var(--warning);
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
     .node-ip {
       font-size: 0.9rem;
       color: var(--gray);
@@ -1071,7 +1080,7 @@
                     <div class="node-card">
                       <div class="node-type">${getNodeTypeDisplayName(nodeType)}</div>
                       <div class="node-name">${node.name}</div>
-                      ${node.os ? `<div class="node-os" style="color: var(--warning); font-size: 0.8rem; margin-bottom: 0.5rem;"><i class="fas fa-desktop" style="margin-right: 0.25rem;"></i>${node.os}</div>` : ''}
+                      ${node.os ? `<div class="node-os"><i class="fas fa-desktop"></i>${node.os}</div>` : ''}
                       ${node.ip_address ? `<div class="node-ip">${node.ip_address}</div>` : ''}
                       ${(node.username || node.password) ? `
                         <div class="credentials">
