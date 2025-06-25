@@ -233,21 +233,63 @@
 
     .content-body {
       padding: 2rem;
+      margin-right: 320px; /* Space for hot articles */
     }
 
-    /* Hot Articles Section */
+    /* Hot Articles Section - Right Side */
     .hot-articles-section {
-      background: rgba(255, 255, 255, 0.9);
+      position: fixed;
+      top: 50%;
+      right: 2rem;
+      transform: translateY(-50%);
+      width: 300px;
+      max-height: 60vh;
+      background: rgba(255, 255, 255, 0.95);
       border: 1px solid rgba(59, 130, 246, 0.2);
       border-radius: var(--border-radius);
       padding: 1.5rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      overflow: hidden;
     }
 
     .dark-mode .hot-articles-section {
-      background: rgba(30, 41, 59, 0.9);
+      background: rgba(30, 41, 59, 0.95);
       border-color: rgba(96, 165, 250, 0.3);
+    }
+
+    .hot-articles-container {
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hot-articles-scroll {
+      animation: scrollUp 20s linear infinite;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    @keyframes scrollUp {
+      0% { transform: translateY(100%); }
+      100% { transform: translateY(-100%); }
+    }
+
+    .hot-articles-scroll:hover {
+      animation-play-state: paused;
+    }
+
+    .hot-article-card {
+      background: rgba(59, 130, 246, 0.05);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 8px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      min-height: 120px;
+      flex-shrink: 0;
     }
 
     .hot-articles-title {
@@ -269,16 +311,6 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1rem;
-    }
-
-    .hot-article-card {
-      background: rgba(59, 130, 246, 0.05);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      border-radius: 8px;
-      padding: 1rem;
-      cursor: pointer;
-      transition: var(--transition);
-      position: relative;
     }
 
     .hot-article-card:hover {
@@ -778,6 +810,16 @@
     }
 
     /* Responsive Design */
+    @media (max-width: 1400px) {
+      .hot-articles-section {
+        display: none;
+      }
+      
+      .content-body {
+        margin-right: 0;
+      }
+    }
+
     @media (max-width: 768px) {
       .container {
         padding: 1rem;
@@ -893,7 +935,7 @@
       
       <div class="content-body">
         <!-- Hot Articles Section -->
-        <div class="hot-articles-section" id="hotArticlesSection" style="display: none;">
+        <div class="hot-articles-section" id="hotArticlesSection">
           <div class="hot-articles-title">
             <i class="fas fa-fire"></i>
             Hot Articles
@@ -1003,7 +1045,13 @@
         if (data.articles && data.articles.length > 0) {
           hotArticlesGrid.innerHTML = '';
           
-          data.articles.forEach(article => {
+          // Duplicate articles for continuous scroll effect
+          const duplicatedArticles = [...data.articles, ...data.articles];
+          
+          const scrollContainer = document.createElement('div');
+          scrollContainer.className = 'hot-articles-scroll';
+          
+          duplicatedArticles.forEach(article => {
             const articleCard = document.createElement('div');
             articleCard.classList.add('hot-article-card');
             articleCard.innerHTML = `
@@ -1016,15 +1064,15 @@
             `;
             
             articleCard.addEventListener('click', () => {
-              // Track view and search for this article
               trackArticleView(article.id);
               commandInput.value = article.question || article.title;
               sendMessage(article.question || article.title);
             });
             
-            hotArticlesGrid.appendChild(articleCard);
+            scrollContainer.appendChild(articleCard);
           });
           
+          hotArticlesGrid.appendChild(scrollContainer);
           hotArticlesSection.style.display = 'block';
         }
       } catch (error) {

@@ -214,6 +214,21 @@ async function initializeDatabase() {
       console.log("Created lab_nodes table")
     }
 
+    // Check if os column exists in lab_nodes table
+    const osColumnExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_name = 'lab_nodes' AND column_name = 'os'
+      );
+    `
+
+    if (!osColumnExists.rows[0].exists) {
+      await sql`
+        ALTER TABLE "lab_nodes" ADD COLUMN "os" TEXT;
+      `
+      console.log("Added 'os' column to lab_nodes table")
+    }
+
     // Check if image_url column exists
     const imageUrlColumnExists = await sql`
       SELECT EXISTS (
@@ -969,7 +984,7 @@ app.get("/api/admin/labs/:id", async (req, res) => {
     `
 
     const nodesResult = await sql`
-      SELECT "id", "type", "name", "ip_address", "username", "password" FROM "lab_nodes" 
+      SELECT "id", "type", "name", "ip_address", "username", "password", "os" FROM "lab_nodes" 
       WHERE "lab_id" = ${id}
       ORDER BY "type", "name" ASC
     `
@@ -1018,8 +1033,8 @@ app.post("/api/admin/labs", async (req, res) => {
     if (nodes && nodes.length > 0) {
       for (const node of nodes) {
         await sql`
-          INSERT INTO "lab_nodes" ("lab_id", "type", "name", "ip_address", "username", "password")
-          VALUES (${labId}, ${node.type}, ${node.name}, ${node.ip_address || ""}, ${node.username || ""}, ${node.password || ""})
+          INSERT INTO "lab_nodes" ("lab_id", "type", "name", "ip_address", "username", "password", "os")
+          VALUES (${labId}, ${node.type}, ${node.name}, ${node.ip_address || ""}, ${node.username || ""}, ${node.password || ""}, ${node.os || ""})
         `
       }
     }
@@ -1070,8 +1085,8 @@ app.put("/api/admin/labs/:id", async (req, res) => {
     if (nodes && nodes.length > 0) {
       for (const node of nodes) {
         await sql`
-          INSERT INTO "lab_nodes" ("lab_id", "type", "name", "ip_address", "username", "password")
-          VALUES (${id}, ${node.type}, ${node.name}, ${node.ip_address || ""}, ${node.username || ""}, ${node.password || ""})
+          INSERT INTO "lab_nodes" ("lab_id", "type", "name", "ip_address", "username", "password", "os")
+          VALUES (${id}, ${node.type}, ${node.name}, ${node.ip_address || ""}, ${node.username || ""}, ${node.password || ""}, ${node.os || ""})
         `
       }
     }
