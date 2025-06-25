@@ -73,10 +73,26 @@ async function initializeDatabase() {
           "question" TEXT NOT NULL,
           "content" TEXT NOT NULL,
           "image_url" TEXT,
+          "view_count" INTEGER DEFAULT 0,
           "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `
       console.log("Created knowledge_base table")
+    }
+
+    // Check if view_count column exists
+    const viewCountColumnExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_name = 'knowledge_base' AND column_name = 'view_count'
+      );
+    `
+
+    if (!viewCountColumnExists.rows[0].exists) {
+      await sql`
+        ALTER TABLE "knowledge_base" ADD COLUMN "view_count" INTEGER DEFAULT 0;
+      `
+      console.log("Added 'view_count' column to knowledge_base table")
     }
 
     // Check if labs table exists
@@ -93,10 +109,27 @@ async function initializeDatabase() {
           "id" SERIAL PRIMARY KEY,
           "name" TEXT NOT NULL,
           "owner" TEXT,
+          "product" TEXT DEFAULT 'SMAX',
+          "display_order" INTEGER DEFAULT 0,
           "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `
       console.log("Created labs table")
+    }
+
+    // Check if product column exists in labs table
+    const productColumnExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_name = 'labs' AND column_name = 'product'
+      );
+    `
+
+    if (!productColumnExists.rows[0].exists) {
+      await sql`
+        ALTER TABLE "labs" ADD COLUMN "product" TEXT DEFAULT 'SMAX';
+      `
+      console.log("Added 'product' column to labs table")
     }
 
     // Check if order column exists in labs table
@@ -249,6 +282,35 @@ async function initializeDatabase() {
         CREATE INDEX idx_fts ON "knowledge_base" USING GIN (to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content"));
       `
       console.log("Created full-text search index")
+    }
+
+    // Create additional performance indexes
+    const viewCountIndexExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM pg_indexes
+        WHERE indexname = 'idx_knowledge_view_count'
+      );
+    `
+
+    if (!viewCountIndexExists.rows[0].exists) {
+      await sql`
+        CREATE INDEX idx_knowledge_view_count ON "knowledge_base" ("view_count" DESC);
+      `
+      console.log("Created view_count index")
+    }
+
+    const labsProductIndexExists = await sql`
+      SELECT EXISTS (
+        SELECT FROM pg_indexes
+        WHERE indexname = 'idx_labs_product_order'
+      );
+    `
+
+    if (!labsProductIndexExists.rows[0].exists) {
+      await sql`
+        CREATE INDEX idx_labs_product_order ON "labs" ("product", "display_order");
+      `
+      console.log("Created labs product and order index")
     }
 
     console.log("Database initialized successfully")
@@ -430,6 +492,42 @@ app.get("/api/auth/session", async (req, res) => {
   })
 })
 
+// Hot Articles endpoint
+app.get("/api/hot-articles", async (req, res) => {
+  try {
+    const result = await sql`
+      SELECT "id", "title", "question", "view_count", "image_url"
+      FROM "knowledge_base" 
+      WHERE "view_count" > 0
+      ORDER BY "view_count" DESC, "created_at" DESC
+      LIMIT 5
+    `
+
+    return res.json({ articles: result.rows })
+  } catch (error) {
+    console.error("Error fetching hot articles:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// Track article view
+app.post("/api/track-view/:id", async (req, res) => {
+  const { id } = req.params
+
+  try {
+    await sql`
+      UPDATE "knowledge_base" 
+      SET "view_count" = "view_count" + 1 
+      WHERE "id" = ${id}
+    `
+
+    return res.json({ success: true })
+  } catch (error) {
+    console.error("Error tracking view:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
 app.post("/api/chat", async (req, res) => {
   const { query } = req.body
 
@@ -465,7 +563,7 @@ app.post("/api/chat", async (req, res) => {
 
     // Improved ranking with higher weight for title and question matches
     const result = await sql`
-      SELECT kb."id", kb."title", kb."question", kb."content", kb."image_url",
+      SELECT kb."id", kb."title", kb."question", kb."content", kb."image_url", kb."view_count",
              ts_rank(
                setweight(to_tsvector('english', COALESCE(kb."title", '')), 'A') ||
                setweight(to_tsvector('english', COALESCE(kb."question", '')), 'B') ||
@@ -478,8 +576,8 @@ app.post("/api/chat", async (req, res) => {
         setweight(to_tsvector('english', COALESCE(kb."question", '')), 'B') ||
         setweight(to_tsvector('english', kb."content"), 'C')
         @@ to_tsquery('english', ${searchQuery})
-      ORDER BY rank DESC
-      LIMIT 5
+      ORDER BY rank DESC, kb."view_count" DESC
+      LIMIT 10
     `
 
     // For each knowledge base entry, get its file attachments
@@ -506,6 +604,50 @@ app.post("/api/chat", async (req, res) => {
     }
   } catch (error) {
     console.error("Error querying database:", error)
+    return res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// Labs search endpoint
+app.get("/api/labs/search", authMiddleware, async (req, res) => {
+  const { q } = req.query
+
+  if (!q || q.trim().length < 2) {
+    return res.json({ labs: [] })
+  }
+
+  try {
+    const searchTerm = `%${q.trim().toLowerCase()}%`
+
+    const result = await sql`
+      SELECT l."id", l."name", l."owner", l."product", l."display_order",
+             COUNT(DISTINCT p."id") as portal_count,
+             COUNT(DISTINCT n."id") as node_count
+      FROM "labs" l
+      LEFT JOIN "lab_portals" p ON l."id" = p."lab_id"
+      LEFT JOIN "lab_nodes" n ON l."id" = n."lab_id"
+      WHERE 
+        LOWER(l."name") LIKE ${searchTerm} OR 
+        LOWER(COALESCE(l."owner", '')) LIKE ${searchTerm} OR
+        LOWER(l."product") LIKE ${searchTerm}
+      GROUP BY l."id", l."name", l."owner", l."product", l."display_order"
+      ORDER BY 
+        CASE l."product"
+          WHEN 'SMAX' THEN 1
+          WHEN 'SM' THEN 2
+          WHEN 'SMA-SM' THEN 3
+          WHEN 'AM' THEN 4
+          WHEN 'CIT' THEN 5
+          WHEN 'SMAX & CMS' THEN 6
+          ELSE 7
+        END,
+        l."display_order" ASC, l."name" ASC
+      LIMIT 20
+    `
+
+    return res.json({ labs: result.rows })
+  } catch (error) {
+    console.error("Error searching labs:", error)
     return res.status(500).json({ error: "Internal server error" })
   }
 })
@@ -553,8 +695,8 @@ app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
     // Insert knowledge base entry
     console.log("Inserting knowledge base entry...")
     const result = await sql`
-      INSERT INTO "knowledge_base" ("title", "content", "question", "image_url") 
-      VALUES (${title.trim()}, ${content}, ${question.trim()}, ${image_url || null})
+      INSERT INTO "knowledge_base" ("title", "content", "question", "image_url", "view_count") 
+      VALUES (${title.trim()}, ${content}, ${question.trim()}, ${image_url || null}, 0)
       RETURNING "id"
     `
 
@@ -609,7 +751,7 @@ app.post("/api/admin/knowledge", upload.array("files", 5), async (req, res) => {
 app.get("/api/admin/knowledge", async (req, res) => {
   try {
     const result = await sql`
-      SELECT "id", "title", "question", "content", "image_url" FROM "knowledge_base" 
+      SELECT "id", "title", "question", "content", "image_url", "view_count" FROM "knowledge_base" 
       ORDER BY "id" DESC
     `
 
@@ -639,7 +781,7 @@ app.get("/api/admin/knowledge/:id", async (req, res) => {
 
   try {
     const result = await sql`
-      SELECT "id", "title", "question", "content", "image_url" FROM "knowledge_base" 
+      SELECT "id", "title", "question", "content", "image_url", "view_count" FROM "knowledge_base" 
       WHERE "id" = ${id}
     `
 
@@ -786,8 +928,18 @@ app.delete("/api/admin/knowledge/:id", async (req, res) => {
 app.get("/api/admin/labs", async (req, res) => {
   try {
     const result = await sql`
-      SELECT "id", "name", "owner", "display_order", "created_at" FROM "labs" 
-      ORDER BY "display_order" ASC, "name" ASC
+      SELECT "id", "name", "owner", "product", "display_order", "created_at" FROM "labs" 
+      ORDER BY 
+        CASE "product"
+          WHEN 'SMAX' THEN 1
+          WHEN 'SM' THEN 2
+          WHEN 'SMA-SM' THEN 3
+          WHEN 'AM' THEN 4
+          WHEN 'CIT' THEN 5
+          WHEN 'SMAX & CMS' THEN 6
+          ELSE 7
+        END,
+        "display_order" ASC, "name" ASC
     `
 
     return res.json({ labs: result.rows })
@@ -802,7 +954,7 @@ app.get("/api/admin/labs/:id", async (req, res) => {
 
   try {
     const labResult = await sql`
-      SELECT "id", "name", "owner", "created_at" FROM "labs" 
+      SELECT "id", "name", "owner", "product", "created_at" FROM "labs" 
       WHERE "id" = ${id}
     `
 
@@ -834,7 +986,7 @@ app.get("/api/admin/labs/:id", async (req, res) => {
 })
 
 app.post("/api/admin/labs", async (req, res) => {
-  const { name, owner, portals, nodes } = req.body
+  const { name, owner, product, portals, nodes } = req.body
 
   if (!name) {
     return res.status(400).json({ error: "Lab name is required" })
@@ -845,8 +997,8 @@ app.post("/api/admin/labs", async (req, res) => {
 
     // Insert lab
     const labResult = await sql`
-      INSERT INTO "labs" ("name", "owner") 
-      VALUES (${name}, ${owner || ""})
+      INSERT INTO "labs" ("name", "owner", "product") 
+      VALUES (${name}, ${owner || ""}, ${product || "SMAX"})
       RETURNING "id"
     `
 
@@ -884,7 +1036,7 @@ app.post("/api/admin/labs", async (req, res) => {
 
 app.put("/api/admin/labs/:id", async (req, res) => {
   const { id } = req.params
-  const { name, owner, portals, nodes } = req.body
+  const { name, owner, product, portals, nodes } = req.body
 
   if (!name) {
     return res.status(400).json({ error: "Lab name is required" })
@@ -896,7 +1048,7 @@ app.put("/api/admin/labs/:id", async (req, res) => {
     // Update lab
     await sql`
       UPDATE "labs" 
-      SET "name" = ${name}, "owner" = ${owner || ""}
+      SET "name" = ${name}, "owner" = ${owner || ""}, "product" = ${product || "SMAX"}
       WHERE "id" = ${id}
     `
 

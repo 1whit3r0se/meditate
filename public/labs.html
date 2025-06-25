@@ -235,6 +235,84 @@
       padding: 2rem;
     }
 
+    /* Search Container */
+    .search-container {
+      position: relative;
+      margin-bottom: 2rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(59, 130, 246, 0.2);
+      border-radius: var(--border-radius);
+      color: var(--dark);
+      font-size: 1rem;
+      transition: var(--transition);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .dark-mode .search-input {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: rgba(96, 165, 250, 0.3);
+      color: var(--dark);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--primary);
+      pointer-events: none;
+    }
+
+    /* Product Sections */
+    .product-section {
+      margin-bottom: 3rem;
+    }
+
+    .product-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.5rem;
+      background: var(--gradient-primary);
+      color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+
+    .product-icon {
+      font-size: 1.5rem;
+    }
+
+    .product-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .product-count {
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+
     /* Labs Grid */
     .labs-grid {
       display: grid;
@@ -260,6 +338,7 @@
     }
 
     .lab-card:hover {
+      transform: translateY(-5px);
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
       border-color: var(--primary);
     }
@@ -293,6 +372,13 @@
     .lab-info {
       color: var(--gray);
       font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .lab-owner {
+      color: var(--dark);
+      font-size: 0.9rem;
+      font-weight: 500;
     }
 
     /* Lab Details */
@@ -603,14 +689,20 @@
     <div class="main-content">
       <div class="content-header">
         <h1><i class="fas fa-flask"></i> Lab Environments</h1>
-        <p>If any of the labs is down, please contact the Owner mentioned for the enviornment</p>
+        <p>If any of the labs is down, please contact the Owner mentioned for the environment</p>
       </div>
       
       <div class="content-body">
+        <!-- Search Container -->
+        <div class="search-container">
+          <i class="search-icon fas fa-search"></i>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search labs by name, owner, or product...">
+        </div>
+
         <!-- Labs List View -->
         <div id="labsList" class="labs-view">
-          <div class="labs-grid" id="labsGrid">
-            <!-- Labs will be loaded here -->
+          <div id="labsContainer">
+            <!-- Labs will be loaded here grouped by product -->
           </div>
           
           <div id="emptyState" class="empty-state" style="display: none;">
@@ -708,210 +800,340 @@
 
     backToLabs.addEventListener('click', showLabsList);
 
-    // Load labs
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    let searchTimeout;
+    let allLabs = [];
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      const query = searchInput.value.trim();
+      
+      if (query.length === 0) {
+        displayLabs(allLabs);
+        return;
+      }
+      
+      if (query.length < 2) {
+        return;
+      }
+      
+      searchTimeout = setTimeout(() => {
+        searchLabs(query);
+      }, 300);
+    });
+
+    async function searchLabs(query) {
+      try {
+        showLoading();
+        const response = await fetch(`/api/labs/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        displayLabs(data.labs);
+      } catch (error) {
+        console.error('Error searching labs:', error);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // Product configuration
+    const productConfig = {
+      'SMAX': { icon: 'fas fa-server', color: '#3b82f6' },
+      'SM': { icon: 'fas fa-cogs', color: '#10b981' },
+      'SMA-SM': { icon: 'fas fa-network-wired', color: '#f59e0b' },
+      'AM': { icon: 'fas fa-chart-line', color: '#ef4444' },
+      'CIT': { icon: 'fas fa-shield-alt', color: '#8b5cf6' },
+      'SMAX & CMS': { icon: 'fas fa-layer-group', color: '#06b6d4' }
+    };
+
+    const productOrder = ['SMAX', 'SM', 'SMA-SM', 'AM', 'CIT', 'SMAX & CMS'];
+
+    // Load labs on page load
+    window.addEventListener('load', loadLabs);
+
     async function loadLabs() {
       try {
         showLoading();
         const response = await fetch('/api/admin/labs');
         const data = await response.json();
         
-        const labsGrid = document.getElementById('labsGrid');
-        const emptyState = document.getElementById('emptyState');
-        
-        labsGrid.innerHTML = '';
-        
-        if (data.labs && data.labs.length > 0) {
-          emptyState.style.display = 'none';
-          
-          // Labs are now ordered by display_order from the API
-          data.labs.forEach(lab => {
-            const labCard = document.createElement('div');
-            labCard.classList.add('lab-card');
-            labCard.innerHTML = `
-              <div class="lab-name">
-                <i class="fas fa-server"></i>
-                ${lab.name}
-              </div>
-              <div class="lab-info">
-                Lab Environment • Click to view
-              </div>
-            `;
-            
-            labCard.addEventListener('click', () => loadLabDetails(lab.id));
-            labsGrid.appendChild(labCard);
-          });
-        } else {
-          emptyState.style.display = 'block';
-        }
+        allLabs = data.labs || [];
+        displayLabs(allLabs);
       } catch (error) {
         console.error('Error loading labs:', error);
-        document.getElementById('emptyState').style.display = 'block';
+        showEmptyState();
       } finally {
         hideLoading();
       }
     }
 
-    // Load lab details
+    function displayLabs(labs) {
+      const labsContainer = document.getElementById('labsContainer');
+      const emptyState = document.getElementById('emptyState');
+      
+      if (!labs || labs.length === 0) {
+        showEmptyState();
+        return;
+      }
+      
+      emptyState.style.display = 'none';
+      
+      // Group labs by product
+      const groupedLabs = {};
+      labs.forEach(lab => {
+        const product = lab.product || 'Other';
+        if (!groupedLabs[product]) {
+          groupedLabs[product] = [];
+        }
+        groupedLabs[product].push(lab);
+      });
+      
+      labsContainer.innerHTML = '';
+      
+      // Display products in specified order
+      productOrder.forEach(product => {
+        if (groupedLabs[product] && groupedLabs[product].length > 0) {
+          createProductSection(product, groupedLabs[product], labsContainer);
+          delete groupedLabs[product];
+        }
+      });
+      
+      // Display remaining products
+      Object.keys(groupedLabs).forEach(product => {
+        if (groupedLabs[product].length > 0) {
+          createProductSection(product, groupedLabs[product], labsContainer);
+        }
+      });
+    }
+
+    function createProductSection(product, labs, container) {
+      const config = productConfig[product] || { icon: 'fas fa-server', color: '#64748b' };
+      
+      const section = document.createElement('div');
+      section.className = 'product-section';
+      
+      section.innerHTML = `
+        <div class="product-header" style="background: linear-gradient(135deg, ${config.color} 0%, ${adjustColor(config.color, -20)} 100%);">
+          <i class="product-icon ${config.icon}"></i>
+          <h2 class="product-title">${product}</h2>
+          <span class="product-count">${labs.length} lab${labs.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="labs-grid" id="grid-${product.replace(/\s+/g, '-')}">
+        </div>
+      `;
+      
+      container.appendChild(section);
+      
+      const grid = section.querySelector('.labs-grid');
+      labs.forEach(lab => {
+        const labCard = createLabCard(lab);
+        grid.appendChild(labCard);
+      });
+    }
+
+    function createLabCard(lab) {
+      const card = document.createElement('div');
+      card.className = 'lab-card';
+      card.onclick = () => loadLabDetails(lab.id);
+      
+      card.innerHTML = `
+        <div class="lab-name">
+          <i class="fas fa-server"></i>
+          ${lab.name}
+        </div>
+        <div class="lab-info">Lab Environment</div>
+        <div class="lab-owner">
+          <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
+          ${lab.owner || 'No owner specified'}
+        </div>
+      `;
+      
+      return card;
+    }
+
+    function adjustColor(color, percent) {
+      const num = parseInt(color.replace("#", ""), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = (num >> 16) + amt;
+      const G = (num >> 8 & 0x00FF) + amt;
+      const B = (num & 0x0000FF) + amt;
+      return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+        (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    }
+
+    function showEmptyState() {
+      document.getElementById('labsContainer').innerHTML = '';
+      document.getElementById('emptyState').style.display = 'block';
+    }
+
     async function loadLabDetails(labId) {
       try {
         showLoading();
         const response = await fetch(`/api/admin/labs/${labId}`);
         const data = await response.json();
         
-        const labDetailsContent = document.getElementById('labDetailsContent');
-        
-        // Define node type order: Master nodes, Worker nodes, NFS/DB Nodes
-        const nodeTypeOrder = ['master', 'worker', 'nfs-db'];
-        
-        // Group nodes by type and sort according to the defined order
-        const nodesByType = {};
-        data.nodes.forEach(node => {
-          if (!nodesByType[node.type]) {
-            nodesByType[node.type] = [];
-          }
-          nodesByType[node.type].push(node);
-        });
-
-        // Sort the node types according to our preferred order
-        const sortedNodeTypes = Object.keys(nodesByType).sort((a, b) => {
-          const indexA = nodeTypeOrder.indexOf(a);
-          const indexB = nodeTypeOrder.indexOf(b);
-          // If type not found in order array, put it at the end
-          if (indexA === -1) return 1;
-          if (indexB === -1) return -1;
-          return indexA - indexB;
-        });
-
-        labDetailsContent.innerHTML = `
-          <h2 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 2rem;">
-            <i class="fas fa-server"></i> ${data.lab.name}
-          </h2>
-          ${data.lab.owner ? `
-            <div style="color: var(--gray); font-size: 1.1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.5rem;">
-              <i class="fas fa-user"></i>
-              <strong>Owner:</strong> ${data.lab.owner}
-            </div>
-          ` : ''}
-
-          ${data.portals.length > 0 ? `
-            <div class="lab-section">
-              <div class="section-title">
-                <i class="fas fa-globe"></i>
-                Portals
-              </div>
-              <div class="portals-grid">
-                ${data.portals
-        .sort((a, b) => {
-          // Define the desired order
-          const order = ['Service Portal', 'Back Office', '5443 Portal'];
-          const indexA = order.indexOf(a.name);
-          const indexB = order.indexOf(b.name);
-          
-          // If both are in the order array, sort by their position
-          if (indexA !== -1 && indexB !== -1) {
-            return indexA - indexB;
-          }
-          // If only one is in the order array, prioritize it
-          if (indexA !== -1) return -1;
-          if (indexB !== -1) return 1;
-          // If neither is in the order array, sort alphabetically
-          return a.name.localeCompare(b.name);
-        })
-        .map(portal => `
-          <div class="portal-card">
-            <div class="portal-name">${portal.name}</div>
-            <div class="portal-url">${portal.url}</div>
-            <div class="portal-actions">
-              <button class="portal-btn" onclick="window.open('${portal.url}', '_blank')">
-                <i class="fas fa-external-link-alt"></i>
-                Open
-              </button>
-              <button class="portal-btn secondary" onclick="copyToClipboard('${portal.url}')">
-                <i class="fas fa-copy"></i>
-                Copy URL
-              </button>
-            </div>
-            ${portal.username || portal.password ? `
-              <div class="credentials">
-                ${portal.username ? `<div><strong>Username:</strong> ${portal.username}</div>` : ''}
-                ${portal.password ? `<div><strong>Password:</strong> ${portal.password}</div>` : ''}
-              </div>
-            ` : ''}
-          </div>
-        `).join('')}
-    </div>
-  </div>
-` : ''}
-
-          ${sortedNodeTypes.length > 0 ? `
-            <div class="lab-section">
-              <div class="section-title">
-                <i class="fas fa-network-wired"></i>
-                Infrastructure Nodes
-              </div>
-              ${sortedNodeTypes.map(type => {
-                const nodes = nodesByType[type];
-                const typeDisplayName = type === 'nfs-db' ? 'NFS/DB' : type.charAt(0).toUpperCase() + type.slice(1);
-                return `
-                  <div style="margin-bottom: 1.5rem;">
-                    <h4 style="color: var(--success); margin-bottom: 1rem; text-transform: capitalize;">
-                      <i class="fas fa-server"></i> ${typeDisplayName} Nodes
-                    </h4>
-                    <div class="nodes-grid">
-                      ${nodes.map(node => `
-                        <div class="node-card">
-                          <div class="node-type">${typeDisplayName}</div>
-                          <div class="node-name">${node.name}</div>
-                          ${node.ip_address ? `<div class="node-ip">${node.ip_address}</div>` : ''}
-                          ${node.username || node.password ? `
-                            <div class="credentials">
-                              ${node.username ? `<div><strong>User:</strong> ${node.username}</div>` : ''}
-                              ${node.password ? `<div><strong>Pass:</strong> ${node.password}</div>` : ''}
-                            </div>
-                          ` : ''}
-                        </div>
-                      `).join('')}
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          ` : ''}
-        `;
-        
+        displayLabDetails(data);
         showLabDetails();
       } catch (error) {
         console.error('Error loading lab details:', error);
-        alert('Error loading lab details. Please try again.');
       } finally {
         hideLoading();
       }
     }
 
-    // Copy to clipboard function
+    function displayLabDetails(data) {
+      const { lab, portals, nodes } = data;
+      const detailsContent = document.getElementById('labDetailsContent');
+      
+      let portalsHtml = '';
+      if (portals && portals.length > 0) {
+        const sortedPortals = portals.sort((a, b) => {
+          const order = ['Service Portal', 'Back Office', '5443 Portal'];
+          const indexA = order.indexOf(a.name);
+          const indexB = order.indexOf(b.name);
+          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
+          return a.name.localeCompare(b.name);
+        });
+
+        portalsHtml = `
+          <div class="lab-section">
+            <h3 class="section-title">
+              <i class="fas fa-globe"></i>
+              Portals
+            </h3>
+            <div class="portals-grid">
+              ${sortedPortals.map(portal => `
+                <div class="portal-card">
+                  <div class="portal-name">${portal.name}</div>
+                  <div class="portal-url">${portal.url}</div>
+                  <div class="portal-actions">
+                    <button class="portal-btn" onclick="window.open('${portal.url}', '_blank')">
+                      <i class="fas fa-external-link-alt"></i>
+                      Open
+                    </button>
+                    <button class="portal-btn secondary" onclick="copyToClipboard('${portal.url}')">
+                      <i class="fas fa-copy"></i>
+                      Copy URL
+                    </button>
+                  </div>
+                  ${(portal.username || portal.password) ? `
+                    <div class="credentials">
+                      ${portal.username ? `<div><strong>Username:</strong> ${portal.username}</div>` : ''}
+                      ${portal.password ? `<div><strong>Password:</strong> ${portal.password}</div>` : ''}
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      let nodesHtml = '';
+      if (nodes && nodes.length > 0) {
+        // Group nodes by type
+        const groupedNodes = {};
+        nodes.forEach(node => {
+          if (!groupedNodes[node.type]) {
+            groupedNodes[node.type] = [];
+          }
+          groupedNodes[node.type].push(node);
+        });
+
+        const nodeTypeOrder = ['master', 'worker', 'nfs-db'];
+        const sortedNodeTypes = Object.keys(groupedNodes).sort((a, b) => {
+          const indexA = nodeTypeOrder.indexOf(a);
+          const indexB = nodeTypeOrder.indexOf(b);
+          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
+          return a.localeCompare(b);
+        });
+
+        nodesHtml = `
+          <div class="lab-section">
+            <h3 class="section-title">
+              <i class="fas fa-network-wired"></i>
+              Infrastructure Nodes
+            </h3>
+            ${sortedNodeTypes.map(nodeType => `
+              <div style="margin-bottom: 2rem;">
+                <h4 style="color: var(--success); margin-bottom: 1rem; text-transform: capitalize;">
+                  <i class="fas fa-server" style="margin-right: 0.5rem;"></i>
+                  ${getNodeTypeDisplayName(nodeType)} Nodes
+                </h4>
+                <div class="nodes-grid">
+                  ${groupedNodes[nodeType].map(node => `
+                    <div class="node-card">
+                      <div class="node-type">${getNodeTypeDisplayName(nodeType)}</div>
+                      <div class="node-name">${node.name}</div>
+                      ${node.ip_address ? `<div class="node-ip">${node.ip_address}</div>` : ''}
+                      ${(node.username || node.password) ? `
+                        <div class="credentials">
+                          ${node.username ? `<div><strong>User:</strong> ${node.username}</div>` : ''}
+                          ${node.password ? `<div><strong>Pass:</strong> ${node.password}</div>` : ''}
+                        </div>
+                      ` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      detailsContent.innerHTML = `
+        <div class="lab-section">
+          <h2 style="color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-server"></i>
+            ${lab.name}
+          </h2>
+          <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            ${lab.owner ? `
+              <div style="color: var(--gray);">
+                <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
+                Owner: ${lab.owner}
+              </div>
+            ` : ''}
+            <div style="background: var(--primary); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem;">
+              ${lab.product}
+            </div>
+          </div>
+        </div>
+        ${portalsHtml}
+        ${nodesHtml}
+      `;
+    }
+
+    function getNodeTypeDisplayName(type) {
+      switch (type) {
+        case 'nfs-db':
+          return 'NFS/DB';
+        default:
+          return type.charAt(0).toUpperCase() + type.slice(1);
+      }
+    }
+
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
         // Show a temporary success message
-        const btn = event.target.closest('.portal-btn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        btn.style.background = 'var(--success)';
+        const originalText = event.target.innerHTML;
+        event.target.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        event.target.style.background = 'var(--success)';
         
         setTimeout(() => {
-          btn.innerHTML = originalText;
-          btn.style.background = '';
+          event.target.innerHTML = originalText;
+          event.target.style.background = '';
         }, 2000);
       }).catch(err => {
         console.error('Failed to copy: ', err);
-        alert('Failed to copy URL to clipboard');
       });
     }
-
-    // Make copyToClipboard available globally
-    window.copyToClipboard = copyToClipboard;
-
-    // Load labs on page load
-    document.addEventListener('DOMContentLoaded', loadLabs);
   </script>
 </body>
 </html>
