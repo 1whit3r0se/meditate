@@ -1024,10 +1024,6 @@
                       <i class="fas fa-external-link-alt"></i>
                       Open
                     </button>
-                    <button class="portal-btn secondary" onclick="copyToClipboard('${portal.url}')">
-                      <i class="fas fa-copy"></i>
-                      Copy URL
-                    </button>
                   </div>
                   ${(portal.username || portal.password) ? `
                     <div class="credentials">
@@ -1141,7 +1137,7 @@
           event.target.style.background = '';
         }, 2000);
       }).catch(err => {
-        console.error('1Failed to copy: ', err);
+        console.error('Failed to copy: ', err);
       });
     }
   </script>
