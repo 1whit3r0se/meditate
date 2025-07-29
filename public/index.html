@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apollo</title>
+  <title>Apollo - Knowledge Base</title>
   <link rel="icon" type="image/png" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/apollo-5ls5iKKPFmglazvYUE7bAbEzQO1eqP.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -17,11 +17,12 @@
       --light: #f8fafc;
       --dark: #1e293b;
       --gray: #64748b;
-      --border-radius: 12px;
-      --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-      --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+      --border-radius: 16px;
+      --box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     }
 
     .dark-mode {
@@ -42,33 +43,14 @@
       box-sizing: border-box;
     }
 
-    .admin-btn {
-      background: var(--gradient-primary);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: var(--border-radius);
-      cursor: pointer;
-      transition: var(--transition);
-      font-weight: 500;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .admin-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    }
-
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: var(--dark);
       transition: var(--transition);
       min-height: 100vh;
       line-height: 1.6;
+      overflow-x: hidden;
     }
 
     .dark-mode body {
@@ -76,21 +58,52 @@
       color: var(--dark);
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem;
+    /* Animated background particles */
+    .bg-particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
     }
 
-    /* Navigation */
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      position: relative;
+    }
+
+    /* Enhanced Navigation */
     .nav-container {
       background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(20px);
       border-radius: var(--border-radius);
-      padding: 1rem 2rem;
-      margin-bottom: 2rem;
+      padding: 1.5rem 2.5rem;
+      margin-bottom: 3rem;
       box-shadow: var(--box-shadow);
       border: 1px solid rgba(255, 255, 255, 0.2);
+      transform: translateY(0);
+      animation: slideDown 0.8s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     .dark-mode .nav-container {
@@ -103,33 +116,40 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 2rem;
     }
 
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      font-size: 1.5rem;
+      gap: 1rem;
+      font-size: 1.75rem;
       font-weight: 700;
       color: var(--primary);
       text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .nav-brand:hover {
+      transform: scale(1.05);
     }
 
     .nav-brand i {
-      font-size: 2rem;
+      font-size: 2.5rem;
       background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      animation: pulse 2s infinite;
     }
 
     .nav-tabs {
       display: flex;
       gap: 0.5rem;
       background: rgba(0, 0, 0, 0.05);
-      padding: 0.25rem;
-      border-radius: 10px;
+      padding: 0.5rem;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
     }
 
     .dark-mode .nav-tabs {
@@ -137,75 +157,143 @@
     }
 
     .nav-tab {
-      padding: 0.75rem 1.5rem;
+      padding: 1rem 2rem;
       border: none;
       background: transparent;
       color: var(--gray);
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       transition: var(--transition);
-      font-weight: 500;
+      font-weight: 600;
       text-decoration: none;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
+      position: relative;
+      overflow: hidden;
     }
 
-    .nav-tab.active {
-      background: white;
-      color: var(--primary);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    .nav-tab::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-primary);
+      transition: var(--transition);
+      z-index: -1;
     }
 
-    .dark-mode .nav-tab.active {
-      background: var(--light);
-      color: var(--primary);
+    .nav-tab.active::before,
+    .nav-tab:hover::before {
+      left: 0;
     }
 
-    .nav-tab:hover:not(.active) {
-      background: rgba(255, 255, 255, 0.7);
-      color: var(--dark);
-    }
-
-    .dark-mode .nav-tab:hover:not(.active) {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--dark);
+    .nav-tab.active,
+    .nav-tab:hover {
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     }
 
     .nav-controls {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 1.5rem;
+    }
+
+    .admin-btn {
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .admin-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-secondary);
+      transition: var(--transition);
+      z-index: -1;
+    }
+
+    .admin-btn:hover::before {
+      left: 0;
+    }
+
+    .admin-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
     }
 
     .theme-toggle {
       background: none;
       border: none;
       color: var(--dark);
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       cursor: pointer;
       transition: var(--transition);
-      width: 40px;
-      height: 40px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+    }
+
+    .theme-toggle::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-primary);
+      border-radius: 50%;
+      opacity: 0;
+      transition: var(--transition);
+      z-index: -1;
+    }
+
+    .theme-toggle:hover::before {
+      opacity: 0.2;
     }
 
     .theme-toggle:hover {
-      background: rgba(59, 130, 246, 0.1);
-      transform: rotate(15deg);
+      transform: rotate(180deg) scale(1.1);
+      color: var(--primary);
     }
 
-    /* Main Content */
+    /* Enhanced Main Content */
     .main-content {
       background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(20px);
       border-radius: var(--border-radius);
       box-shadow: var(--box-shadow);
       border: 1px solid rgba(255, 255, 255, 0.2);
       overflow: hidden;
+      animation: fadeInUp 1s ease-out 0.3s both;
+    }
+
+    @keyframes fadeInUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     .dark-mode .main-content {
@@ -214,45 +302,80 @@
     }
 
     .content-header {
-      padding: 2rem;
+      padding: 3rem;
       background: var(--gradient-primary);
       color: white;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .content-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     .content-header h1 {
-      font-size: 2.5rem;
+      font-size: 3rem;
       font-weight: 700;
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
     }
 
     .content-header p {
-      font-size: 1.1rem;
+      font-size: 1.25rem;
       opacity: 0.9;
+      position: relative;
+      z-index: 1;
     }
 
     .content-body {
-      padding: 2rem;
-      margin-right: 0; /* Remove default margin, will be added conditionally */
+      padding: 3rem;
+      margin-right: 0;
     }
 
-    /* Hot Articles Section - Right Side Fixed */
+    /* Enhanced Hot Articles Section */
     .hot-articles-section {
       position: fixed;
       top: 50%;
       right: 2rem;
       transform: translateY(-50%);
-      width: 300px;
-      max-height: 70vh;
+      width: 350px;
+      max-height: 80vh;
       background: rgba(255, 255, 255, 0.95);
       border: 1px solid rgba(59, 130, 246, 0.2);
       border-radius: var(--border-radius);
-      padding: 1.5rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      backdrop-filter: blur(10px);
+      padding: 2rem;
+      box-shadow: var(--box-shadow);
+      backdrop-filter: blur(20px);
       z-index: 100;
       overflow: hidden;
-      display: none; /* Hidden by default, shown when articles are loaded */
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+      animation: slideInRight 0.8s ease-out 1s both;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%) translateY(-50%); opacity: 0; }
+      to { transform: translateX(0) translateY(-50%); opacity: 1; visibility: visible; }
+    }
+
+    .hot-articles-section.show {
+      opacity: 1;
+      visibility: visible;
     }
 
     .dark-mode .hot-articles-section {
@@ -263,37 +386,35 @@
     .hot-articles-title {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
       color: var(--primary);
-      font-size: 1.25rem;
-      font-weight: 600;
+      font-size: 1.5rem;
+      font-weight: 700;
       text-align: center;
       justify-content: center;
     }
 
     .hot-articles-title i {
-      font-size: 1.5rem;
-      color: var(--danger);
+      font-size: 2rem;
+      background: var(--gradient-secondary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       animation: pulse 2s infinite;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
     .hot-articles-container {
-      height: calc(100% - 60px);
+      height: calc(100% - 80px);
       overflow: hidden;
       position: relative;
     }
 
     .hot-articles-scroll {
-      animation: scrollUp 30s linear infinite;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.5rem;
+      animation: scrollUp 40s linear infinite;
     }
 
     @keyframes scrollUp {
@@ -308,73 +429,92 @@
     .hot-article-card {
       background: rgba(59, 130, 246, 0.05);
       border: 1px solid rgba(59, 130, 246, 0.2);
-      border-radius: 8px;
-      padding: 1rem;
+      border-radius: 12px;
+      padding: 1.5rem;
       cursor: pointer;
       transition: var(--transition);
-      min-height: 120px;
+      min-height: 140px;
       flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hot-article-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-success);
+      opacity: 0.1;
+      transition: var(--transition);
+      z-index: -1;
+    }
+
+    .hot-article-card:hover::before {
+      left: 0;
     }
 
     .hot-article-card:hover {
-      background: rgba(59, 130, 246, 0.1);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      border-color: var(--primary);
     }
 
     .hot-article-title {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--primary);
-      margin-bottom: 0.5rem;
-      font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
       line-height: 1.4;
     }
 
     .hot-article-question {
       color: var(--gray);
-      font-size: 0.85rem;
-      margin-bottom: 0.75rem;
-      line-height: 1.3;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      line-height: 1.4;
     }
 
     .hot-article-stats {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      font-size: 0.8rem;
+      gap: 0.75rem;
+      font-size: 0.85rem;
       color: var(--danger);
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .hot-article-stats i {
-      font-size: 0.9rem;
+      font-size: 1rem;
+      animation: pulse 2s infinite;
     }
 
-    /* Adjust main content when hot articles are visible */
     .content-body.with-hot-articles {
-      margin-right: 320px;
+      margin-right: 380px;
     }
 
-    /* Search Container */
+    /* Enhanced Search Container */
     .search-container {
       position: relative;
-      margin-bottom: 2rem;
-      max-width: 600px;
+      margin-bottom: 3rem;
+      max-width: 700px;
       margin-left: auto;
       margin-right: auto;
     }
 
     .command-input {
       width: 100%;
-      padding: 1rem 1rem 1rem 3rem;
+      padding: 1.5rem 1.5rem 1.5rem 4rem;
       background: rgba(255, 255, 255, 0.9);
       border: 2px solid rgba(59, 130, 246, 0.2);
       border-radius: var(--border-radius);
       color: var(--dark);
       font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 1rem;
+      font-size: 1.1rem;
       transition: var(--transition);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--box-shadow);
     }
 
     .dark-mode .command-input {
@@ -386,36 +526,38 @@
     .command-input:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-      transform: translateY(-2px);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), var(--box-shadow);
+      transform: translateY(-3px);
     }
 
     .command-prompt {
       position: absolute;
-      left: 1rem;
+      left: 1.5rem;
       top: 50%;
       transform: translateY(-50%);
       color: var(--primary);
       font-weight: bold;
       pointer-events: none;
       font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem;
     }
 
+    /* Enhanced Suggestions */
     .suggestions {
       position: absolute;
       top: 100%;
       left: 0;
       width: 100%;
       background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(20px);
       border: 1px solid rgba(59, 130, 246, 0.2);
       border-top: none;
       border-radius: 0 0 var(--border-radius) var(--border-radius);
-      max-height: 300px;
+      max-height: 400px;
       overflow-y: auto;
       z-index: 10;
       display: none;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--box-shadow);
     }
 
     .dark-mode .suggestions {
@@ -425,69 +567,85 @@
 
     .suggestions.active {
       display: block;
-      animation: slideDown 0.3s ease;
-    }
-
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
+      animation: slideDown 0.4s ease;
     }
 
     .suggestion-item {
-      padding: 1rem;
+      padding: 1.5rem;
       cursor: pointer;
       transition: var(--transition);
       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      position: relative;
+      overflow: hidden;
     }
 
-    .dark-mode .suggestion-item {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    .suggestion-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-primary);
+      opacity: 0.1;
+      transition: var(--transition);
+      z-index: -1;
+    }
+
+    .suggestion-item:hover::before {
+      left: 0;
     }
 
     .suggestion-item:hover {
-      background: rgba(59, 130, 246, 0.1);
+      color: var(--primary);
+      transform: translateX(10px);
     }
 
-    .suggestion-item:last-child {
-      border-bottom: none;
-    }
-
-    /* Results Container */
+    /* Enhanced Results */
     .results-container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 2rem;
     }
 
     .message {
-      padding: 1.5rem;
+      padding: 2rem;
       border-radius: var(--border-radius);
       position: relative;
-      animation: fadeIn 0.5s ease;
-      line-height: 1.7;
-      font-size: 1rem;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+      animation: fadeIn 0.6s ease;
+      line-height: 1.8;
+      font-size: 1.1rem;
+      box-shadow: var(--box-shadow);
     }
 
     .user-message {
       background: var(--gradient-secondary);
       color: white;
       margin-left: auto;
-      max-width: 80%;
-      border-radius: var(--border-radius) var(--border-radius) 5px var(--border-radius);
+      max-width: 85%;
+      border-radius: var(--border-radius) var(--border-radius) 8px var(--border-radius);
+      transform: translateX(0);
+      animation: slideInRight 0.6s ease;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
 
     .bot-message {
       background: rgba(255, 255, 255, 0.9);
       color: var(--dark);
       border: 1px solid rgba(59, 130, 246, 0.1);
-      max-width: 90%;
+      max-width: 95%;
+      animation: slideInLeft 0.6s ease;
+    }
+
+    @keyframes slideInLeft {
+      from { transform: translateX(-100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
 
     .dark-mode .bot-message {
@@ -495,208 +653,19 @@
       border-color: rgba(96, 165, 250, 0.2);
     }
 
-    /* File Attachments */
-    .file-attachments {
-      margin-top: 1rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .file-attachment {
-      display: flex;
-      align-items: center;
-      padding: 0.5rem 0.75rem;
-      background: rgba(59, 130, 246, 0.1);
-      border-radius: 20px;
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      transition: var(--transition);
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
-
-    .file-attachment:hover {
-      background: rgba(59, 130, 246, 0.2);
-      transform: translateY(-2px);
-    }
-
-    .file-icon {
-      margin-right: 0.5rem;
-      color: var(--primary);
-    }
-
-    .file-name {
-      font-weight: 500;
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .file-download {
-      margin-left: 0.5rem;
-      color: var(--primary);
-      opacity: 0.7;
-      transition: var(--transition);
-    }
-
-    .file-download:hover {
-      opacity: 1;
-      transform: scale(1.1);
-    }
-
-    /* Article Content */
-    .article-content {
-      margin: 2rem 0;
-      padding: 3rem;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: var(--border-radius);
-      border-left: 4px solid var(--primary);
-      animation: fadeIn 0.5s ease;
-      box-shadow: var(--box-shadow);
-      line-height: 1.8;
-      max-width: 1100px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .dark-mode .article-content {
-      background: rgba(30, 41, 59, 0.95);
-    }
-
-    .article-content h1, 
-    .article-content h2, 
-    .article-content h3 {
-      margin-top: 2em;
-      margin-bottom: 1em;
-      color: var(--primary);
-    }
-
-    .article-content h1:first-child,
-    .article-content h2:first-child,
-    .article-content h3:first-child {
-      margin-top: 0;
-    }
-
-    .article-content p {
-      margin-bottom: 1.5em;
-      font-size: 1.1rem;
-    }
-
-    .article-content ul, 
-    .article-content ol {
-      margin-bottom: 1.5em;
-      padding-left: 2em;
-    }
-
-    .article-content li {
-      margin-bottom: 0.5em;
-    }
-
-    .article-content a {
-      color: var(--primary);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: var(--transition);
-    }
-
-    .article-content a:hover {
-      border-bottom-color: var(--primary);
-    }
-
-    /* Article Images */
-    .article-content img,
-    .article-image {
-      max-width: 100%;
-      height: auto;
-      border-radius: 12px;
-      margin: 2rem 0;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-      transition: var(--transition);
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .article-content img:hover,
-    .article-image:hover {
-      transform: scale(1.02);
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-    }
-
-    /* Image Modal */
-    .image-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      opacity: 0;
-      visibility: hidden;
-      transition: var(--transition);
-      backdrop-filter: blur(10px);
-    }
-
-    .image-modal.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .image-modal img {
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: var(--border-radius);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      cursor: default;
-      transform: scale(0.8);
-      transition: var(--transition);
-    }
-
-    .image-modal.show img {
-      transform: scale(1);
-    }
-
-    .image-modal-close {
-      position: absolute;
-      top: 2rem;
-      right: 2rem;
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: white;
-      font-size: 2rem;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .image-modal-close:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: scale(1.1);
-    }
-
-    /* Article Buttons - Better spacing */
+    /* Enhanced Article Buttons */
     .article-button {
       background: rgba(255, 255, 255, 0.95);
       border: 1px solid rgba(59, 130, 246, 0.2);
-      padding: 2rem;
+      padding: 2.5rem;
       text-align: left;
       cursor: pointer;
       border-radius: var(--border-radius);
       transition: var(--transition);
       position: relative;
       overflow: hidden;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--box-shadow);
     }
 
     .dark-mode .article-button {
@@ -704,18 +673,12 @@
       border-color: rgba(96, 165, 250, 0.3);
     }
 
-    .article-button:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-      border-color: var(--primary);
-    }
-
     .article-button::before {
       content: '';
       position: absolute;
       top: 0;
       left: 0;
-      width: 4px;
+      width: 6px;
       height: 100%;
       background: var(--gradient-primary);
       transform: scaleY(0);
@@ -726,25 +689,32 @@
       transform: scaleY(1);
     }
 
+    .article-button:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+      border-color: var(--primary);
+    }
+
     .article-title {
-      font-weight: 600;
-      margin-bottom: 1rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
       color: var(--primary);
-      font-size: 1.25rem;
+      font-size: 1.4rem;
+      line-height: 1.3;
     }
 
     .article-question {
       font-style: italic;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       color: var(--gray);
-      font-size: 1rem;
-      line-height: 1.5;
+      font-size: 1.1rem;
+      line-height: 1.6;
     }
 
     .article-preview {
       color: var(--dark);
-      font-size: 1rem;
-      line-height: 1.7;
+      font-size: 1.1rem;
+      line-height: 1.8;
       display: -webkit-box;
       -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
@@ -754,48 +724,30 @@
     .article-stats {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      margin-top: 1rem;
-      padding-top: 1rem;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
       border-top: 1px solid rgba(59, 130, 246, 0.1);
-      font-size: 0.9rem;
+      font-size: 1rem;
       color: var(--gray);
     }
 
-    .view-count {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
-    /* Article button images */
-    .article-button .article-image {
-      max-width: 100%;
-      max-height: 200px;
-      width: auto;
-      height: auto;
-      object-fit: cover;
-      border-radius: 8px;
-      margin: 1rem 0;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Loading and Toast */
+    /* Enhanced Loading */
     .loading {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 2000;
       opacity: 0;
       visibility: hidden;
       transition: var(--transition);
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur(10px);
     }
 
     .loading.show {
@@ -804,21 +756,60 @@
     }
 
     .spinner {
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       border: 4px solid rgba(59, 130, 246, 0.2);
       border-top: 4px solid var(--primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    /* Enhanced File Attachments */
+    .file-attachments {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .file-attachment {
+      display: flex;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 25px;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      transition: var(--transition);
+      font-size: 0.9rem;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .file-attachment::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-success);
+      opacity: 0.2;
+      transition: var(--transition);
+      z-index: -1;
+    }
+
+    .file-attachment:hover::before {
+      left: 0;
+    }
+
+    .file-attachment:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     }
 
     /* Responsive Design */
-    @media (max-width: 1400px) {
+    @media (max-width: 1600px) {
       .hot-articles-section {
         display: none !important;
       }
@@ -843,39 +834,55 @@
       }
 
       .content-header h1 {
-        font-size: 2rem;
+        font-size: 2.5rem;
       }
 
       .content-body {
-        padding: 1.5rem;
+        padding: 2rem;
       }
 
-      .user-message {
-        max-width: 95%;
+      .command-input {
+        padding: 1.25rem 1.25rem 1.25rem 3.5rem;
+        font-size: 1rem;
+      }
+
+      .command-prompt {
+        left: 1.25rem;
+        font-size: 1rem;
       }
 
       .article-button {
-        padding: 1rem;
+        padding: 2rem;
+      }
+
+      .article-title {
+        font-size: 1.2rem;
       }
     }
 
-    /* Highlight */
-    .highlight {
-      background: linear-gradient(120deg, rgba(59, 130, 246, 0.3) 0%, rgba(30, 64, 175, 0.3) 100%);
-      padding: 0 0.25rem;
-      border-radius: 4px;
-      font-weight: 600;
+    /* Pulse animation */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
     }
 
-    /* Back to top */
+    /* Highlight effect */
+    .highlight {
+      background: linear-gradient(120deg, rgba(59, 130, 246, 0.3) 0%, rgba(30, 64, 175, 0.3) 100%);
+      padding: 0 0.5rem;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    /* Back to top button */
     .back-to-top {
       position: fixed;
       bottom: 2rem;
       right: 2rem;
       background: var(--gradient-primary);
       color: white;
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -884,7 +891,7 @@
       opacity: 0;
       transition: var(--transition);
       z-index: 1000;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--box-shadow);
     }
 
     .back-to-top.visible {
@@ -892,19 +899,21 @@
     }
 
     .back-to-top:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      transform: translateY(-5px) scale(1.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     }
 
-    /* Adjust back to top position when hot articles are visible */
-    @media (min-width: 1401px) {
+    @media (min-width: 1601px) {
       .back-to-top {
-        right: 350px;
+        right: 400px;
       }
     }
   </style>
 </head>
 <body>
+  <!-- Animated background particles -->
+  <div class="bg-particles" id="bgParticles"></div>
+
   <div class="container">
     <!-- Navigation -->
     <div class="nav-container">
@@ -941,7 +950,7 @@
     <div class="hot-articles-section" id="hotArticlesSection">
       <div class="hot-articles-title">
         <i class="fas fa-fire"></i>
-        Hot Articles
+        Hot Topics
       </div>
       <div class="hot-articles-container">
         <div class="hot-articles-scroll" id="hotArticlesScroll">
@@ -960,13 +969,13 @@
       <div class="content-body" id="contentBody">
         <div class="search-container">
           <span class="command-prompt">></span>
-          <input type="text" id="commandInput" class="command-input" placeholder="Type your query here...">
+          <input type="text" id="commandInput" class="command-input" placeholder="Type your query here..." autocomplete="off">
           <div class="suggestions" id="suggestions"></div>
         </div>
         
         <div class="results-container" id="resultsContainer">
           <div class="message bot-message">
-            <i class="fas fa-robot" style="margin-right: 0.5rem; color: var(--primary);"></i>
+            <i class="fas fa-robot" style="margin-right: 0.75rem; color: var(--primary);"></i>
             Welcome to the Apollo Knowledge Base! Type your query above and press Enter to search through our comprehensive database. Use commands like <code>>help</code> for assistance.
           </div>
         </div>
@@ -982,15 +991,31 @@
     <i class="fas fa-arrow-up"></i>
   </div>
 
-  <!-- Add this before the closing </body> tag -->
-  <div id="imageModal" class="image-modal">
-    <button class="image-modal-close" id="closeImageModal">
-      <i class="fas fa-times"></i>
-    </button>
-    <img id="modalImage" src="/placeholder.svg" alt="">
-  </div>
-
   <script>
+    // Create animated background particles
+    function createParticles() {
+      const particlesContainer = document.getElementById('bgParticles');
+      const particleCount = 50;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        const size = Math.random() * 4 + 2;
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * window.innerHeight;
+        const delay = Math.random() * 6;
+        
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.animationDelay = delay + 's';
+        
+        particlesContainer.appendChild(particle);
+      }
+    }
+
     // Check if user is authenticated
     async function checkAuth() {
       try {
@@ -999,6 +1024,12 @@
         
         if (!data.authenticated) {
           window.location.href = '/login';
+        } else {
+          // Show admin button only for admin users
+          const adminBtn = document.getElementById('adminBtn');
+          if (data.user.role !== 'admin') {
+            adminBtn.style.display = 'none';
+          }
         }
       } catch (error) {
         console.error('Auth check error:', error);
@@ -1006,7 +1037,10 @@
       }
     }
     
-    document.addEventListener('DOMContentLoaded', checkAuth);
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      createParticles();
+    });
 
     // Theme toggle functionality
     const themeToggle = document.getElementById('themeToggle');
@@ -1035,7 +1069,10 @@
     // Focus the command input on page load
     window.addEventListener('load', () => {
       commandInput.focus();
-      loadHotArticles();
+      // Load hot articles immediately and show them
+      setTimeout(() => {
+        loadHotArticles();
+      }, 500); // Small delay to ensure smooth animation
     });
 
     // Loading indicator
@@ -1047,7 +1084,7 @@
       document.getElementById('loading').classList.remove('show');
     }
 
-    // Load hot articles
+    // Enhanced hot articles loading with immediate display
     async function loadHotArticles() {
       try {
         const response = await fetch('/api/hot-articles');
@@ -1074,21 +1111,136 @@
               </div>
             `;
             
-            articleCard.addEventListener('click', () => {
-              trackArticleView(article.id);
-              commandInput.value = article.question || article.title;
-              sendMessage(article.question || article.title);
+            // Enhanced click handler for direct article opening
+            articleCard.addEventListener('click', async () => {
+              try {
+                showLoading();
+                
+                // Track view
+                await trackArticleView(article.id);
+                
+                // Clear existing results
+                resultsContainer.innerHTML = '';
+                
+                // Hide hot articles when viewing article
+                hotArticlesSection.classList.remove('show');
+                contentBody.classList.remove('with-hot-articles');
+                
+                // Set search input
+                commandInput.value = article.question || article.title;
+                
+                // Add user message
+                addMessage(article.question || article.title, true);
+                
+                // Fetch and display the full article directly
+                const searchResponse = await fetch('/api/chat', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ query: article.question || article.title }),
+                });
+                
+                if (searchResponse.ok) {
+                  const searchData = await searchResponse.json();
+                  
+                  if (searchData.articles && searchData.articles.length > 0) {
+                    // Find the exact article or use the first one
+                    const targetArticle = searchData.articles.find(a => a.id === article.id) || searchData.articles[0];
+                    
+                    // Display the article content directly
+                    displayArticleContent(targetArticle, article.question || article.title);
+                  }
+                }
+              } catch (error) {
+                console.error('Error opening article:', error);
+                addMessage('<i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem; color: var(--danger);"></i>Error loading article. Please try again.');
+              } finally {
+                hideLoading();
+              }
             });
             
             hotArticlesScroll.appendChild(articleCard);
           });
           
-          hotArticlesSection.style.display = 'block';
+          // Show hot articles section with animation
+          hotArticlesSection.classList.add('show');
           contentBody.classList.add('with-hot-articles');
         }
       } catch (error) {
         console.error('Error loading hot articles:', error);
       }
+    }
+
+    // Function to display article content directly
+    function displayArticleContent(article, query) {
+      const contentElement = document.createElement('div');
+      contentElement.classList.add('article-content');
+      contentElement.style.cssText = `
+        margin: 2rem 0;
+        padding: 3rem;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: var(--border-radius);
+        border-left: 6px solid var(--primary);
+        animation: fadeIn 0.6s ease;
+        box-shadow: var(--box-shadow);
+        line-height: 1.8;
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+      `;
+      
+      const formattedContent = formatArticleContent(article.content, query);
+      
+      let fileAttachmentsHtml = '';
+      if (article.files && article.files.length > 0) {
+        fileAttachmentsHtml = `
+          <div class="file-attachments" style="margin-top: 2rem;">
+            <h3 style="margin-bottom: 1rem; color: var(--primary);">
+              <i class="fas fa-paperclip" style="margin-right: 0.5rem;"></i>
+              Attachments
+            </h3>
+            ${article.files.map(file => `
+              <div class="file-attachment" data-file-id="${file.id}">
+                <i class="file-icon ${getFileIcon(file.filename)}"></i>
+                <div class="file-info">
+                  <div class="file-name">${file.filename}</div>
+                  <div class="file-size" style="font-size: 0.8rem; color: var(--gray);">${formatFileSize(file.file_size)}</div>
+                </div>
+                <i class="file-download fas fa-download" title="Download file"></i>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+      
+      contentElement.innerHTML = `
+        <h2 style="color: var(--primary); margin-bottom: 1rem; font-size: 2rem;">${article.title || 'Untitled'}</h2>
+        <div class="article-question" style="font-style: italic; margin-bottom: 1.5rem; color: var(--gray); font-size: 1.1rem;">${article.question || ''}</div>
+        <div class="article-stats" style="margin-bottom: 2rem;">
+          <div class="view-count">
+            <i class="fas fa-eye"></i>
+            ${(article.view_count || 0) + 1} views
+          </div>
+        </div>
+        ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" style="max-width: 100%; height: auto; margin: 1.5rem 0; border-radius: 12px; box-shadow: var(--box-shadow);">` : ''}
+        <div class="article-body" style="font-size: 1.1rem; line-height: 1.8;">${formattedContent}</div>
+        ${fileAttachmentsHtml}
+      `;
+      
+      resultsContainer.appendChild(contentElement);
+      
+      // Add file download handlers
+      contentElement.querySelectorAll('.file-download').forEach(downloadBtn => {
+        downloadBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const fileId = downloadBtn.closest('.file-attachment').dataset.fileId;
+          window.open(`/api/files/${fileId}`, '_blank');
+        });
+      });
+      
+      // Scroll to content
+      contentElement.scrollIntoView({ behavior: 'smooth' });
     }
 
     // Track article view
@@ -1108,7 +1260,7 @@
       messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
       
       if (isUser) {
-        messageElement.innerHTML = `<i class="fas fa-user" style="margin-right: 0.5rem;"></i>${message}`;
+        messageElement.innerHTML = `<i class="fas fa-user" style="margin-right: 0.75rem;"></i>${message}`;
       } else {
         messageElement.innerHTML = message;
       }
@@ -1160,8 +1312,8 @@
         button.innerHTML = `
           <div class="article-title">${article.title || 'Untitled'}</div>
           <div class="article-question">${article.question || ''}</div>
-          ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" class="article-image" style="max-width: 100%; height: auto; margin: 0.75rem 0; border-radius: 8px;">` : ''}
-          <div class="article-preview">${highlightedContent.substring(0, 200)}...</div>
+          ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" class="article-image" style="max-width: 100%; height: auto; margin: 1rem 0; border-radius: 12px; box-shadow: var(--box-shadow);">` : ''}
+          <div class="article-preview">${highlightedContent.substring(0, 250)}...</div>
           <div class="article-stats">
             <div class="view-count">
               <i class="fas fa-eye"></i>
@@ -1179,59 +1331,8 @@
           if (existingContent) {
             existingContent.remove();
           }
-            
-          const contentElement = document.createElement('div');
-          contentElement.classList.add('article-content');
-            
-          const formattedContent = formatArticleContent(article.content, query);
-            
-          let fileAttachmentsHtml = '';
-          if (article.files && article.files.length > 0) {
-            fileAttachmentsHtml = `
-              <div class="file-attachments" style="margin-top: 2rem;">
-                <h3 style="margin-bottom: 1rem; color: var(--primary);">
-                  <i class="fas fa-paperclip" style="margin-right: 0.5rem;"></i>
-                  Attachments
-                </h3>
-                ${article.files.map(file => `
-                  <div class="file-attachment" data-file-id="${file.id}">
-                    <i class="file-icon ${getFileIcon(file.filename)}"></i>
-                    <div class="file-info">
-                      <div class="file-name">${file.filename}</div>
-                      <div class="file-size" style="font-size: 0.8rem; color: var(--gray);">${formatFileSize(file.file_size)}</div>
-                    </div>
-                    <i class="file-download fas fa-download" title="Download file"></i>
-                  </div>
-                `).join('')}
-              </div>
-            `;
-          }
-            
-          contentElement.innerHTML = `
-            <h2 style="color: var(--primary); margin-bottom: 1rem;">${article.title || 'Untitled'}</h2>
-            <div class="article-question" style="font-style: italic; margin-bottom: 1.5rem; color: var(--gray);">${article.question || ''}</div>
-            <div class="article-stats" style="margin-bottom: 1.5rem;">
-              <div class="view-count">
-                <i class="fas fa-eye"></i>
-                ${(article.view_count || 0) + 1} views
-              </div>
-            </div>
-            ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" style="max-width: 100%; height: auto; margin: 1rem 0; border-radius: 8px;">` : ''}
-            <div class="article-body">${formattedContent}</div>
-            ${fileAttachmentsHtml}
-          `;
-            
-          resultsContainer.appendChild(contentElement);
-            
-          contentElement.querySelectorAll('.file-download').forEach(downloadBtn => {
-            downloadBtn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const fileId = downloadBtn.closest('.file-attachment').dataset.fileId;
-              window.open(`/api/files/${fileId}`, '_blank');
-            });
-          });
-            
-          contentElement.scrollIntoView({ behavior: 'smooth' });
+          
+          displayArticleContent(article, query);
         });
           
         button.querySelectorAll('.file-download').forEach(downloadBtn => {
@@ -1298,8 +1399,9 @@
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // Real-time search suggestions
+    // Enhanced real-time search suggestions with debouncing
     let suggestionsTimeout;
+    let searchCache = new Map();
     
     commandInput.addEventListener('input', () => {
       const query = commandInput.value.trim();
@@ -1308,6 +1410,12 @@
       
       if (query.length < 2) {
         suggestions.classList.remove('active');
+        return;
+      }
+      
+      // Check cache first
+      if (searchCache.has(query)) {
+        displaySuggestions(searchCache.get(query));
         return;
       }
       
@@ -1327,35 +1435,42 @@
           
           const data = await response.json();
           
-          if (data.articles && data.articles.length > 0) {
-            suggestions.innerHTML = '';
-            
-            data.articles.slice(0, 5).forEach(article => {
-              const item = document.createElement('div');
-              item.classList.add('suggestion-item');
-              item.textContent = article.title || article.question;
-              
-              item.addEventListener('click', () => {
-                const searchQuery = article.question || article.title;
-                commandInput.value = searchQuery;
-                suggestions.classList.remove('active');
-                
-                addMessage(searchQuery, true);
-                sendMessage(searchQuery);
-              });
-              
-              suggestions.appendChild(item);
-            });
-            
-            suggestions.classList.add('active');
-          } else {
-            suggestions.classList.remove('active');
-          }
+          // Cache the results
+          searchCache.set(query, data.articles || []);
+          
+          displaySuggestions(data.articles || []);
         } catch (error) {
           console.error('Error fetching suggestions:', error);
         }
-      }, 300);
+      }, 200); // Reduced debounce time for faster response
     });
+
+    function displaySuggestions(articles) {
+      if (articles.length > 0) {
+        suggestions.innerHTML = '';
+        
+        articles.slice(0, 5).forEach(article => {
+          const item = document.createElement('div');
+          item.classList.add('suggestion-item');
+          item.textContent = article.title || article.question;
+          
+          item.addEventListener('click', () => {
+            const searchQuery = article.question || article.title;
+            commandInput.value = searchQuery;
+            suggestions.classList.remove('active');
+            
+            addMessage(searchQuery, true);
+            sendMessage(searchQuery);
+          });
+          
+          suggestions.appendChild(item);
+        });
+        
+        suggestions.classList.add('active');
+      } else {
+        suggestions.classList.remove('active');
+      }
+    }
 
     // Hide suggestions when clicking outside
     document.addEventListener('click', (e) => {
@@ -1364,7 +1479,7 @@
       }
     });
 
-    // Track command history
+    // Enhanced keyboard navigation
     let selectedSuggestionIndex = -1;
     let commandHistoryIndex = -1;
     const commandHistory = [];
@@ -1394,33 +1509,64 @@
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         
-        const userMessages = Array.from(document.querySelectorAll('.user-message'));
-        
-        if (userMessages.length > 0) {
-          if (commandHistory.length === 0) {
-            userMessages.forEach(msg => {
-              const text = msg.textContent.replace(/^.*?> /, ''); // Remove user icon
-              commandHistory.unshift(text);
-            });
-          }
+        if (suggestionItems.length > 0) {
+          selectedSuggestionIndex = selectedSuggestionIndex <= 0 ? suggestionItems.length - 1 : selectedSuggestionIndex - 1;
           
+          suggestionItems.forEach((item, index) => {
+            if (index === selectedSuggestionIndex) {
+              item.style.backgroundColor = 'var(--primary)';
+              item.style.color = 'white';
+              commandInput.value = item.textContent;
+            } else {
+              item.style.backgroundColor = '';
+              item.style.color = '';
+            }
+          });
+        } else {
+          // Command history
+          const userMessages = Array.from(document.querySelectorAll('.user-message'));
+          
+          if (userMessages.length > 0) {
+            if (commandHistory.length === 0) {
+              userMessages.forEach(msg => {
+                const text = msg.textContent.replace(/^.*?> /, '');
+                commandHistory.unshift(text);
+              });
+            }
+            
+            if (commandHistory.length > 0) {
+              commandHistoryIndex = (commandHistoryIndex + 1) % commandHistory.length;
+              commandInput.value = commandHistory[commandHistoryIndex];
+            }
+          }
+        }
+      }
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        
+        if (suggestionItems.length > 0) {
+          selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestionItems.length;
+          
+          suggestionItems.forEach((item, index) => {
+            if (index === selectedSuggestionIndex) {
+              item.style.backgroundColor = 'var(--primary)';
+              item.style.color = 'white';
+              commandInput.value = item.textContent;
+            } else {
+              item.style.backgroundColor = '';
+              item.style.color = '';
+            }
+          });
+        } else if (commandHistoryIndex > -1) {
           if (commandHistory.length > 0) {
-            commandHistoryIndex = (commandHistoryIndex + 1) % commandHistory.length;
+            commandHistoryIndex = (commandHistoryIndex - 1 + commandHistory.length) % commandHistory.length;
             commandInput.value = commandHistory[commandHistoryIndex];
           }
         }
       }
       
-      if (e.key === 'ArrowDown' && commandHistoryIndex > -1) {
-        e.preventDefault();
-        
-        if (commandHistory.length > 0) {
-          commandHistoryIndex = (commandHistoryIndex - 1 + commandHistory.length) % commandHistory.length;
-          commandInput.value = commandHistory[commandHistoryIndex];
-        }
-      }
-      
-      if (e.key !== 'Tab' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') {
+      if (!['Tab', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
         selectedSuggestionIndex = -1;
         suggestionItems.forEach(item => {
           item.style.backgroundColor = '';
@@ -1429,6 +1575,7 @@
       }
     });
 
+    // Enhanced search function with better performance
     async function sendMessage(message) {
       commandHistory.unshift(message);
       commandHistoryIndex = -1;
@@ -1438,7 +1585,7 @@
       }
       
       // Hide hot articles when searching
-      document.getElementById('hotArticlesSection').style.display = 'none';
+      document.getElementById('hotArticlesSection').classList.remove('show');
       contentBody.classList.remove('with-hot-articles');
       
       addMessage(message, true);
@@ -1465,7 +1612,7 @@
           
           const messageElement = document.createElement('div');
           messageElement.classList.add('message', 'bot-message');
-          messageElement.innerHTML = '<i class="fas fa-lightbulb" style="margin-right: 0.5rem; color: var(--primary);"></i>I found these relevant articles. Click on one to view its content:';
+          messageElement.innerHTML = '<i class="fas fa-lightbulb" style="margin-right: 0.75rem; color: var(--primary);"></i>I found these relevant articles. Click on one to view its content:';
           resultsSection.appendChild(messageElement);
           
           const buttonsContainer = createArticleButtons(data.articles, message);
@@ -1473,11 +1620,11 @@
           
           resultsContainer.insertBefore(resultsSection, resultsContainer.firstChild);
         } else {
-          addMessage('<i class="fas fa-search" style="margin-right: 0.5rem; color: var(--warning);"></i>No relevant articles found. Try a different query or type <code>>help</code> for assistance.');
+          addMessage('<i class="fas fa-search" style="margin-right: 0.75rem; color: var(--warning);"></i>No relevant articles found. Try a different query or type <code>>help</code> for assistance.');
         }
       } catch (error) {
         console.error('Error:', error);
-        addMessage('<i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem; color: var(--danger);"></i>Error: Connection failed. Please check your network and try again.');
+        addMessage('<i class="fas fa-exclamation-triangle" style="margin-right: 0.75rem; color: var(--danger);"></i>Error: Connection failed. Please check your network and try again.');
       } finally {
         hideLoading();
       }
@@ -1490,7 +1637,7 @@
         if (message) {
           if (message === '>clear' || message === '>cls') {
             resultsContainer.innerHTML = '';
-            addMessage('<i class="fas fa-broom" style="margin-right: 0.5rem; color: var(--success);"></i>Terminal cleared.');
+            addMessage('<i class="fas fa-broom" style="margin-right: 0.75rem; color: var(--success);"></i>Terminal cleared.');
             commandInput.value = '';
             // Show hot articles again
             loadHotArticles();
@@ -1505,7 +1652,7 @@
           
           if (message === '>admin') {
             window.open('/admin', '_blank');
-            addMessage('<i class="fas fa-external-link-alt" style="margin-right: 0.5rem; color: var(--primary);"></i>Opening admin panel in a new tab.');
+            addMessage('<i class="fas fa-external-link-alt" style="margin-right: 0.75rem; color: var(--primary);"></i>Opening admin panel in a new tab.');
             commandInput.value = '';
             return;
           }
@@ -1519,15 +1666,15 @@
 
     function showHelp() {
       const helpMessage = `
-        <i class="fas fa-question-circle" style="margin-right: 0.5rem; color: var(--primary);"></i>
+        <i class="fas fa-question-circle" style="margin-right: 0.75rem; color: var(--primary);"></i>
         <strong>Available Commands:</strong><br><br>
         <code>>clear</code> or <code>>cls</code> - Clear the terminal<br>
         <code>>help</code> - Show this help message<br>
         <code>>admin</code> - Open the admin panel in a new tab<br><br>
         <strong>Keyboard Shortcuts:</strong><br><br>
         <code>Tab</code> - Autocomplete suggestion<br>
-        <code>↑ Arrow</code> - Recall previous command<br>
-        <code>↓ Arrow</code> - 1Navigate command history<br>
+        <code>↑ Arrow</code> - Recall previous command or navigate suggestions<br>
+        <code>↓ Arrow</code> - Navigate command history or suggestions<br>
       `;
       
       addMessage(helpMessage);
@@ -1547,71 +1694,6 @@
     backToTop.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-
-    // Image modal functionality
-    function setupImageModal() {
-      const modal = document.getElementById('imageModal');
-      const modalImage = document.getElementById('modalImage');
-      const closeBtn = document.getElementById('closeImageModal');
-
-      function openModal(imageSrc, imageAlt) {
-        modalImage.src = imageSrc;
-        modalImage.alt = imageAlt || '';
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-      }
-
-      function closeModal() {
-        modal.classList.remove('show');
-        document.body.style.overflow = '';
-        setTimeout(() => {
-          modalImage.src = '';
-        }, 300);
-      }
-
-      // Close modal when clicking close button
-      closeBtn.addEventListener('click', closeModal);
-
-      // Close modal when clicking outside image
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          closeModal();
-        }
-      });
-
-      // Close modal with Escape key
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('show')) {
-          closeModal();
-        }
-      });
-
-      // Add click handlers to all images
-      function addImageClickHandlers() {
-        document.querySelectorAll('.article-content img, .article-image').forEach(img => {
-          img.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openModal(img.src, img.alt);
-          });
-        });
-      }
-
-      // Initial setup
-      addImageClickHandlers();
-
-      // Re-setup when new content is added
-      const observer = new MutationObserver(() => {
-        addImageClickHandlers();
-      });
-
-      observer.observe(document.getElementById('resultsContainer'), {
-        childList: true,
-        subtree: true
-      });
-    }
-
-    // Initialize image modal when DOM is loaded
-    document.addEventListener('DOMContentLoaded', setupImageModal);
   </script>
 </body>
 </html>

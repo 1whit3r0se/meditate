@@ -12,6 +12,7 @@ import { initializeAuthTables, authMiddleware, adminMiddleware, getTokenExpirati
 
 dotenv.config()
 
+// Enhanced keyword extraction with better accuracy
 function extractKeywords(text) {
   // Extract keywords and preserve phrases in quotes
   const phrases = []
@@ -26,10 +27,54 @@ function extractKeywords(text) {
   // Remove quoted phrases from text for individual word extraction
   const remainingText = text.replace(quotedRegex, "")
 
-  // Extract individual words (3+ characters)
+  // Extract individual words (3+ characters) with better filtering
   const words = remainingText.toLowerCase().match(/\b(\w{3,})\b/g) || []
 
-  return [...phrases, ...words]
+  // Filter out common stop words for better search accuracy
+  const stopWords = new Set([
+    "the",
+    "and",
+    "for",
+    "are",
+    "but",
+    "not",
+    "you",
+    "all",
+    "can",
+    "had",
+    "her",
+    "was",
+    "one",
+    "our",
+    "out",
+    "day",
+    "get",
+    "has",
+    "him",
+    "his",
+    "how",
+    "man",
+    "new",
+    "now",
+    "old",
+    "see",
+    "two",
+    "way",
+    "who",
+    "boy",
+    "did",
+    "its",
+    "let",
+    "put",
+    "say",
+    "she",
+    "too",
+    "use",
+  ])
+
+  const filteredWords = words.filter((word) => !stopWords.has(word))
+
+  return [...phrases, ...filteredWords]
 }
 
 const app = express()
@@ -283,20 +328,27 @@ async function initializeDatabase() {
       console.log("Created file_attachments table")
     }
 
-    // Check if the full-text search index exists
+    // Enhanced full-text search index with better performance
     const indexExists = await sql`
       SELECT EXISTS (
         SELECT FROM pg_indexes
-        WHERE indexname = 'idx_fts'
+        WHERE indexname = 'idx_fts_enhanced'
       );
     `
 
     if (!indexExists.rows[0].exists) {
-      // Create the full-text search index
+      // Drop old index if exists
+      await sql`DROP INDEX IF EXISTS idx_fts;`
+
+      // Create enhanced full-text search index with weights
       await sql`
-        CREATE INDEX idx_fts ON "knowledge_base" USING GIN (to_tsvector('english', COALESCE("title", '') || ' ' || COALESCE("question", '') || ' ' || "content"));
+        CREATE INDEX idx_fts_enhanced ON "knowledge_base" USING GIN (
+          setweight(to_tsvector('english', COALESCE("title", '')), 'A') ||
+          setweight(to_tsvector('english', COALESCE("question", '')), 'B') ||
+          setweight(to_tsvector('english', "content"), 'C')
+        );
       `
-      console.log("Created full-text search index")
+      console.log("Created enhanced full-text search index")
     }
 
     // Create additional performance indexes
@@ -507,7 +559,7 @@ app.get("/api/auth/session", async (req, res) => {
   })
 })
 
-// Hot Articles endpoint
+// Enhanced Hot Articles endpoint with better caching
 app.get("/api/hot-articles", async (req, res) => {
   try {
     const result = await sql`
@@ -515,8 +567,11 @@ app.get("/api/hot-articles", async (req, res) => {
       FROM "knowledge_base" 
       WHERE "view_count" > 0
       ORDER BY "view_count" DESC, "created_at" DESC
-      LIMIT 5
+      LIMIT 8
     `
+
+    // Set cache headers for better performance
+    res.set("Cache-Control", "public, max-age=300") // 5 minutes cache
 
     return res.json({ articles: result.rows })
   } catch (error) {
@@ -543,6 +598,7 @@ app.post("/api/track-view/:id", async (req, res) => {
   }
 })
 
+// Enhanced chat endpoint with better search accuracy and performance
 app.post("/api/chat", async (req, res) => {
   const { query } = req.body
 
@@ -553,7 +609,7 @@ app.post("/api/chat", async (req, res) => {
   try {
     const keywords = extractKeywords(query)
 
-    // Improved search query construction
+    // Enhanced search query construction with better ranking
     let searchQuery
 
     if (keywords.length === 1) {
@@ -571,12 +627,12 @@ app.post("/api/chat", async (req, res) => {
         // Otherwise, require at least 2 keywords to match (if we have 3+ keywords)
         searchQuery =
           singleWords.length >= 3
-            ? `(${singleWords.join(" & ")}) | (${singleWords.join(" | ")})`
+            ? `(${singleWords.slice(0, 3).join(" & ")}) | (${singleWords.join(" | ")})`
             : singleWords.join(" & ")
       }
     }
 
-    // Improved ranking with higher weight for title and question matches
+    // Enhanced ranking with higher weight for title and question matches
     const result = await sql`
       SELECT kb."id", kb."title", kb."question", kb."content", kb."image_url", kb."view_count",
              ts_rank(
@@ -592,7 +648,7 @@ app.post("/api/chat", async (req, res) => {
         setweight(to_tsvector('english', kb."content"), 'C')
         @@ to_tsquery('english', ${searchQuery})
       ORDER BY rank DESC, kb."view_count" DESC
-      LIMIT 10
+      LIMIT 15
     `
 
     // For each knowledge base entry, get its file attachments
@@ -623,7 +679,7 @@ app.post("/api/chat", async (req, res) => {
   }
 })
 
-// Labs search endpoint
+// Enhanced Labs search endpoint with better performance
 app.get("/api/labs/search", authMiddleware, async (req, res) => {
   const { q } = req.query
 
@@ -657,8 +713,11 @@ app.get("/api/labs/search", authMiddleware, async (req, res) => {
           ELSE 7
         END,
         l."display_order" ASC, l."name" ASC
-      LIMIT 20
+      LIMIT 25
     `
+
+    // Set cache headers for better performance
+    res.set("Cache-Control", "public, max-age=60") // 1 minute cache
 
     return res.json({ labs: result.rows })
   } catch (error) {
