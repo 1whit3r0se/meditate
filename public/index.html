@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apollo - Knowledge Base</title>
+  <title>Apollo</title>
   <link rel="icon" type="image/png" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/apollo-5ls5iKKPFmglazvYUE7bAbEzQO1eqP.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -18,11 +18,10 @@
       --dark: #1e293b;
       --gray: #64748b;
       --border-radius: 16px;
-      --box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
       --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
     }
 
     .dark-mode {
@@ -50,6 +49,7 @@
       transition: var(--transition);
       min-height: 100vh;
       line-height: 1.6;
+      position: relative;
       overflow-x: hidden;
     }
 
@@ -58,8 +58,8 @@
       color: var(--dark);
     }
 
-    /* Animated background particles */
-    .bg-particles {
+    /* Animated Background Particles */
+    .particles {
       position: fixed;
       top: 0;
       left: 0;
@@ -71,14 +71,28 @@
 
     .particle {
       position: absolute;
+      width: 4px;
+      height: 4px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 50%;
-      animation: float 6s ease-in-out infinite;
+      animation: float 20s infinite linear;
     }
 
     @keyframes float {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-20px) rotate(180deg); }
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+      }
     }
 
     .container {
@@ -86,9 +100,10 @@
       margin: 0 auto;
       padding: 2rem;
       position: relative;
+      z-index: 1;
     }
 
-    /* Enhanced Navigation */
+    /* Navigation */
     .nav-container {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
@@ -97,13 +112,18 @@
       margin-bottom: 3rem;
       box-shadow: var(--box-shadow);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      transform: translateY(0);
-      animation: slideDown 0.8s ease-out;
+      animation: slideDown 0.8s ease;
     }
 
     @keyframes slideDown {
-      from { transform: translateY(-100px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .dark-mode .nav-container {
@@ -116,7 +136,7 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 2rem;
+      gap: 1.5rem;
     }
 
     .nav-brand {
@@ -135,7 +155,7 @@
     }
 
     .nav-brand i {
-      font-size: 2.5rem;
+      font-size: 2.25rem;
       background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -145,11 +165,10 @@
 
     .nav-tabs {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.75rem;
       background: rgba(0, 0, 0, 0.05);
       padding: 0.5rem;
       border-radius: 12px;
-      backdrop-filter: blur(10px);
     }
 
     .dark-mode .nav-tabs {
@@ -180,27 +199,62 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: var(--gradient-primary);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
       transition: var(--transition);
-      z-index: -1;
     }
 
-    .nav-tab.active::before,
     .nav-tab:hover::before {
-      left: 0;
+      left: 100%;
     }
 
-    .nav-tab.active,
-    .nav-tab:hover {
-      color: white;
+    .nav-tab.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .dark-mode .nav-tab.active {
+      background: var(--light);
+      color: var(--primary);
+    }
+
+    .nav-tab:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--dark);
+      transform: translateY(-2px);
+    }
+
+    .dark-mode .nav-tab:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--dark);
     }
 
     .nav-controls {
       display: flex;
       align-items: center;
       gap: 1.5rem;
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      color: var(--dark);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: var(--transition);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(59, 130, 246, 0.1);
+      transform: rotate(15deg) scale(1.1);
     }
 
     .admin-btn {
@@ -227,60 +281,20 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: var(--gradient-secondary);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
       transition: var(--transition);
-      z-index: -1;
     }
 
     .admin-btn:hover::before {
-      left: 0;
+      left: 100%;
     }
 
     .admin-btn:hover {
       transform: translateY(-3px);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
     }
 
-    .theme-toggle {
-      background: none;
-      border: none;
-      color: var(--dark);
-      font-size: 1.5rem;
-      cursor: pointer;
-      transition: var(--transition);
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    .theme-toggle::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--gradient-primary);
-      border-radius: 50%;
-      opacity: 0;
-      transition: var(--transition);
-      z-index: -1;
-    }
-
-    .theme-toggle:hover::before {
-      opacity: 0.2;
-    }
-
-    .theme-toggle:hover {
-      transform: rotate(180deg) scale(1.1);
-      color: var(--primary);
-    }
-
-    /* Enhanced Main Content */
+    /* Main Content */
     .main-content {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
@@ -288,12 +302,18 @@
       box-shadow: var(--box-shadow);
       border: 1px solid rgba(255, 255, 255, 0.2);
       overflow: hidden;
-      animation: fadeInUp 1s ease-out 0.3s both;
+      animation: fadeInUp 1s ease;
     }
 
     @keyframes fadeInUp {
-      from { transform: translateY(50px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .dark-mode .main-content {
@@ -317,7 +337,7 @@
       left: -50%;
       width: 200%;
       height: 200%;
-      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
       animation: rotate 20s linear infinite;
     }
 
@@ -346,14 +366,14 @@
       margin-right: 0;
     }
 
-    /* Enhanced Hot Articles Section */
+    /* Hot Articles Section - Enhanced */
     .hot-articles-section {
       position: fixed;
       top: 50%;
       right: 2rem;
       transform: translateY(-50%);
       width: 350px;
-      max-height: 80vh;
+      max-height: 75vh;
       background: rgba(255, 255, 255, 0.95);
       border: 1px solid rgba(59, 130, 246, 0.2);
       border-radius: var(--border-radius);
@@ -362,20 +382,19 @@
       backdrop-filter: blur(20px);
       z-index: 100;
       overflow: hidden;
-      opacity: 0;
-      visibility: hidden;
-      transition: var(--transition);
-      animation: slideInRight 0.8s ease-out 1s both;
+      display: none;
+      animation: slideInRight 0.8s ease;
     }
 
     @keyframes slideInRight {
-      from { transform: translateX(100%) translateY(-50%); opacity: 0; }
-      to { transform: translateX(0) translateY(-50%); opacity: 1; visibility: visible; }
-    }
-
-    .hot-articles-section.show {
-      opacity: 1;
-      visibility: visible;
+      from {
+        opacity: 0;
+        transform: translateY(-50%) translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+      }
     }
 
     .dark-mode .hot-articles-section {
@@ -396,12 +415,20 @@
     }
 
     .hot-articles-title i {
-      font-size: 2rem;
-      background: var(--gradient-secondary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size: 1.75rem;
+      color: var(--danger);
       animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+      }
+      50% { 
+        opacity: 0.7; 
+        transform: scale(1.1);
+      }
     }
 
     .hot-articles-container {
@@ -411,10 +438,10 @@
     }
 
     .hot-articles-scroll {
+      animation: scrollUp 40s linear infinite;
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
-      animation: scrollUp 40s linear infinite;
     }
 
     @keyframes scrollUp {
@@ -446,19 +473,18 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: var(--gradient-success);
-      opacity: 0.1;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
       transition: var(--transition);
-      z-index: -1;
     }
 
     .hot-article-card:hover::before {
-      left: 0;
+      left: 100%;
     }
 
     .hot-article-card:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      background: rgba(59, 130, 246, 0.1);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
       border-color: var(--primary);
     }
 
@@ -488,14 +514,13 @@
 
     .hot-article-stats i {
       font-size: 1rem;
-      animation: pulse 2s infinite;
     }
 
     .content-body.with-hot-articles {
-      margin-right: 380px;
+      margin-right: 370px;
     }
 
-    /* Enhanced Search Container */
+    /* Search Container - Enhanced */
     .search-container {
       position: relative;
       margin-bottom: 3rem;
@@ -508,7 +533,7 @@
       width: 100%;
       padding: 1.5rem 1.5rem 1.5rem 4rem;
       background: rgba(255, 255, 255, 0.9);
-      border: 2px solid rgba(59, 130, 246, 0.2);
+      border: 3px solid rgba(59, 130, 246, 0.2);
       border-radius: var(--border-radius);
       color: var(--dark);
       font-family: 'JetBrains Mono', 'Fira Code', monospace;
@@ -526,7 +551,7 @@
     .command-input:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), var(--box-shadow);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
       transform: translateY(-3px);
     }
 
@@ -539,10 +564,9 @@
       font-weight: bold;
       pointer-events: none;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 1.2rem;
+      font-size: 1.25rem;
     }
 
-    /* Enhanced Suggestions */
     .suggestions {
       position: absolute;
       top: 100%;
@@ -553,7 +577,7 @@
       border: 1px solid rgba(59, 130, 246, 0.2);
       border-top: none;
       border-radius: 0 0 var(--border-radius) var(--border-radius);
-      max-height: 400px;
+      max-height: 350px;
       overflow-y: auto;
       z-index: 10;
       display: none;
@@ -571,7 +595,7 @@
     }
 
     .suggestion-item {
-      padding: 1.5rem;
+      padding: 1.25rem;
       cursor: pointer;
       transition: var(--transition);
       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -586,22 +610,28 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: var(--gradient-primary);
-      opacity: 0.1;
+      background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
       transition: var(--transition);
-      z-index: -1;
     }
 
     .suggestion-item:hover::before {
-      left: 0;
+      left: 100%;
+    }
+
+    .dark-mode .suggestion-item {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .suggestion-item:hover {
-      color: var(--primary);
-      transform: translateX(10px);
+      background: rgba(59, 130, 246, 0.1);
+      transform: translateX(5px);
     }
 
-    /* Enhanced Results */
+    .suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    /* Results Container - Enhanced */
     .results-container {
       max-width: 900px;
       margin: 0 auto;
@@ -617,7 +647,18 @@
       animation: fadeIn 0.6s ease;
       line-height: 1.8;
       font-size: 1.1rem;
-      box-shadow: var(--box-shadow);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    @keyframes fadeIn {
+      from { 
+        opacity: 0; 
+        transform: translateY(30px); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0); 
+      }
     }
 
     .user-message {
@@ -626,13 +667,24 @@
       margin-left: auto;
       max-width: 85%;
       border-radius: var(--border-radius) var(--border-radius) 8px var(--border-radius);
-      transform: translateX(0);
-      animation: slideInRight 0.6s ease;
+      position: relative;
+      overflow: hidden;
     }
 
-    @keyframes slideInRight {
-      from { transform: translateX(100px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+    .user-message::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: shimmer 2s ease-in-out;
+    }
+
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
     }
 
     .bot-message {
@@ -640,12 +692,6 @@
       color: var(--dark);
       border: 1px solid rgba(59, 130, 246, 0.1);
       max-width: 95%;
-      animation: slideInLeft 0.6s ease;
-    }
-
-    @keyframes slideInLeft {
-      from { transform: translateX(-100px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
     }
 
     .dark-mode .bot-message {
@@ -653,7 +699,24 @@
       border-color: rgba(96, 165, 250, 0.2);
     }
 
-    /* Enhanced Article Buttons */
+    /* Article Buttons - Enhanced */
+    .article-buttons {
+      display: grid;
+      gap: 2rem;
+      animation: staggerIn 0.8s ease;
+    }
+
+    @keyframes staggerIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .article-button {
       background: rgba(255, 255, 255, 0.95);
       border: 1px solid rgba(59, 130, 246, 0.2);
@@ -664,13 +727,33 @@
       transition: var(--transition);
       position: relative;
       overflow: hidden;
-      margin-bottom: 2rem;
-      box-shadow: var(--box-shadow);
+      animation: slideInUp 0.6s ease forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .article-button:nth-child(1) { animation-delay: 0.1s; }
+    .article-button:nth-child(2) { animation-delay: 0.2s; }
+    .article-button:nth-child(3) { animation-delay: 0.3s; }
+    .article-button:nth-child(4) { animation-delay: 0.4s; }
+    .article-button:nth-child(5) { animation-delay: 0.5s; }
+
+    @keyframes slideInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .dark-mode .article-button {
       background: rgba(30, 41, 59, 0.95);
       border-color: rgba(96, 165, 250, 0.3);
+    }
+
+    .article-button:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+      border-color: var(--primary);
     }
 
     .article-button::before {
@@ -689,23 +772,17 @@
       transform: scaleY(1);
     }
 
-    .article-button:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-      border-color: var(--primary);
-    }
-
     .article-title {
       font-weight: 700;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       color: var(--primary);
-      font-size: 1.4rem;
+      font-size: 1.5rem;
       line-height: 1.3;
     }
 
     .article-question {
       font-style: italic;
-      margin-bottom: 2rem;
+      margin-bottom: 1.75rem;
       color: var(--gray);
       font-size: 1.1rem;
       line-height: 1.6;
@@ -732,7 +809,160 @@
       color: var(--gray);
     }
 
-    /* Enhanced Loading */
+    .view-count {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .article-button .article-image {
+      max-width: 100%;
+      max-height: 250px;
+      width: auto;
+      height: auto;
+      object-fit: cover;
+      border-radius: 12px;
+      margin: 1.5rem 0;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+    }
+
+    .article-button .article-image:hover {
+      transform: scale(1.05);
+    }
+
+    /* File Attachments - Enhanced */
+    .file-attachments {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .file-attachment {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 25px;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      transition: var(--transition);
+      font-size: 0.9rem;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .file-attachment::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: var(--transition);
+    }
+
+    .file-attachment:hover::before {
+      left: 100%;
+    }
+
+    .file-attachment:hover {
+      background: rgba(59, 130, 246, 0.2);
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-icon {
+      margin-right: 0.75rem;
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    .file-name {
+      font-weight: 600;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-download {
+      margin-left: 0.75rem;
+      color: var(--primary);
+      opacity: 0.7;
+      transition: var(--transition);
+    }
+
+    .file-download:hover {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+
+    /* Article Content - Enhanced */
+    .article-content {
+      margin: 3rem 0;
+      padding: 4rem;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: var(--border-radius);
+      border-left: 6px solid var(--primary);
+      animation: fadeIn 0.8s ease;
+      box-shadow: var(--box-shadow);
+      line-height: 1.9;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .dark-mode .article-content {
+      background: rgba(30, 41, 59, 0.95);
+    }
+
+    .article-content h1, 
+    .article-content h2, 
+    .article-content h3 {
+      margin-top: 2.5em;
+      margin-bottom: 1.25em;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .article-content h1:first-child,
+    .article-content h2:first-child,
+    .article-content h3:first-child {
+      margin-top: 0;
+    }
+
+    .article-content p {
+      margin-bottom: 1.75em;
+      font-size: 1.15rem;
+    }
+
+    .article-content ul, 
+    .article-content ol {
+      margin-bottom: 1.75em;
+      padding-left: 2.5em;
+    }
+
+    .article-content li {
+      margin-bottom: 0.75em;
+    }
+
+    .article-content a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: var(--transition);
+      font-weight: 600;
+    }
+
+    .article-content a:hover {
+      border-bottom-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    /* Loading and Effects */
     .loading {
       position: fixed;
       top: 0;
@@ -758,64 +988,59 @@
     .spinner {
       width: 60px;
       height: 60px;
-      border: 4px solid rgba(59, 130, 246, 0.2);
-      border-top: 4px solid var(--primary);
+      border: 5px solid rgba(59, 130, 246, 0.2);
+      border-top: 5px solid var(--primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
 
-    /* Enhanced File Attachments */
-    .file-attachments {
-      margin-top: 1.5rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
-    .file-attachment {
+    /* Back to top */
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--gradient-primary);
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
       display: flex;
+      justify-content: center;
       align-items: center;
-      padding: 1rem 1.5rem;
-      background: rgba(59, 130, 246, 0.1);
-      border-radius: 25px;
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      transition: var(--transition);
-      font-size: 0.9rem;
       cursor: pointer;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .file-attachment::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: var(--gradient-success);
-      opacity: 0.2;
+      opacity: 0;
       transition: var(--transition);
-      z-index: -1;
+      z-index: 1000;
+      box-shadow: var(--box-shadow);
+      border: none;
     }
 
-    .file-attachment:hover::before {
-      left: 0;
+    .back-to-top.visible {
+      opacity: 1;
     }
 
-    .file-attachment:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    .back-to-top:hover {
+      transform: translateY(-5px) scale(1.1);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
     }
 
     /* Responsive Design */
-    @media (max-width: 1600px) {
+    @media (max-width: 1500px) {
       .hot-articles-section {
         display: none !important;
       }
       
       .content-body.with-hot-articles {
         margin-right: 0;
+      }
+
+      .back-to-top {
+        right: 2rem;
       }
     }
 
@@ -834,10 +1059,22 @@
       }
 
       .content-header h1 {
-        font-size: 2.5rem;
+        font-size: 2.25rem;
       }
 
       .content-body {
+        padding: 2rem;
+      }
+
+      .user-message {
+        max-width: 95%;
+      }
+
+      .article-button {
+        padding: 1.5rem;
+      }
+
+      .article-content {
         padding: 2rem;
       }
 
@@ -848,25 +1085,11 @@
 
       .command-prompt {
         left: 1.25rem;
-        font-size: 1rem;
-      }
-
-      .article-button {
-        padding: 2rem;
-      }
-
-      .article-title {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
       }
     }
 
-    /* Pulse animation */
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-
-    /* Highlight effect */
+    /* Highlight */
     .highlight {
       background: linear-gradient(120deg, rgba(59, 130, 246, 0.3) 0%, rgba(30, 64, 175, 0.3) 100%);
       padding: 0 0.5rem;
@@ -874,45 +1097,70 @@
       font-weight: 700;
     }
 
-    /* Back to top button */
-    .back-to-top {
+    /* Image Modal */
+    .image-modal {
       position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      background: var(--gradient-primary);
-      color: white;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
       display: flex;
       justify-content: center;
       align-items: center;
-      cursor: pointer;
+      z-index: 3000;
       opacity: 0;
+      visibility: hidden;
       transition: var(--transition);
-      z-index: 1000;
-      box-shadow: var(--box-shadow);
+      backdrop-filter: blur(15px);
     }
 
-    .back-to-top.visible {
+    .image-modal.show {
       opacity: 1;
+      visibility: visible;
     }
 
-    .back-to-top:hover {
-      transform: translateY(-5px) scale(1.1);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    .image-modal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: var(--border-radius);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+      cursor: default;
+      transform: scale(0.8);
+      transition: var(--transition);
     }
 
-    @media (min-width: 1601px) {
-      .back-to-top {
-        right: 400px;
-      }
+    .image-modal.show img {
+      transform: scale(1);
+    }
+
+    .image-modal-close {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 2rem;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-modal-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
     }
   </style>
 </head>
 <body>
-  <!-- Animated background particles -->
-  <div class="bg-particles" id="bgParticles"></div>
+  <!-- Animated Background Particles -->
+  <div class="particles" id="particles"></div>
 
   <div class="container">
     <!-- Navigation -->
@@ -950,7 +1198,7 @@
     <div class="hot-articles-section" id="hotArticlesSection">
       <div class="hot-articles-title">
         <i class="fas fa-fire"></i>
-        Hot Topics
+        Hot Articles
       </div>
       <div class="hot-articles-container">
         <div class="hot-articles-scroll" id="hotArticlesScroll">
@@ -969,7 +1217,7 @@
       <div class="content-body" id="contentBody">
         <div class="search-container">
           <span class="command-prompt">></span>
-          <input type="text" id="commandInput" class="command-input" placeholder="Type your query here..." autocomplete="off">
+          <input type="text" id="commandInput" class="command-input" placeholder="Type your query here...">
           <div class="suggestions" id="suggestions"></div>
         </div>
         
@@ -987,31 +1235,30 @@
     <div class="spinner"></div>
   </div>
 
-  <div class="back-to-top" id="backToTop">
+  <button class="back-to-top" id="backToTop">
     <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <!-- Image Modal -->
+  <div id="imageModal" class="image-modal">
+    <button class="image-modal-close" id="closeImageModal">
+      <i class="fas fa-times"></i>
+    </button>
+    <img id="modalImage" src="/placeholder.svg" alt="">
   </div>
 
   <script>
     // Create animated background particles
     function createParticles() {
-      const particlesContainer = document.getElementById('bgParticles');
+      const particlesContainer = document.getElementById('particles');
       const particleCount = 50;
-      
+
       for (let i = 0; i < particleCount; i++) {
         const particle = document.createElement('div');
         particle.classList.add('particle');
-        
-        const size = Math.random() * 4 + 2;
-        const x = Math.random() * window.innerWidth;
-        const y = Math.random() * window.innerHeight;
-        const delay = Math.random() * 6;
-        
-        particle.style.width = size + 'px';
-        particle.style.height = size + 'px';
-        particle.style.left = x + 'px';
-        particle.style.top = y + 'px';
-        particle.style.animationDelay = delay + 's';
-        
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
         particlesContainer.appendChild(particle);
       }
     }
@@ -1069,10 +1316,8 @@
     // Focus the command input on page load
     window.addEventListener('load', () => {
       commandInput.focus();
-      // Load hot articles immediately and show them
-      setTimeout(() => {
-        loadHotArticles();
-      }, 500); // Small delay to ensure smooth animation
+      // Load hot articles immediately
+      setTimeout(loadHotArticles, 100);
     });
 
     // Loading indicator
@@ -1119,42 +1364,23 @@
                 // Track view
                 await trackArticleView(article.id);
                 
-                // Clear existing results
-                resultsContainer.innerHTML = '';
+                // Get full article data
+                const response = await fetch(`/api/admin/knowledge/${article.id}`);
+                const articleData = await response.json();
                 
-                // Hide hot articles when viewing article
-                hotArticlesSection.classList.remove('show');
-                contentBody.classList.remove('with-hot-articles');
-                
-                // Set search input
-                commandInput.value = article.question || article.title;
-                
-                // Add user message
-                addMessage(article.question || article.title, true);
-                
-                // Fetch and display the full article directly
-                const searchResponse = await fetch('/api/chat', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ query: article.question || article.title }),
-                });
-                
-                if (searchResponse.ok) {
-                  const searchData = await searchResponse.json();
+                if (articleData.knowledge) {
+                  // Clear existing content
+                  resultsContainer.innerHTML = '';
                   
-                  if (searchData.articles && searchData.articles.length > 0) {
-                    // Find the exact article or use the first one
-                    const targetArticle = searchData.articles.find(a => a.id === article.id) || searchData.articles[0];
-                    
-                    // Display the article content directly
-                    displayArticleContent(targetArticle, article.question || article.title);
-                  }
+                  // Hide hot articles
+                  hotArticlesSection.style.display = 'none';
+                  contentBody.classList.remove('with-hot-articles');
+                  
+                  // Display article directly
+                  displayFullArticle(articleData.knowledge, articleData.files);
                 }
               } catch (error) {
-                console.error('Error opening article:', error);
-                addMessage('<i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem; color: var(--danger);"></i>Error loading article. Please try again.');
+                console.error('Error loading article:', error);
               } finally {
                 hideLoading();
               }
@@ -1164,7 +1390,7 @@
           });
           
           // Show hot articles section with animation
-          hotArticlesSection.classList.add('show');
+          hotArticlesSection.style.display = 'block';
           contentBody.classList.add('with-hot-articles');
         }
       } catch (error) {
@@ -1172,35 +1398,22 @@
       }
     }
 
-    // Function to display article content directly
-    function displayArticleContent(article, query) {
+    // Function to display full article content
+    function displayFullArticle(article, files) {
       const contentElement = document.createElement('div');
       contentElement.classList.add('article-content');
-      contentElement.style.cssText = `
-        margin: 2rem 0;
-        padding: 3rem;
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: var(--border-radius);
-        border-left: 6px solid var(--primary);
-        animation: fadeIn 0.6s ease;
-        box-shadow: var(--box-shadow);
-        line-height: 1.8;
-        max-width: 1100px;
-        margin-left: auto;
-        margin-right: auto;
-      `;
       
-      const formattedContent = formatArticleContent(article.content, query);
+      const formattedContent = formatArticleContent(article.content, '');
       
       let fileAttachmentsHtml = '';
-      if (article.files && article.files.length > 0) {
+      if (files && files.length > 0) {
         fileAttachmentsHtml = `
           <div class="file-attachments" style="margin-top: 2rem;">
             <h3 style="margin-bottom: 1rem; color: var(--primary);">
               <i class="fas fa-paperclip" style="margin-right: 0.5rem;"></i>
               Attachments
             </h3>
-            ${article.files.map(file => `
+            ${files.map(file => `
               <div class="file-attachment" data-file-id="${file.id}">
                 <i class="file-icon ${getFileIcon(file.filename)}"></i>
                 <div class="file-info">
@@ -1215,16 +1428,16 @@
       }
       
       contentElement.innerHTML = `
-        <h2 style="color: var(--primary); margin-bottom: 1rem; font-size: 2rem;">${article.title || 'Untitled'}</h2>
-        <div class="article-question" style="font-style: italic; margin-bottom: 1.5rem; color: var(--gray); font-size: 1.1rem;">${article.question || ''}</div>
-        <div class="article-stats" style="margin-bottom: 2rem;">
+        <h2 style="color: var(--primary); margin-bottom: 1rem;">${article.title || 'Untitled'}</h2>
+        <div class="article-question" style="font-style: italic; margin-bottom: 1.5rem; color: var(--gray);">${article.question || ''}</div>
+        <div class="article-stats" style="margin-bottom: 1.5rem;">
           <div class="view-count">
             <i class="fas fa-eye"></i>
             ${(article.view_count || 0) + 1} views
           </div>
         </div>
-        ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" style="max-width: 100%; height: auto; margin: 1.5rem 0; border-radius: 12px; box-shadow: var(--box-shadow);">` : ''}
-        <div class="article-body" style="font-size: 1.1rem; line-height: 1.8;">${formattedContent}</div>
+        ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" style="max-width: 100%; height: auto; margin: 1rem 0; border-radius: 8px;">` : ''}
+        <div class="article-body">${formattedContent}</div>
         ${fileAttachmentsHtml}
       `;
       
@@ -1239,7 +1452,6 @@
         });
       });
       
-      // Scroll to content
       contentElement.scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -1288,9 +1500,10 @@
       const buttonsContainer = document.createElement('div');
       buttonsContainer.classList.add('article-buttons');
       
-      articles.forEach(article => {
+      articles.forEach((article, index) => {
         const button = document.createElement('div');
         button.classList.add('article-button');
+        button.style.animationDelay = `${index * 0.1}s`;
           
         const highlightedContent = highlightText(article.content, query);
           
@@ -1312,7 +1525,7 @@
         button.innerHTML = `
           <div class="article-title">${article.title || 'Untitled'}</div>
           <div class="article-question">${article.question || ''}</div>
-          ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" class="article-image" style="max-width: 100%; height: auto; margin: 1rem 0; border-radius: 12px; box-shadow: var(--box-shadow);">` : ''}
+          ${article.image_url ? `<img src="${article.image_url}" alt="${article.title}" class="article-image">` : ''}
           <div class="article-preview">${highlightedContent.substring(0, 250)}...</div>
           <div class="article-stats">
             <div class="view-count">
@@ -1332,7 +1545,7 @@
             existingContent.remove();
           }
           
-          displayArticleContent(article, query);
+          displayFullArticle(article, article.files);
         });
           
         button.querySelectorAll('.file-download').forEach(downloadBtn => {
@@ -1399,7 +1612,7 @@
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // Enhanced real-time search suggestions with debouncing
+    // Enhanced real-time search suggestions with faster response
     let suggestionsTimeout;
     let searchCache = new Map();
     
@@ -1415,7 +1628,7 @@
       
       // Check cache first
       if (searchCache.has(query)) {
-        displaySuggestions(searchCache.get(query));
+        displaySuggestions(searchCache.get(query), query);
         return;
       }
       
@@ -1438,14 +1651,14 @@
           // Cache the results
           searchCache.set(query, data.articles || []);
           
-          displaySuggestions(data.articles || []);
+          displaySuggestions(data.articles || [], query);
         } catch (error) {
           console.error('Error fetching suggestions:', error);
         }
-      }, 200); // Reduced debounce time for faster response
+      }, 200); // Reduced from 300ms to 200ms
     });
 
-    function displaySuggestions(articles) {
+    function displaySuggestions(articles, query) {
       if (articles.length > 0) {
         suggestions.innerHTML = '';
         
@@ -1509,64 +1722,33 @@
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         
-        if (suggestionItems.length > 0) {
-          selectedSuggestionIndex = selectedSuggestionIndex <= 0 ? suggestionItems.length - 1 : selectedSuggestionIndex - 1;
-          
-          suggestionItems.forEach((item, index) => {
-            if (index === selectedSuggestionIndex) {
-              item.style.backgroundColor = 'var(--primary)';
-              item.style.color = 'white';
-              commandInput.value = item.textContent;
-            } else {
-              item.style.backgroundColor = '';
-              item.style.color = '';
-            }
-          });
-        } else {
-          // Command history
-          const userMessages = Array.from(document.querySelectorAll('.user-message'));
-          
-          if (userMessages.length > 0) {
-            if (commandHistory.length === 0) {
-              userMessages.forEach(msg => {
-                const text = msg.textContent.replace(/^.*?> /, '');
-                commandHistory.unshift(text);
-              });
-            }
-            
-            if (commandHistory.length > 0) {
-              commandHistoryIndex = (commandHistoryIndex + 1) % commandHistory.length;
-              commandInput.value = commandHistory[commandHistoryIndex];
-            }
-          }
-        }
-      }
-      
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
+        const userMessages = Array.from(document.querySelectorAll('.user-message'));
         
-        if (suggestionItems.length > 0) {
-          selectedSuggestionIndex = (selectedSuggestionIndex + 1) % suggestionItems.length;
+        if (userMessages.length > 0) {
+          if (commandHistory.length === 0) {
+            userMessages.forEach(msg => {
+              const text = msg.textContent.replace(/^.*?> /, '');
+              commandHistory.unshift(text);
+            });
+          }
           
-          suggestionItems.forEach((item, index) => {
-            if (index === selectedSuggestionIndex) {
-              item.style.backgroundColor = 'var(--primary)';
-              item.style.color = 'white';
-              commandInput.value = item.textContent;
-            } else {
-              item.style.backgroundColor = '';
-              item.style.color = '';
-            }
-          });
-        } else if (commandHistoryIndex > -1) {
           if (commandHistory.length > 0) {
-            commandHistoryIndex = (commandHistoryIndex - 1 + commandHistory.length) % commandHistory.length;
+            commandHistoryIndex = (commandHistoryIndex + 1) % commandHistory.length;
             commandInput.value = commandHistory[commandHistoryIndex];
           }
         }
       }
       
-      if (!['Tab', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+      if (e.key === 'ArrowDown' && commandHistoryIndex > -1) {
+        e.preventDefault();
+        
+        if (commandHistory.length > 0) {
+          commandHistoryIndex = (commandHistoryIndex - 1 + commandHistory.length) % commandHistory.length;
+          commandInput.value = commandHistory[commandHistoryIndex];
+        }
+      }
+      
+      if (e.key !== 'Tab' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') {
         selectedSuggestionIndex = -1;
         suggestionItems.forEach(item => {
           item.style.backgroundColor = '';
@@ -1575,7 +1757,6 @@
       }
     });
 
-    // Enhanced search function with better performance
     async function sendMessage(message) {
       commandHistory.unshift(message);
       commandHistoryIndex = -1;
@@ -1585,7 +1766,7 @@
       }
       
       // Hide hot articles when searching
-      document.getElementById('hotArticlesSection').classList.remove('show');
+      document.getElementById('hotArticlesSection').style.display = 'none';
       contentBody.classList.remove('with-hot-articles');
       
       addMessage(message, true);
@@ -1673,8 +1854,8 @@
         <code>>admin</code> - Open the admin panel in a new tab<br><br>
         <strong>Keyboard Shortcuts:</strong><br><br>
         <code>Tab</code> - Autocomplete suggestion<br>
-        <code>↑ Arrow</code> - Recall previous command or navigate suggestions<br>
-        <code>↓ Arrow</code> - Navigate command history or suggestions<br>
+        <code>↑ Arrow</code> - Recall previous command<br>
+        <code>↓ Arrow</code> - Navigate command history<br>
       `;
       
       addMessage(helpMessage);
@@ -1694,6 +1875,71 @@
     backToTop.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    // Enhanced image modal functionality
+    function setupImageModal() {
+      const modal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      const closeBtn = document.getElementById('closeImageModal');
+
+      function openModal(imageSrc, imageAlt) {
+        modalImage.src = imageSrc;
+        modalImage.alt = imageAlt || '';
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+          modalImage.src = '';
+        }, 300);
+      }
+
+      // Close modal when clicking close button
+      closeBtn.addEventListener('click', closeModal);
+
+      // Close modal when clicking outside image
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      // Close modal with Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+          closeModal();
+        }
+      });
+
+      // Add click handlers to all images
+      function addImageClickHandlers() {
+        document.querySelectorAll('.article-content img, .article-image').forEach(img => {
+          img.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openModal(img.src, img.alt);
+          });
+        });
+      }
+
+      // Initial setup
+      addImageClickHandlers();
+
+      // Re-setup when new content is added
+      const observer = new MutationObserver(() => {
+        addImageClickHandlers();
+      });
+
+      observer.observe(document.getElementById('resultsContainer'), {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    // Initialize image modal when DOM is loaded
+    document.addEventListener('DOMContentLoaded', setupImageModal);
   </script>
 </body>
 </html>

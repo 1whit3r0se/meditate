@@ -16,69 +16,170 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 25s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
         }
 
         .header {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             text-align: center;
+            animation: slideDown 0.8s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .header h1 {
             color: #4a5568;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 3rem;
+            margin-bottom: 1rem;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            font-weight: 700;
         }
 
         .header p {
             color: #718096;
-            font-size: 1.1rem;
+            font-size: 1.25rem;
         }
 
         .tabs {
             display: flex;
             background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            padding: 5px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 0.75rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 1s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .tab-button {
             flex: 1;
-            padding: 15px 20px;
+            padding: 1.25rem 2rem;
             border: none;
             background: transparent;
-            border-radius: 10px;
+            border-radius: 15px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             color: #718096;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.4s ease;
+        }
+
+        .tab-button:hover::before {
+            left: 100%;
         }
 
         .tab-button.active {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .tab-button:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
         }
 
         .tab-content {
             display: none;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .tab-content.active {
@@ -87,83 +188,112 @@
 
         .card {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
         }
 
         .card h2 {
             color: #4a5568;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 1.75rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 1rem;
+            font-weight: 700;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 2rem;
         }
 
         .form-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 0.75rem;
             font-weight: 600;
             color: #4a5568;
+            font-size: 1rem;
         }
 
         input, select, textarea {
             width: 100%;
-            padding: 12px 16px;
+            padding: 1rem 1.25rem;
             border: 2px solid #e2e8f0;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 1rem;
             transition: all 0.3s ease;
             background: white;
+            font-family: inherit;
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
         }
 
         textarea {
-            min-height: 120px;
+            min-height: 150px;
             resize: vertical;
+            line-height: 1.6;
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 1rem 2rem;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.4s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
         }
 
         .btn-secondary {
@@ -175,96 +305,114 @@
         .btn-secondary:hover {
             background: #edf2f7;
             border-color: #cbd5e0;
+            transform: translateY(-2px);
         }
 
         .btn-danger {
-            background: #e53e3e;
+            background: linear-gradient(135deg, #e53e3e, #c53030);
             color: white;
         }
 
         .btn-danger:hover {
-            background: #c53030;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(229, 62, 62, 0.4);
         }
 
         .btn-success {
-            background: #38a169;
+            background: linear-gradient(135deg, #38a169, #2f855a);
             color: white;
         }
 
         .btn-success:hover {
-            background: #2f855a;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(56, 161, 105, 0.4);
         }
 
         .section {
-            margin-bottom: 30px;
-            padding: 25px;
+            margin-bottom: 3rem;
+            padding: 2.5rem;
             border: 2px solid #e2e8f0;
-            border-radius: 15px;
-            background: #f7fafc;
+            border-radius: 20px;
+            background: rgba(247, 250, 252, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            border-color: #667eea;
+            background: rgba(247, 250, 252, 1);
         }
 
         .section h3 {
             color: #4a5568;
-            margin-bottom: 20px;
-            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            font-weight: 700;
         }
 
         .item-list {
             display: grid;
-            gap: 15px;
+            gap: 1.5rem;
         }
 
         .item {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 2rem;
+            border-radius: 15px;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
         }
 
         .item h4 {
             color: #4a5568;
-            margin-bottom: 15px;
+            margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            font-weight: 600;
         }
 
         .table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            border-radius: 10px;
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         .table th {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 15px;
+            padding: 1.5rem;
             text-align: left;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 1rem;
         }
 
         .table td {
-            padding: 15px;
+            padding: 1.5rem;
             border-bottom: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
         }
 
         .table tr:hover {
-            background: #f7fafc;
+            background: rgba(102, 126, 234, 0.05);
         }
 
         .badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
             font-size: 0.875rem;
             font-weight: 600;
             background: #e2e8f0;
@@ -278,19 +426,19 @@
 
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 4rem;
             color: #718096;
         }
 
         .spinner {
             display: inline-block;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border: 4px solid #e2e8f0;
             border-radius: 50%;
             border-top-color: #667eea;
             animation: spin 1s ease-in-out infinite;
-            margin-bottom: 15px;
+            margin-bottom: 1.5rem;
         }
 
         @keyframes spin {
@@ -299,48 +447,81 @@
 
         .portal-name-custom {
             display: none;
-            margin-top: 10px;
+            margin-top: 1rem;
         }
 
         .error-message {
-            background: #fed7d7;
+            background: linear-gradient(135deg, #fed7d7, #feb2b2);
             color: #c53030;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
             border-left: 4px solid #e53e3e;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         .success-message {
-            background: #c6f6d5;
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
             color: #2f855a;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
             border-left: 4px solid #38a169;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .file-input {
-            border: 2px dashed #cbd5e0;
-            border-radius: 10px;
-            padding: 20px;
+            border: 3px dashed #cbd5e0;
+            border-radius: 15px;
+            padding: 2.5rem;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            background: rgba(247, 250, 252, 0.5);
         }
 
         .file-input:hover {
             border-color: #667eea;
             background: rgba(102, 126, 234, 0.05);
+            transform: translateY(-2px);
         }
 
         .file-input input {
             display: none;
         }
 
+        .file-input p {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-input small {
+            color: #718096;
+        }
+
+        /* Enhanced Responsive Design */
         @media (max-width: 768px) {
             .container {
-                padding: 10px;
+                padding: 1rem;
             }
             
             .form-row {
@@ -352,17 +533,39 @@
             }
             
             .header h1 {
-                font-size: 2rem;
+                font-size: 2.25rem;
+            }
+
+            .card {
+                padding: 2rem;
+            }
+
+            .section {
+                padding: 1.5rem;
+            }
+
+            .table th,
+            .table td {
+                padding: 1rem;
             }
         }
+
+        /* Staggered Animation for Cards */
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
     </style>
 </head>
 <body>
+    <!-- Animated Background Particles -->
+    <div class="particles" id="particles"></div>
+
     <div class="container">
         <!-- Header -->
         <div class="header">
             <h1>🚀 Apollo Admin Panel</h1>
-            <p>Manage knowledge base entries and lab environments</p>
+            <p>Manage knowledge base entries and lab environments with enhanced controls</p>
         </div>
 
         <!-- Navigation Tabs -->
@@ -387,7 +590,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="knowledge-title">Title *</label>
-                            <input type="text" id="knowledge-title" name="title" required>
+                            <input type="text" id="knowledge-title" name="title" required placeholder="Enter a descriptive title">
                         </div>
                         <div class="form-group">
                             <label for="knowledge-image-url">Image URL (optional)</label>
@@ -397,7 +600,7 @@
 
                     <div class="form-group">
                         <label for="knowledge-question">Question *</label>
-                        <input type="text" id="knowledge-question" name="question" required>
+                        <input type="text" id="knowledge-question" name="question" required placeholder="What question does this knowledge answer?">
                     </div>
 
                     <div class="form-group">
@@ -415,7 +618,7 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <div style="display: flex; gap: 1.5rem; margin-top: 3rem;">
                         <button type="submit" class="btn btn-primary">
                             💾 <span id="knowledge-submit-text">Save Knowledge</span>
                         </button>
@@ -496,7 +699,7 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <div style="display: flex; gap: 1.5rem; margin-top: 3rem;">
                         <button type="submit" class="btn btn-primary">
                             💾 <span id="lab-submit-text">Save Lab</span>
                         </button>
@@ -521,13 +724,31 @@
     </div>
 
     <script>
+        // Create animated background particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 40;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 25 + 's';
+                particle.style.animationDuration = (Math.random() * 15 + 20) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Initialize particles on load
+        document.addEventListener('DOMContentLoaded', createParticles);
+
         // Global variables
         let currentEditingKnowledge = null;
         let currentEditingLab = null;
         let portalCounter = 0;
         let nodeCounter = 0;
 
-        // Tab switching
+        // Tab switching with enhanced animation
         function switchTab(tabName) {
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(content => {
@@ -553,7 +774,7 @@
             }
         }
 
-        // Knowledge Base Functions
+        // Enhanced Knowledge Base Functions
         async function loadKnowledgeEntries() {
             try {
                 const response = await fetch('/api/admin/knowledge');
@@ -574,14 +795,14 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                ${data.knowledge.map(entry => `
-                                    <tr>
+                                ${data.knowledge.map((entry, index) => `
+                                    <tr style="animation: fadeIn 0.6s ease ${index * 0.1}s both;">
                                         <td><strong>${entry.title || 'Untitled'}</strong></td>
                                         <td>${entry.question}</td>
                                         <td><span class="badge">${entry.file_count || 0} files</span></td>
                                         <td><span class="badge badge-primary">${entry.view_count || 0} views</span></td>
                                         <td>
-                                            <button class="btn btn-secondary" onclick="editKnowledge(${entry.id})" style="margin-right: 10px;">
+                                            <button class="btn btn-secondary" onclick="editKnowledge(${entry.id})" style="margin-right: 1rem;">
                                                 ✏️ Edit
                                             </button>
                                             <button class="btn btn-danger" onclick="deleteKnowledge(${entry.id})">
@@ -595,8 +816,10 @@
                     `;
                 } else {
                     container.innerHTML = `
-                        <div style="text-align: center; padding: 40px; color: #718096;">
-                            <p>No knowledge entries found. Add your first entry above.</p>
+                        <div style="text-align: center; padding: 4rem; color: #718096;">
+                            <i class="fas fa-database" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <h3 style="margin-bottom: 1rem;">No Knowledge Entries Found</h3>
+                            <p>Add your first entry above to get started.</p>
                         </div>
                     `;
                 }
@@ -629,8 +852,11 @@
                     document.getElementById('knowledge-submit-text').textContent = 'Update Knowledge';
                     document.getElementById('knowledge-cancel').style.display = 'inline-flex';
                     
-                    // Scroll to form
-                    document.getElementById('knowledge-form').scrollIntoView({ behavior: 'smooth' });
+                    // Scroll to form with smooth animation
+                    document.getElementById('knowledge-form').scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
             } catch (error) {
                 console.error('Error loading knowledge entry:', error);
@@ -639,7 +865,7 @@
         }
 
         async function deleteKnowledge(id) {
-            if (!confirm('Are you sure you want to delete this knowledge entry?')) return;
+            if (!confirm('Are you sure you want to delete this knowledge entry? This action cannot be undone.')) return;
             
             try {
                 const response = await fetch(`/api/admin/knowledge/${id}`, {
@@ -667,7 +893,7 @@
             document.getElementById('knowledge-message').innerHTML = '';
         }
 
-        // Labs Functions
+        // Enhanced Labs Functions
         async function loadLabs() {
             try {
                 const response = await fetch('/api/admin/labs');
@@ -688,14 +914,14 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                ${data.labs.map(lab => `
-                                    <tr>
+                                ${data.labs.map((lab, index) => `
+                                    <tr style="animation: fadeIn 0.6s ease ${index * 0.1}s both;">
                                         <td><strong>${lab.name}</strong></td>
                                         <td><span class="badge badge-primary">${lab.product}</span></td>
                                         <td>${lab.owner || 'Not specified'}</td>
                                         <td>${new Date(lab.created_at).toLocaleDateString()}</td>
                                         <td>
-                                            <button class="btn btn-secondary" onclick="editLab(${lab.id})" style="margin-right: 10px;">
+                                            <button class="btn btn-secondary" onclick="editLab(${lab.id})" style="margin-right: 1rem;">
                                                 ✏️ Edit
                                             </button>
                                             <button class="btn btn-danger" onclick="deleteLab(${lab.id})">
@@ -709,8 +935,10 @@
                     `;
                 } else {
                     container.innerHTML = `
-                        <div style="text-align: center; padding: 40px; color: #718096;">
-                            <p>No labs found. Add your first lab above.</p>
+                        <div style="text-align: center; padding: 4rem; color: #718096;">
+                            <i class="fas fa-flask" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <h3 style="margin-bottom: 1rem;">No Labs Found</h3>
+                            <p>Add your first lab above to get started.</p>
                         </div>
                     `;
                 }
@@ -763,7 +991,10 @@
                     document.getElementById('lab-cancel').style.display = 'inline-flex';
                     
                     // Scroll to form
-                    document.getElementById('lab-form').scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('lab-form').scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
             } catch (error) {
                 console.error('Error loading lab:', error);
@@ -772,7 +1003,7 @@
         }
 
         async function deleteLab(id) {
-            if (!confirm('Are you sure you want to delete this lab?')) return;
+            if (!confirm('Are you sure you want to delete this lab? This action cannot be undone.')) return;
             
             try {
                 const response = await fetch(`/api/admin/labs/${id}`, {
@@ -812,6 +1043,7 @@
             
             const portalDiv = document.createElement('div');
             portalDiv.className = 'item';
+            portalDiv.style.animation = 'fadeIn 0.6s ease';
             portalDiv.innerHTML = `
                 <h4>
                     🌐 Portal ${portalId + 1}
@@ -871,7 +1103,12 @@
         function removePortal(portalId) {
             const portalElements = document.querySelectorAll('#portals-container .item');
             if (portalElements[portalId]) {
-                portalElements[portalId].remove();
+                portalElements[portalId].style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    if (portalElements[portalId]) {
+                        portalElements[portalId].remove();
+                    }
+                }, 300);
             }
         }
 
@@ -894,6 +1131,7 @@
             
             const nodeDiv = document.createElement('div');
             nodeDiv.className = 'item';
+            nodeDiv.style.animation = 'fadeIn 0.6s ease';
             nodeDiv.innerHTML = `
                 <h4>
                     🖥️ Node ${nodeId + 1}
@@ -947,17 +1185,28 @@
         function removeNode(nodeId) {
             const nodeElements = document.querySelectorAll('#nodes-container .item');
             if (nodeElements[nodeId]) {
-                nodeElements[nodeId].remove();
+                nodeElements[nodeId].style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    if (nodeElements[nodeId]) {
+                        nodeElements[nodeId].remove();
+                    }
+                }, 300);
             }
         }
 
-        // Form submission handlers
+        // Enhanced Form submission handlers
         document.getElementById('knowledge-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const formData = new FormData(e.target);
             const url = currentEditingKnowledge ? `/api/admin/knowledge/${currentEditingKnowledge.id}` : '/api/admin/knowledge';
             const method = currentEditingKnowledge ? 'PUT' : 'POST';
+            
+            // Show loading state
+            const submitBtn = document.querySelector('#knowledge-form button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin-right: 0.5rem;"></div>Saving...';
+            submitBtn.disabled = true;
             
             try {
                 const response = await fetch(url, {
@@ -977,6 +1226,9 @@
             } catch (error) {
                 console.error('Error saving knowledge:', error);
                 showMessage('knowledge-message', error.message || 'Failed to save knowledge', 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         });
 
@@ -1023,6 +1275,12 @@
             const url = currentEditingLab ? `/api/admin/labs/${currentEditingLab.id}` : '/api/admin/labs';
             const method = currentEditingLab ? 'PUT' : 'POST';
             
+            // Show loading state
+            const submitBtn = document.querySelector('#lab-form button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin-right: 0.5rem;"></div>Saving...';
+            submitBtn.disabled = true;
+            
             try {
                 const response = await fetch(url, {
                     method: method,
@@ -1044,10 +1302,13 @@
             } catch (error) {
                 console.error('Error saving lab:', error);
                 showMessage('lab-message', error.message || 'Failed to save lab', 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         });
 
-        // Utility functions
+        // Enhanced Utility functions
         function showMessage(containerId, message, type) {
             const container = document.getElementById(containerId);
             const className = type === 'success' ? 'success-message' : 'error-message';
@@ -1061,17 +1322,65 @@
             }
         }
 
-        // File input handling
+        // Enhanced File input handling
         document.getElementById('knowledge-files').addEventListener('change', function(e) {
             const files = e.target.files;
             const fileInput = document.querySelector('.file-input p');
             
             if (files.length > 0) {
-                fileInput.textContent = `📎 ${files.length} file(s) selected`;
+                fileInput.innerHTML = `📎 ${files.length} file(s) selected`;
+                fileInput.style.color = '#667eea';
             } else {
-                fileInput.textContent = '📎 1Click to select files or drag and drop';
+                fileInput.innerHTML = '📎 Click to select files or drag and drop';
+                fileInput.style.color = '#4a5568';
             }
         });
+
+        // Add drag and drop functionality
+        const fileInput = document.querySelector('.file-input');
+        
+        fileInput.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileInput.style.borderColor = '#667eea';
+            fileInput.style.background = 'rgba(102, 126, 234, 0.1)';
+        });
+
+        fileInput.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            fileInput.style.borderColor = '#cbd5e0';
+            fileInput.style.background = 'rgba(247, 250, 252, 0.5)';
+        });
+
+        fileInput.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileInput.style.borderColor = '#cbd5e0';
+            fileInput.style.background = 'rgba(247, 250, 252, 0.5)';
+            
+            const files = e.dataTransfer.files;
+            document.getElementById('knowledge-files').files = files;
+            
+            const fileInputText = document.querySelector('.file-input p');
+            if (files.length > 0) {
+                fileInputText.innerHTML = `📎 ${files.length} file(s) selected`;
+                fileInputText.style.color = '#667eea';
+            }
+        });
+
+        // Add fadeOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
