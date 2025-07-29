@@ -294,7 +294,7 @@
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
     }
 
-    /* Main Content */
+    /* Main Content Layout */
     .main-content {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
@@ -303,6 +303,7 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       overflow: hidden;
       animation: fadeInUp 1s ease;
+      position: relative;
     }
 
     @keyframes fadeInUp {
@@ -361,12 +362,17 @@
       z-index: 1;
     }
 
+    /* Content Body with proper spacing for hot articles */
     .content-body {
       padding: 3rem;
-      margin-right: 0;
+      position: relative;
     }
 
-    /* Hot Articles Section - Enhanced */
+    .content-body.with-hot-articles {
+      padding-right: 400px; /* Make room for hot articles sidebar */
+    }
+
+    /* Hot Articles Section - Fixed positioning */
     .hot-articles-section {
       position: fixed;
       top: 50%;
@@ -380,7 +386,7 @@
       padding: 2rem;
       box-shadow: var(--box-shadow);
       backdrop-filter: blur(20px);
-      z-index: 100;
+      z-index: 50; /* Lower z-index to avoid interfering with dropdowns */
       overflow: hidden;
       display: none;
       animation: slideInRight 0.8s ease;
@@ -516,17 +522,13 @@
       font-size: 1rem;
     }
 
-    .content-body.with-hot-articles {
-      margin-right: 370px;
-    }
-
-    /* Search Container - Enhanced */
+    /* Search Container - Improved positioning and width */
     .search-container {
       position: relative;
       margin-bottom: 3rem;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
+      max-width: 100%; /* Use full available width */
+      margin-left: 0;
+      margin-right: 0;
     }
 
     .command-input {
@@ -567,6 +569,7 @@
       font-size: 1.25rem;
     }
 
+    /* Suggestions dropdown - Fixed positioning and z-index */
     .suggestions {
       position: absolute;
       top: 100%;
@@ -579,7 +582,7 @@
       border-radius: 0 0 var(--border-radius) var(--border-radius);
       max-height: 350px;
       overflow-y: auto;
-      z-index: 10;
+      z-index: 1000; /* High z-index to appear above everything */
       display: none;
       box-shadow: var(--box-shadow);
     }
@@ -633,8 +636,8 @@
 
     /* Results Container - Enhanced */
     .results-container {
-      max-width: 900px;
-      margin: 0 auto;
+      max-width: 100%; /* Use full available width */
+      margin: 0;
       display: flex;
       flex-direction: column;
       gap: 2rem;
@@ -910,9 +913,7 @@
       animation: fadeIn 0.8s ease;
       box-shadow: var(--box-shadow);
       line-height: 1.9;
-      max-width: 1200px;
-      margin-left: auto;
-      margin-right: auto;
+      max-width: 100%;
     }
 
     .dark-mode .article-content {
@@ -1036,7 +1037,7 @@
       }
       
       .content-body.with-hot-articles {
-        margin-right: 0;
+        padding-right: 3rem; /* Reset to normal padding */
       }
 
       .back-to-top {
@@ -1059,11 +1060,15 @@
       }
 
       .content-header h1 {
-        font-size: 2.25rem;
+        font-size: 2.5rem;
       }
 
       .content-body {
         padding: 2rem;
+      }
+
+      .content-body.with-hot-articles {
+        padding: 2rem; /* Reset to normal padding on mobile */
       }
 
       .user-message {
