@@ -340,12 +340,14 @@ async function initializeDatabase() {
       // Drop old index if exists
       await sql`DROP INDEX IF EXISTS idx_fts;`
 
-      // Create enhanced full-text search index with weights
+      // Create enhanced full-text search index with weights (PostgreSQL compatible)
       await sql`
         CREATE INDEX idx_fts_enhanced ON "knowledge_base" USING GIN (
-          setweight(to_tsvector('english', COALESCE("title", '')), 'A') ||
-          setweight(to_tsvector('english', COALESCE("question", '')), 'B') ||
-          setweight(to_tsvector('english', "content"), 'C')
+          (
+            setweight(to_tsvector('english', COALESCE("title", '')), 'A') ||
+            setweight(to_tsvector('english', COALESCE("question", '')), 'B') ||
+            setweight(to_tsvector('english', "content"), 'C')
+          )
         );
       `
       console.log("Created enhanced full-text search index")
@@ -636,16 +638,20 @@ app.post("/api/chat", async (req, res) => {
     const result = await sql`
       SELECT kb."id", kb."title", kb."question", kb."content", kb."image_url", kb."view_count",
              ts_rank(
-               setweight(to_tsvector('english', COALESCE(kb."title", '')), 'A') ||
-               setweight(to_tsvector('english', COALESCE(kb."question", '')), 'B') ||
-               setweight(to_tsvector('english', kb."content"), 'C'),
+               (
+                 setweight(to_tsvector('english', COALESCE(kb."title", '')), 'A') ||
+                 setweight(to_tsvector('english', COALESCE(kb."question", '')), 'B') ||
+                 setweight(to_tsvector('english', kb."content"), 'C')
+               ),
                to_tsquery('english', ${searchQuery})
              ) AS rank
       FROM "knowledge_base" kb
       WHERE 
-        setweight(to_tsvector('english', COALESCE(kb."title", '')), 'A') ||
-        setweight(to_tsvector('english', COALESCE(kb."question", '')), 'B') ||
-        setweight(to_tsvector('english', kb."content"), 'C')
+        (
+          setweight(to_tsvector('english', COALESCE(kb."title", '')), 'A') ||
+          setweight(to_tsvector('english', COALESCE(kb."question", '')), 'B') ||
+          setweight(to_tsvector('english', kb."content"), 'C')
+        )
         @@ to_tsquery('english', ${searchQuery})
       ORDER BY rank DESC, kb."view_count" DESC
       LIMIT 15
