@@ -1346,9 +1346,19 @@ app.get("/", (req, res) => {
 })
 
 if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 3000
-  app.listen(PORT, () => {
+  const PORT = process.env.PORT || 3001
+  const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
+  })
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.log(`Port ${PORT} is in use, trying port ${Number(PORT) + 1}...`)
+      app.listen(Number(PORT) + 1, () => {
+        console.log(`Server running on port ${Number(PORT) + 1}`)
+      })
+    } else {
+      console.error("Server error:", err)
+    }
   })
 }
 
